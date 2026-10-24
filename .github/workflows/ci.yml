@@ -264,7 +264,7 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client redis-tools
       - name: Test database and cache
         run: docker compose up -d --wait postgres-test redis-test
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
@@ -301,7 +301,7 @@ jobs:
       - run: cp .env.example .env
       - name: Test database and cache
         run: docker compose up -d --wait postgres-test redis-test
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
