@@ -40,7 +40,7 @@ RUN npx prisma generate
 RUN npx nx build admin --configuration=production
 
 # ── Runtime: nginx:alpine serving compiled SPA ────────────────────────────
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.29-alpine AS runtime
 RUN rm -rf /etc/nginx/conf.d/default.conf /usr/share/nginx/html/*
 COPY apps/admin/nginx.conf /etc/nginx/nginx.conf
 COPY apps/admin/security-headers.conf /etc/nginx/security-headers.conf
