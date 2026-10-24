@@ -213,7 +213,7 @@
     "lighthouse": "^12.8.2",
     "marked": "^15.0.12",
     "msw": "^2.13.3",
-    "nitropack": "^2.13.3",
+    "nitropack": "^2.13.5",
     "nx": "22.6.5",
     "postcss": "^8.5.9",
     "prettier": "~3.6.2",
