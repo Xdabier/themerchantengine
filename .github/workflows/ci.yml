@@ -215,7 +215,7 @@ jobs:
       - run: npx nx build storefront --configuration=production
       - name: Lighthouse, admin public routes
         run: npx lhci autorun
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: lighthouse-reports
@@ -239,7 +239,7 @@ jobs:
         run: |
           docker compose up -d --wait postgres-test redis-test
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: backend-e2e-api-log
@@ -270,13 +270,13 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx nx e2e admin-e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: admin-e2e-report
           path: apps/admin-e2e/playwright-report/
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: admin-e2e-diffs-and-api-log
@@ -309,7 +309,7 @@ jobs:
       - run: npx nx e2e storefront-e2e
         env:
           REDIS_PORT: "56380"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: storefront-e2e-report
@@ -350,7 +350,7 @@ jobs:
       - run: npm run test:storefront-ssr-smoke
         env:
           STOREFRONT_API_URL: http://localhost:53001
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: ssr-smoke-logs
