@@ -1,0 +1,149 @@
+-- Plan F phase F3 (guest checkout), findings K3, K2 and D3.
+--
+-- WHAT
+--   Five nullable columns on `Order` and one index. Three carry a guest's
+--   identity (`guestEmail`, `guestSessionId`, `guestLocale`); two snapshot the
+--   tender chosen at checkout (`paymentMethodCode`, `paymentMethodName`).
+--
+-- WHY
+--   `Order.userId` has always been nullable, because the admin can raise a
+--   manual order, but there was nothing else on the row to say who a
+--   user-less order belonged to. That made guest checkout impossible at the
+--   data-model level rather than merely unimplemented:
+--     - `trackOrder` matches only `order.user.email`, so a guest order could
+--       never be found by the public track page.
+--     - the order-confirmation mail resolver returns null when the order has
+--       no user email, so a guest would silently receive no confirmation.
+--     - `findOneStorefront` compares `order.userId` to the caller, so a guest
+--       could never read back the order they had just placed.
+--   `guestSessionId` is the anonymous cart session that placed the order. It
+--   is what lets that browser read the order back with no token and no account,
+--   and it is why the storefront can show a confirmation page instead of a
+--   login wall one second after the customer pays.
+--   `guestLocale` exists because there is no user row to read a locale from.
+--   Without it every guest email would go out in the default locale.
+--
+--   The payment columns are separate from that story but share this migration
+--   deliberately: they are the same kind of change to the same table, and one
+--   migration is one lock. `Order` had no payment-method field at all, only
+--   `paymentStatus`, so the tender a customer picked could not be recorded.
+--
+-- WHO WRITES THEM
+--   The three guest columns: `OrdersService.createOrder`, at order-create time,
+--   and never again. `guestSessionId` is additionally CLEARED by
+--   `OrdersService.claimGuestOrders` when the guest signs in and their orders
+--   move onto the new account.
+--
+--   The two payment columns: NOTHING YET. They are deliberately landed ahead of
+--   their writer, which arrives with the payment-method step in plan F phase
+--   F5, because the plan calls for one migration on this table rather than two
+--   (K-F3). Until F5 lands they are NULL on every row. That is a knowing
+--   trade, not an oversight: the alternative is a second `ALTER TABLE` on the
+--   same table a phase later. If F5 is abandoned, drop these two columns rather
+--   than leaving them.
+--
+--   Both payment columns are snapshots in the same sense as
+--   `shippingMethodName` (already on this table): a later rename of a payment
+--   method, or disabling it, must not rewrite what a past customer was told
+--   they were paying with. `paymentMethodName` therefore freezes ONE locale of
+--   what is a Translatable on `PaymentMethod.name`, exactly as
+--   `shippingMethodName` and `Invoice.shippingMethodName` already do. That is a
+--   known, pre-existing exception to constitution §3.2 rather than a new one,
+--   and it is recorded here because it was chosen rather than inherited.
+--
+-- APPEND-ONLY, SO NO deletedAt
+--   `Order` is in the append-only set (constitution §3.4). No soft-delete
+--   column is added and none is wanted.
+--
+-- DATA IMPACT
+--   None. Every column is nullable with no default and no backfill, because
+--   there is nothing truthful to backfill: every existing order was placed by
+--   an authenticated customer, so its guest identity is genuinely absent, and
+--   no past order recorded a tender. Writing 'cod' across the history would
+--   invent a fact the system never captured.
+--
+--   The index is on a column that is NULL for every existing row, so it is
+--   built empty and costs nothing. Postgres does index NULLs in a btree, but
+--   the table is small and this runs during the deploy window (the `migrate-db`
+--   CI job, via `db push` — see the note at the end), so a plain CREATE INDEX
+--   is used rather than CONCURRENTLY.
+--
+--   It is read by `OrdersService.claimGuestOrders`, whose WHERE is
+--   `userId IS NULL AND guestSessionId = $1`, run on every sign-in that carries
+--   an anonymous cart cookie. Ownership on the read path is checked in
+--   application code after a primary-key fetch, so this index exists for the
+--   claim, not for the read.
+--
+-- ORDERING AND ROLLBACK
+--   Forward: schema first, code second. New code against the old schema fails
+--   on the create, because it sends columns that do not exist.
+--
+--   Old code against the new schema is safe AT THE SCHEMA LEVEL and at all
+--   times: nothing before this phase selects, writes or types any of the five
+--   columns, no existing column, constraint or index is altered, and no read
+--   can fail the way the M1 enum change made reads fail once a row carried the
+--   new value.
+--
+--   It is NOT safe at the data level once a guest has checked out, and that
+--   distinction is the whole rollback story. Reverting the code leaves the rows
+--   in Postgres and severs every path to them:
+--     - unreadable: `findOneStorefront` goes back to comparing `userId`, which
+--       is NULL, so the customer gets refused on their own order forever;
+--     - untrackable: `trackOrder` goes back to `user.email`, and there is no
+--       user row, so the public track page answers ORDER_NOT_FOUND;
+--     - unemailable: `resolveOrder` goes back to returning null without a user
+--       email, and a null resolution means the dispatcher sends NOTHING. No
+--       shipped mail, no delivered mail, silently.
+--   The data survives; the customer's access to it does not, and nothing logs
+--   an error while that is happening.
+--
+--   So: rollback is a plain code revert ONLY while
+--     SELECT count(*) FROM "Order"
+--     WHERE "userId" IS NULL AND "guestSessionId" IS NOT NULL;
+--   returns 0. Past that point a revert is customer-visible data loss and needs
+--   the same export, and the same deliberate decision, that the drop below
+--   needs. Check the count before reverting, not after.
+--
+--   With that count at zero, rollback is a plain code revert and the columns can
+--   be left in place. That is the recommended path, because dropping them is destructive
+--   in a way the enum change was not: any order placed by a guest while the
+--   feature was live keeps its only contact address in `guestEmail`, and its
+--   only ownership link in `guestSessionId`. Dropping those columns orphans
+--   those orders permanently — no one can track them, no one can read them
+--   back, and support has no address to reach the buyer on. Export both
+--   columns before considering a drop, and only after confirming no order row
+--   has `userId IS NULL AND guestEmail IS NOT NULL`.
+--
+--   The drop, if it is ever genuinely wanted:
+--     ALTER TABLE "Order" DROP COLUMN "guestEmail",
+--                         DROP COLUMN "guestSessionId",
+--                         DROP COLUMN "guestLocale",
+--                         DROP COLUMN "paymentMethodCode",
+--                         DROP COLUMN "paymentMethodName";
+--   Postgres drops an index with its column, so no separate DROP INDEX is
+--   needed; issuing one afterwards errors unless written IF EXISTS.
+--
+-- INVALIDATED STATE
+--   None. No cached session, permission matrix, or Translatable resolution
+--   cache keys on any of these columns. Idempotency records cache a serialized
+--   order response for 24 hours, so a replayed key from just before the deploy
+--   returns a payload without the new fields; that is correct, since the order
+--   it describes genuinely has none.
+--
+-- NOTE ON THIS REPOSITORY
+--   Per clarifications §1.34 the deployed schema is applied with
+--   `prisma db push`, not `prisma migrate deploy`, so this file is the written
+--   record of the change rather than the thing CI executes. `db push` derives
+--   the same statements from `prisma/schema.prisma`. There is no backfill here,
+--   so nothing is lost by that: unlike the M2 history table, this migration has
+--   no executable half that `db push` would skip.
+
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN "guestEmail" TEXT,
+                    ADD COLUMN "guestSessionId" TEXT,
+                    ADD COLUMN "guestLocale" TEXT,
+                    ADD COLUMN "paymentMethodCode" TEXT,
+                    ADD COLUMN "paymentMethodName" TEXT;
+
+-- CreateIndex
+CREATE INDEX "Order_guestSessionId_idx" ON "Order"("guestSessionId");

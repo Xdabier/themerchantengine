@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Store</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      The document element carries no lang or dir here: both are per request and
+      are set from the runtime config on the server pass (app/locale.service.ts).
+      A literal would be wrong for every install that does not match it.
+
+      The icons below are the neutral defaults a fresh engine ships. An install
+      that uploads its own gets them from the config; the stepper replaces these
+      files. theme-color is the one colour a token cannot reach, because browser
+      chrome reads it before any stylesheet loads, so the server pass rewrites
+      it from the generated palette (app/services/brand-tokens.service.ts) and
+      the value here is only what an unconfigured store shows.
+    -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/brand/default/favicon-32.png" />
+    <link rel="icon" type="image/svg+xml" href="/brand/default/app-icon.svg" />
+    <link rel="apple-touch-icon" href="/brand/default/app-icon-192.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#1f2937" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+  </head>
+  <body>
+    <app-root></app-root>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

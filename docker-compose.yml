@@ -1,0 +1,78 @@
+version: '3.8'
+
+# Port scheme: an uncommon 5xxxx range so local projects never clash.
+# Mnemonic: 5 + standard port. Every mapping binds the loopback address only,
+# so the dev and test databases never listen on the LAN. Host:container.
+#   55432 postgres-dev (5432)
+#   55433 postgres-test (5432)
+#   56379 redis-dev (6379)
+#   56380 redis-test (6379)
+# Application ports (not in this file): api 53000, api-e2e 53001,
+# admin 53200, admin-e2e 53211, storefront 53300, storefront-e2e 53311.
+
+services:
+  postgres-dev:
+    image: postgres:16
+    container_name: merchants-engine-postgres-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: merchants_engine_dev
+    ports:
+      - '127.0.0.1:55432:5432'
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-test:
+    image: postgres:16
+    container_name: merchants-engine-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: merchants_engine_test
+    ports:
+      - '127.0.0.1:55433:5432'
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-dev:
+    image: redis:7
+    container_name: merchants-engine-redis-dev
+    ports:
+      - '127.0.0.1:56379:6379'
+    volumes:
+      - redis-dev-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-test:
+    image: redis:7
+    container_name: merchants-engine-redis-test
+    ports:
+      - '127.0.0.1:56380:6379'
+    volumes:
+      - redis-test-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-dev-data:
+  postgres-test-data:
+  redis-dev-data:
+  redis-test-data:

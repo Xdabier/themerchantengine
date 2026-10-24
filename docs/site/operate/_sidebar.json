@@ -1,0 +1,13 @@
+{
+  "title": "Operate",
+  "pages": [
+    "topology",
+    "update",
+    "rollback",
+    "backups-and-restore",
+    "tls-and-renewal",
+    "timers-and-logs",
+    "license-renewal",
+    "store-settings"
+  ]
+}

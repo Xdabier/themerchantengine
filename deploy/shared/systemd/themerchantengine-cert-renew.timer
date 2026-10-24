@@ -1,0 +1,14 @@
+[Unit]
+Description=Scheduled Let's Encrypt renewal for the themerchantengine edge
+
+[Timer]
+# Twice a day, per Let's Encrypt guidance, so a single failed run is not fatal.
+OnCalendar=*-*-* 03,15:17:00
+# Spread load across the ACME API and avoid a thundering herd.
+RandomizedDelaySec=45m
+# Run a missed window on the next boot instead of silently skipping it.
+Persistent=true
+Unit=themerchantengine-cert-renew.service
+
+[Install]
+WantedBy=timers.target

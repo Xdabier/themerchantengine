@@ -1,0 +1,186 @@
+{
+  "$comment": "Paths still carrying client references. A trailing slash is a directory prefix. retiredBy names the plan ticket that removes the last reference; the guard fails on any entry that no longer matches a hit, so this list only shrinks.",
+  "entries": [
+    {
+      "path": "scripts/verify-no-client-refs.tokens.json",
+      "retiredBy": "never",
+      "reason": "The guard's own token table, kept apart from the guard so it stays out of the release archive."
+    },
+    {
+      "path": "scripts/__tests__/verify-no-client-refs.spec.ts",
+      "retiredBy": "never",
+      "reason": "The canary spec plants every token on purpose."
+    },
+    {
+      "path": "apps/admin/src/app/shared/currency.guard.spec.ts",
+      "retiredBy": "never",
+      "reason": "The complete ISO 4217 code set, which the guard matches feature files against. Dropping a code because a client once used it narrows the guard and lets a hardcoded currency through, so the list stays whole."
+    },
+    {
+      "path": "libs/shared/common/src/constants/currencies.constants.ts",
+      "retiredBy": "never",
+      "reason": "The ISO 4217 catalogue names every currency it lists, the two client currencies among them."
+    },
+    {
+      "path": "libs/shared/common/src/constants/currencies.constants.spec.ts",
+      "retiredBy": "never",
+      "reason": "Pins the catalogue entries, the two client currencies among them."
+    },
+    {
+      "path": "apps/api/src/modules/countries/countries.constants.ts",
+      "retiredBy": "never",
+      "reason": "The ISO 3166 catalogue names every country it lists, the two client markets among them."
+    },
+    {
+      "path": "prisma/migrations/",
+      "retiredBy": "never",
+      "reason": "Applied migrations are immutable history."
+    },
+    {
+      "path": "docs/badii-studio-brand-guidelines.md",
+      "retiredBy": "never",
+      "reason": "The studio's own city, not a client value."
+    },
+    {
+      "path": "docs/admin-manual-qa-findings.md",
+      "retiredBy": "never",
+      "reason": "Historical QA record."
+    },
+    {
+      "path": "docs/storefront-manual-qa-findings.md",
+      "retiredBy": "never",
+      "reason": "Historical QA record."
+    },
+    {
+      "path": "docs/storefront-manual-qa-findings-2026-08-27.md",
+      "retiredBy": "never",
+      "reason": "Historical QA record."
+    },
+    {
+      "path": "docs/audit/",
+      "retiredBy": "never",
+      "reason": "Historical audit records."
+    },
+    {
+      "path": "specs/constitution.md",
+      "retiredBy": "never",
+      "reason": "The Amendment Log is a dated history; every section above it must be clean.",
+      "fromMarker": "### Amendment Log"
+    },
+    {
+      "path": "specs/decision-records/",
+      "retiredBy": "never",
+      "reason": "Decision records explain why the engine is shaped the way it is."
+    },
+    {
+      "path": "specs/admin-dashboard/",
+      "retiredBy": "never",
+      "reason": "Historical readiness plan, audit and tasks."
+    },
+    {
+      "path": "specs/full-stack-audit-goal.md",
+      "retiredBy": "never",
+      "reason": "Historical audit goal."
+    },
+    {
+      "path": "specs/features/cli-brand-agnostic-setup/",
+      "retiredBy": "never",
+      "reason": "Names the clients it retires."
+    },
+    {
+      "path": "specs/features/admin-product-ux/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/admin-qa-remediation/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/asset-upload-surfaces/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/asset-variant-serving/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/better-auth-migration/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/bot-abuse-hardening/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/full-stack-audit-2026-05-14/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/product-site-and-docs/",
+      "reason": "The site's planning record: the claim table names the one client whose case study the plan keeps, and the keyword and pricing research names its markets and their currencies.",
+      "retiredBy": "never"
+    },
+    {
+      "path": "specs/features/notifications-email-engine/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/seo-discovery-hardening/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/seo-indexing-dashboard/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/storefront-catalog-infinite-scroll/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/storefront-e2e-hardening/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/storefront-home-sections/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/storefront-qa-remediation/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/storefront-search-restore/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "specs/features/storefront-ssr-data-hydration/",
+      "retiredBy": "never",
+      "reason": "Historical feature spec."
+    },
+    {
+      "path": "docs/site/reference/_generated/openapi.admin.json",
+      "retiredBy": "never",
+      "reason": "Written by npm run docs:generate from the currencies DTO, whose allowed values are the ISO 4217 catalogue; the two client currencies are in it like every other code. Regenerated on every run, so it cannot be edited by hand."
+    },
+    {
+      "path": "docs/site/reference/admin-api/currencies.md",
+      "retiredBy": "never",
+      "reason": "Written by npm run docs:generate from the currencies DTO, whose allowed values are the ISO 4217 catalogue; the two client currencies are in it like every other code. Regenerated on every run, so it cannot be edited by hand."
+    }
+  ]
+}

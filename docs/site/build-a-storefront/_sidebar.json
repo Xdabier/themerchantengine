@@ -1,0 +1,20 @@
+{
+  "title": "Build a storefront",
+  "pages": [
+    "index",
+    "00-run-the-engine",
+    "01-config-locale-money",
+    "02-auth-and-session",
+    "03-catalog-and-search",
+    "04-cart",
+    "05-checkout-and-orders",
+    "06-account",
+    "07-content-and-sections",
+    "08-seo-and-geo",
+    "09-analytics-and-events",
+    "10-revalidation",
+    "conformance-checklist",
+    "reference-implementation",
+    "framework-notes"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "fixture": {
+    "id": "maghreb-ltr",
+    "description": "Maghreb-shaped store: fr default + en, LTR, three-decimal currency with the symbol after the number, 19 percent VAT, prices shown HT."
+  },
+  "identity": {
+    "storeName": { "default": "Atlas Fournitures", "fr": "Atlas Fournitures", "en": "Atlas Supplies" },
+    "brandName": "atlas",
+    "description": {
+      "default": "Fournitures professionnelles pour cabinets et ateliers, livrées dans tout le pays.",
+      "fr": "Fournitures professionnelles pour cabinets et ateliers, livrées dans tout le pays.",
+      "en": "Professional supplies for practices and workshops, delivered nationwide."
+    },
+    "legalName": { "default": "Atlas Fournitures SARL", "fr": "Atlas Fournitures SARL", "en": "Atlas Fournitures SARL" },
+    "contact": { "email": "contact@atlas.example", "phone": "+218910000000" },
+    "address": {
+      "street": {
+        "default": "14 Rue des Oliviers",
+        "fr": "14 Rue des Oliviers",
+        "en": "14 Rue des Oliviers"
+      },
+      "locality": "Tripoli",
+      "region": "Tripoli",
+      "postalCode": "21111",
+      "country": "LY"
+    },
+    "areaServed": ["LY"],
+    "businessType": "OnlineStore"
+  },
+  "brand": {
+    "baseColors": { "primary": "#3A5BA0", "secondary": null, "accent": null },
+    "fontKit": "latin-rounded",
+    "logoAssetId": null,
+    "faviconAssetId": null
+  },
+  "localization": {
+    "supportedLocales": ["fr", "en"],
+    "defaultLocale": "fr",
+    "rtlLocales": [],
+    "timezone": "Africa/Tripoli"
+  },
+  "money": {
+    "currencyCode": "LYD",
+    "symbol": "LD",
+    "symbolPosition": "after",
+    "decimalSeparator": ",",
+    "thousandsSeparator": " ",
+    "displayPrecision": 3,
+    "taxDisplay": "HT",
+    "vatRate": 0.19
+  },
+  "domains": {
+    "storefront": "https://atlas.example",
+    "admin": "https://admin.atlas.example",
+    "api": "https://api.atlas.example"
+  }
+}

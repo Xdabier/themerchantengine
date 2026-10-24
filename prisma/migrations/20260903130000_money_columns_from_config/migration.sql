@@ -1,0 +1,46 @@
+-- Plan E1.4.2 (DR-31): the currency a row is written in comes from the runtime config.
+--
+-- WHAT
+--   Drops the column defaults on `Order.currency` and `GiftCard.currency`.
+--   Both columns stay NOT NULL, so an insert that omits the value fails
+--   closed instead of stamping a currency nobody chose.
+--
+-- WHY
+--   The defaults were the previous client's currency baked into the schema.
+--   The store currency is now runtime configuration (the currencies roster
+--   plus `localization.currencyConfig`), and every live writer sets the
+--   column explicitly:
+--     - `OrdersService.createOrder` and the admin manual order write
+--       `MoneyFormatterService.currencyCode()`;
+--     - `ReturnsService.createExchangeOrder` copies the original order's
+--       currency, falling back to the store currency;
+--     - the admin gift-card issue path writes the currency validated against
+--       the enabled set, and `issueStoreCredit` writes the refunded order's.
+--   A schema default would silently stamp the wrong currency on any store
+--   whose currency is not the old literal, and a neutral literal would do the
+--   same for every store, which is why the default is dropped rather than
+--   replaced.
+--
+-- BACKFILL
+--   None. Existing rows keep their value; the default only affected inserts
+--   that omitted the column, and the application no longer has any.
+--
+-- HOW THIS ACTUALLY REACHES A DATABASE
+--   Not through `prisma migrate deploy`. This repository deploys with
+--   `prisma db push --accept-data-loss` reading `prisma/schema.prisma`, so the
+--   schema line is what applies the change and this file is the written record
+--   of intent plus a manual rollback statement. Dropping a default is a
+--   catalogue-only change: no row is rewritten and `db push` applies it
+--   without the data-loss flag. Do not reach for `migrate deploy` or
+--   `migrate status` here; the dev database carries a failed row in
+--   `_prisma_migrations` that would abort them with P3009.
+--
+-- ROLLBACK
+--   Restore the literal the schema recorded before this change on the lineage
+--   being rolled back (`git show <previous commit>:prisma/schema.prisma`,
+--   the @default on these two columns); it differs per client lineage.
+--   ALTER TABLE "Order" ALTER COLUMN "currency" SET DEFAULT '<that literal>';
+--   ALTER TABLE "GiftCard" ALTER COLUMN "currency" SET DEFAULT '<that literal>';
+
+ALTER TABLE "Order" ALTER COLUMN "currency" DROP DEFAULT;
+ALTER TABLE "GiftCard" ALTER COLUMN "currency" DROP DEFAULT;

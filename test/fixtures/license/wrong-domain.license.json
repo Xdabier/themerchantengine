@@ -1,0 +1,14 @@
+{
+  "claims": {
+    "id": "lic-fixture-domain",
+    "licensee": "Fixture Agency",
+    "plan": "studio",
+    "storeCap": 3,
+    "domains": [
+      "other.example"
+    ],
+    "issuedAt": "2026-09-03T00:00:00.000Z",
+    "expiresAt": "2099-01-01T00:00:00.000Z"
+  },
+  "signature": "uGYWIdBG/C+uDiLl/HtrP/5YtuiMStXUcoOjNXVquKDizFJbYmZ8ySj3O+Z1kFnQd8QkQkDDGDcisX6oh06rCA=="
+}

@@ -1,0 +1,21 @@
+export { TaxService } from './tax.service';
+export {
+  taxZoneSchema,
+  taxClassSchema,
+  listPaginatedQuerySchema as taxListPaginatedQuerySchema,
+  listClassesQuerySchema,
+  listZonesResponseSchema as listTaxZonesResponseSchema,
+  listClassesResponseSchema,
+  createTaxZoneRequestSchema,
+  updateTaxZoneRequestSchema,
+  createTaxClassRequestSchema,
+  type TaxZone,
+  type TaxClass,
+  type ListPaginatedQuery as TaxListPaginatedQuery,
+  type ListTaxClassesQuery,
+  type ListTaxZonesResponse,
+  type ListTaxClassesResponse,
+  type CreateTaxZoneRequest,
+  type UpdateTaxZoneRequest,
+  type CreateTaxClassRequest,
+} from './tax.schemas';

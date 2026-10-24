@@ -1,0 +1,53 @@
+{
+  "fixture": {
+    "id": "demo",
+    "description": "Neutral baseline: en default + fr, LTR, EUR with two decimals, prices shown TTC."
+  },
+  "identity": {
+    "storeName": { "default": "Demo Store", "en": "Demo Store", "fr": "Boutique Démo" },
+    "brandName": "demo",
+    "description": {
+      "default": "A demonstration store for themerchantengine.",
+      "en": "A demonstration store for themerchantengine.",
+      "fr": "Une boutique de démonstration pour themerchantengine."
+    },
+    "legalName": { "default": "Demo Store SAS", "en": "Demo Store SAS", "fr": "Demo Store SAS" },
+    "contact": { "email": "hello@demo.example", "phone": "+33100000000" },
+    "address": {
+      "street": { "default": "1 Rue de la Démo", "en": "1 Rue de la Démo", "fr": "1 Rue de la Démo" },
+      "locality": "Lyon",
+      "region": "Auvergne-Rhône-Alpes",
+      "postalCode": "69001",
+      "country": "FR"
+    },
+    "areaServed": ["FR"],
+    "businessType": "OnlineStore"
+  },
+  "brand": {
+    "baseColors": { "primary": "#1F4E79", "secondary": "#F2B441", "accent": null },
+    "fontKit": "latin-rounded",
+    "logoAssetId": null,
+    "faviconAssetId": null
+  },
+  "localization": {
+    "supportedLocales": ["en", "fr"],
+    "defaultLocale": "en",
+    "rtlLocales": [],
+    "timezone": "Europe/Paris"
+  },
+  "money": {
+    "currencyCode": "EUR",
+    "symbol": "€",
+    "symbolPosition": "after",
+    "decimalSeparator": ",",
+    "thousandsSeparator": " ",
+    "displayPrecision": 2,
+    "taxDisplay": "TTC",
+    "vatRate": 0.2
+  },
+  "domains": {
+    "storefront": "https://demo.example",
+    "admin": "https://admin.demo.example",
+    "api": "https://api.demo.example"
+  }
+}

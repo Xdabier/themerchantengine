@@ -1,0 +1,23 @@
+export { ReviewsService } from './reviews.service';
+export {
+  reviewSchema,
+  questionSchema,
+  reviewStatusSchema,
+  questionStatusSchema,
+  listReviewsQuerySchema,
+  listQuestionsQuerySchema,
+  listReviewsResponseSchema,
+  listQuestionsResponseSchema,
+  moderateRequestSchema,
+  answerQuestionRequestSchema,
+  type Review,
+  type Question,
+  type ReviewStatus,
+  type QuestionStatus,
+  type ListReviewsQuery,
+  type ListQuestionsQuery,
+  type ListReviewsResponse,
+  type ListQuestionsResponse,
+  type ModerateRequest,
+  type AnswerQuestionRequest,
+} from './reviews.schemas';

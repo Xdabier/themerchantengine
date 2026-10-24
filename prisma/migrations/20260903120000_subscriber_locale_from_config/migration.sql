@@ -1,0 +1,38 @@
+-- Plan E1.3.5 (DR-31): the subscriber locale comes from the runtime config.
+--
+-- WHAT
+--   Drops the column default on `Subscriber.locale`. The column stays NOT NULL,
+--   so an insert that omits the value fails closed instead of stamping a
+--   locale nobody chose.
+--
+-- WHY
+--   The default was the previous client's default locale baked into the
+--   schema. The store default locale is now runtime configuration
+--   (`localization.defaultLocale`). The only writer of this column is
+--   `SubscriberService.subscribe` (its create and its two revive paths), and
+--   its only caller, the newsletter signup in `newsletter.controller.ts`,
+--   resolves the locale through `resolveLocale`, which falls back to the store
+--   default. A schema default would silently disagree with the configured one
+--   on any store whose default is not the old literal.
+--
+-- BACKFILL
+--   None. Existing rows keep their value; the default only affected inserts
+--   that omitted the column, and none of the application's inserts do.
+--
+-- HOW THIS ACTUALLY REACHES A DATABASE
+--   Not through `prisma migrate deploy`. This repository deploys with
+--   `prisma db push --accept-data-loss` reading `prisma/schema.prisma`, so the
+--   schema line is what applies the change and this file is the written record
+--   of intent plus a manual rollback statement. Dropping a default is a
+--   catalogue-only change: no row is rewritten and `db push` applies it
+--   without the data-loss flag. Do not reach for `migrate deploy` or
+--   `migrate status` here; the dev database carries a failed row in
+--   `_prisma_migrations` that would abort them with P3009.
+--
+-- ROLLBACK
+--   Restore the literal the schema recorded before this change on the lineage
+--   being rolled back (`git show <previous commit>:prisma/schema.prisma`,
+--   the @default on this column); it differs per client lineage.
+--   ALTER TABLE "Subscriber" ALTER COLUMN "locale" SET DEFAULT '<that literal>';
+
+ALTER TABLE "Subscriber" ALTER COLUMN "locale" DROP DEFAULT;
