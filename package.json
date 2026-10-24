@@ -215,7 +215,7 @@
     "msw": "^2.13.3",
     "nitropack": "^2.13.3",
     "nx": "22.6.5",
-    "postcss": "^8.5.9",
+    "postcss": "^8.5.31",
     "prettier": "~3.6.2",
     "rimraf": "^5.0.0",
     "source-map-support": "^0.5.21",
