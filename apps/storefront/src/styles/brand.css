@@ -1,0 +1,131 @@
+/*
+ * Brand tokens.
+ *
+ * Authority: agent_docs/storefront/brand-tokens.md.
+ *
+ * The engine is one generic build, so the palette is not written here. It is
+ * generated from the operator's base colours (libs/shared/common/src/brand),
+ * served on GET /v1/store/config, and injected as a `:root` block into the
+ * document head on the server pass (app/services/brand-tokens.service.ts).
+ * That block overrides the fallback in §1 by cascade order.
+ *
+ * This file therefore holds three things and nothing else:
+ *
+ *   §1 The neutral fallback palette, so a render with no config still
+ *      resolves every `var(--brand-*)`: a stylesheet-only probe, a unit test,
+ *      or a page served while the config endpoint is down. The values are the
+ *      generator's own output for the neutral base colours, pinned against it
+ *      by `brand-tokens.spec.ts` so the two cannot drift.
+ *
+ *   §2 Derived colours: roles the interface needs that the generator does not
+ *      name. Every one is a `color-mix` of a generated token, never a literal,
+ *      so it follows the install's palette instead of contradicting it.
+ *
+ *   §3 Structure that is the same for every install: the type scale, the
+ *      families, the radius, motion and elevation scales.
+ *
+ * A raw hex or `rgba(...)` at a call site is a violation; add a token here.
+ * A raw hex in this file outside §1 is also a violation.
+ */
+
+:root {
+  /* ── §1 Fallback palette — the generator's output for the neutral config ── */
+  --brand-bg: #fcfcfd;
+  --brand-surface: #f3f3f4;
+  --brand-surface-elevated: #ffffff;
+  --brand-text: #1b1c1d;
+  --brand-text-muted: #686b6f;
+  --brand-text-inverse: #fcfcfd;
+  --brand-primary: #1f2937;
+  --brand-primary-hover: #121820;
+  --brand-primary-active: #050709;
+  --brand-on-primary: #fcfcfd;
+  --brand-accent: #1f2937;
+  --brand-on-accent: #fcfcfd;
+  --brand-success: #1a6f3d;
+  --brand-warning: #6f501a;
+  --brand-error: #6f201a;
+  --brand-info: #1a476f;
+  --brand-border: #e5e5e6;
+  --brand-border-strong: #888b91;
+  --brand-border-interactive: #888c90;
+  --brand-focus-ring: #1f2937;
+  --brand-surface-strong: #ededee;
+  --brand-on-functional: #fcfcfd;
+
+  /* The `latin-rounded` kit, which the neutral config selects. The injected
+     block overrides these two when the install selects another kit. */
+  --brand-kit-display: 'Baloo 2';
+  --brand-kit-body: 'Inter';
+
+  /* ── §2 Derived colours ── */
+
+  /* The generator fits the state colours to carry text on the page ground, so
+     these are the same colours; they exist as their own names because a call
+     site reading `--brand-success-text` says what it means. */
+  --brand-success-text: var(--brand-success);
+  --brand-warning-text: var(--brand-warning);
+
+  /* Pressed step for a danger surface, replacing a `filter: brightness()` at
+     the call site. */
+  --brand-error-hover: color-mix(in oklab, var(--brand-error) 85%, black);
+
+  /* Scrims and overlays are the text colour at low alpha, which is what a
+     shadow cast by this palette is made of. */
+  --brand-scrim-modal: color-mix(in srgb, var(--brand-text) 50%, transparent);
+  --brand-hover-overlay: color-mix(in srgb, var(--brand-text) 12%, transparent);
+  --brand-overlay-bg: color-mix(in srgb, var(--brand-bg) 92%, transparent);
+
+  /* Translucent tints for hover affordance and dividers on a primary ground.
+     A raw rgba at a call site is forbidden; these are the sanctioned path. */
+  --brand-on-primary-hover-bg: color-mix(in srgb, var(--brand-on-primary) 8%, transparent);
+  --brand-on-primary-divider: color-mix(in srgb, var(--brand-on-primary) 16%, transparent);
+
+  /* The focus indicator. Named `--brand-focus` at call sites since before the
+     generator existed; it is the generated ring. */
+  --brand-focus: var(--brand-focus-ring);
+
+  /* Two names the interface used before the generator named the same roles.
+     Kept as aliases rather than renamed at ninety call sites. */
+  --brand-primary-dark: var(--brand-primary-hover);
+  --brand-primary-pressed: var(--brand-primary-active);
+
+  /* ── §3.1 Type scale ── */
+  --brand-text-display: 40px; /* Page title */
+  --brand-text-display-mobile: 32px; /* Page title, mobile step */
+  --brand-text-section: 24px; /* Section title */
+  --brand-text-product: 19px; /* Subtitle */
+  --brand-text-price: 19px; /* A price is a foregrounded figure, subtitle step */
+  --brand-text-body: 16px; /* Body */
+  --brand-text-secondary: 14px; /* Secondary */
+  --brand-text-micro: 12px; /* Caption and meta */
+
+  /* ── §3.2 Families — three, no more. The kit is selected by the config and
+     the faces are declared in global.css. ── */
+  --brand-font-display: var(--brand-kit-display), system-ui, sans-serif;
+  --brand-font-body: var(--brand-kit-body), system-ui, sans-serif;
+  --brand-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* ── §3.3 Border radius — a small, quiet scale. Four steps, no fifth. ── */
+  --brand-radius-sm: 4px;
+  --brand-radius-md: 6px;
+  --brand-radius-lg: 8px;
+  --brand-radius-full: 9999px; /* pills and avatars only */
+
+  /* ── §3.4 Motion ── */
+  --brand-motion-duration: 175ms;
+  --brand-motion-easing: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* ── §3.5 Elevation — functional separation only, never decoration. Every
+     shadow is the text colour at low alpha, so it follows the palette. ── */
+  --brand-shadow-color: color-mix(in srgb, var(--brand-text) 18%, transparent);
+  --brand-shadow-color-soft: color-mix(in srgb, var(--brand-text) 8%, transparent);
+  --brand-shadow-xs: 0 1px 3px var(--brand-shadow-color);
+  --brand-shadow-md: 0 8px 24px var(--brand-shadow-color-soft);
+  --brand-shadow-card:
+    0 1px 2px var(--brand-shadow-color-soft), 0 4px 12px var(--brand-shadow-color-soft);
+  --brand-shadow-dialog:
+    0 4px 12px var(--brand-shadow-color-soft), 0 12px 32px var(--brand-shadow-color);
+  --brand-shadow-drawer: 0 0 32px var(--brand-shadow-color);
+  --brand-shadow-toast: 0 4px 12px var(--brand-shadow-color);
+}

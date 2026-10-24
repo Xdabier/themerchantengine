@@ -1,0 +1,68 @@
+export const CMS_DEFAULT_PAGE_SIZE = 20;
+export const CMS_MAX_PAGE_SIZE = 100;
+
+export const CMS_DEFAULT_PAGES = [
+  {
+    slug: '/about',
+    type: 'STATIC' as const,
+    title: { default: 'About Us' },
+    content: { default: 'Learn more about our store.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 0,
+  },
+  {
+    slug: '/contact',
+    type: 'STATIC' as const,
+    title: { default: 'Contact Us' },
+    content: { default: 'Get in touch with our team.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 1,
+  },
+  {
+    slug: '/return-policy',
+    type: 'POLICY' as const,
+    title: { default: 'Return Policy' },
+    content: { default: 'Our return and refund policy details.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 2,
+  },
+  {
+    slug: '/privacy-policy',
+    type: 'POLICY' as const,
+    title: { default: 'Privacy Policy' },
+    content: { default: 'How we protect your privacy.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 3,
+  },
+  {
+    slug: '/terms',
+    type: 'POLICY' as const,
+    title: { default: 'Terms of Service' },
+    content: { default: 'Terms and conditions of use.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 4,
+  },
+  {
+    slug: '/shipping-info',
+    type: 'POLICY' as const,
+    title: { default: 'Shipping Information' },
+    content: { default: 'Shipping methods and costs.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 5,
+  },
+  {
+    slug: '/faq',
+    type: 'STATIC' as const,
+    title: { default: 'FAQ' },
+    content: { default: 'Frequently asked questions.' },
+    isPublished: true,
+    showInNavigation: true,
+    sortOrder: 6,
+  },
+];

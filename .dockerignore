@@ -1,0 +1,65 @@
+**/node_modules
+**/dist
+**/.nx
+**/.angular
+**/coverage
+**/.turbo
+**/test-results
+**/playwright-report
+**/__screenshots__
+**/.e2e-review
+**/.lighthouseci
+
+.git
+.github
+.idea
+.vscode
+.session-runner
+.git-notifs
+.migration-baseline
+
+# Logs / temp
+*.log
+*.tsbuildinfo
+.tmp-*.log
+audit-parsed.json
+
+# Local-only
+.env
+.env.local
+.env.*.local
+.env.production
+apps/*/.env.production
+uploads/
+uploads-test/
+deploy/secrets/
+*-s3-user-*.txt
+
+# Spec / planning artifacts not needed at runtime
+specs/
+agent_docs/
+docs/
+.claude/
+
+# Storefront / admin e2e
+apps/admin-e2e/.playwright-state/
+apps/storefront-e2e/.playwright-state/
+
+# Misc
+README.md
+CHANGELOG.md
+SCAFFOLD_SUMMARY.md
+*.md
+!apps/api/README.md
+
+# Local backups, generated artifacts and captured session state. These can
+# hold keys and session cookies, so they never reach an image.
+*.bak-preseed
+.env*.bak*
+*.graphify-bak
+graphify-out/
+.dev-logs/
+scripts/**/.work/
+*.zip
+assets_seed-*
+block.txt

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/apps/api",
+    "types": ["node"],
+    "module": "preserve",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "../../libs/shared/common/src/**/*.ts"],
+  "exclude": [
+    "jest.config.ts",
+    "jest.e2e.config.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.e2e-spec.ts"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "admin-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/admin-e2e/src",
+  "implicitDependencies": ["admin"],
+  "tags": ["scope:admin", "type:e2e"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/{projectRoot}"],
+      "options": {
+        "config": "{projectRoot}/playwright.config.ts"
+      },
+      "dependsOn": [{ "projects": ["admin"], "target": "build" }]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

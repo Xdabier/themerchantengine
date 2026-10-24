@@ -1,0 +1,51 @@
+export { NotificationsService } from './notifications.service';
+export { NotificationTemplatesService } from './notification-templates.service';
+
+// Schemas relocated to libs/admin-types/src/notifications.ts per DR-21 (NE6
+// re-touch). Re-exported here so existing `@admin-services` consumers keep
+// resolving without import churn; the single source of truth is @admin-types.
+export {
+  adminNotificationSchema,
+  listNotificationsQuerySchema,
+  listNotificationsResponseSchema,
+  notificationBodyText,
+  notificationTitleText,
+  unreadCountSchema,
+  type AdminNotification,
+  type ListNotificationsQuery,
+  type ListNotificationsResponse,
+  type UnreadCount,
+  createTemplateRequestSchema,
+  listLogQuerySchema,
+  listLogResponseSchema,
+  listTemplatesQuerySchema,
+  listTemplatesResponseSchema,
+  logStatusSchema,
+  notificationLogEntrySchema,
+  notificationTemplateSchema,
+  resendResponseSchema,
+  templateChannelSchema,
+  updateTemplateRequestSchema,
+  type CreateTemplateRequest,
+  type ListLogQuery,
+  type ListLogResponse,
+  type ListTemplatesQuery,
+  type ListTemplatesResponse,
+  type LogStatus,
+  type NotificationLogEntry,
+  type NotificationTemplate,
+  type ResendResponse,
+  type TemplateChannel,
+  type UpdateTemplateRequest,
+  // NE6 editor surfaces
+  previewTemplateRequestSchema,
+  previewLocaleResultSchema,
+  previewTemplateResponseSchema,
+  sendTestRequestSchema,
+  sendTestResponseSchema,
+  type PreviewTemplateRequest,
+  type PreviewLocaleResult,
+  type PreviewTemplateResponse,
+  type SendTestRequest,
+  type SendTestResponse,
+} from '@admin-types';

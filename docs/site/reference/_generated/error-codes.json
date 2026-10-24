@@ -1,0 +1,2201 @@
+{
+  "x-generated-by": "npm run docs:generate",
+  "generic": [
+    {
+      "status": 400,
+      "code": "BAD_REQUEST"
+    },
+    {
+      "status": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "status": 403,
+      "code": "FORBIDDEN"
+    },
+    {
+      "status": 404,
+      "code": "NOT_FOUND"
+    },
+    {
+      "status": 409,
+      "code": "CONFLICT"
+    },
+    {
+      "status": 422,
+      "code": "UNPROCESSABLE_ENTITY"
+    },
+    {
+      "status": 429,
+      "code": "RATE_LIMITED"
+    },
+    {
+      "status": 500,
+      "code": "INTERNAL_SERVER_ERROR"
+    }
+  ],
+  "prisma": [
+    {
+      "prismaCode": "P2002",
+      "status": 409,
+      "code": "CONFLICT",
+      "message": "A record with this value already exists."
+    },
+    {
+      "prismaCode": "P2003",
+      "status": 409,
+      "code": "CONFLICT",
+      "message": "Cannot delete, record is still referenced by another entity."
+    },
+    {
+      "prismaCode": "P2025",
+      "status": 404,
+      "code": "NOT_FOUND",
+      "message": "The requested record was not found."
+    }
+  ],
+  "codes": [
+    {
+      "code": "ADDRESS_ACCESS_DENIED",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 801,
+          "exception": "ForbiddenException",
+          "status": 403,
+          "message": "Access denied"
+        }
+      ]
+    },
+    {
+      "code": "ADDRESS_DEFAULT_FLAG_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/address-default-flag-required.exception.ts",
+          "line": 16,
+          "exception": "AddressDefaultFlagRequiredException",
+          "status": 400,
+          "message": "At least one of isDefaultShipping or isDefaultBilling must be true"
+        }
+      ]
+    },
+    {
+      "code": "ADDRESS_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 795,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Address not found"
+        }
+      ]
+    },
+    {
+      "code": "ASSET_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/asset-invalid.exception.ts",
+          "line": 16,
+          "exception": "AssetInvalidException",
+          "status": 400,
+          "message": "One or more asset IDs are invalid"
+        }
+      ]
+    },
+    {
+      "code": "AUTH_PERMISSION_INSUFFICIENT",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/auth/auth-permission-insufficient.exception.ts",
+          "line": 13,
+          "exception": "AuthPermissionInsufficientException",
+          "status": 403,
+          "message": "Insufficient permissions"
+        }
+      ]
+    },
+    {
+      "code": "AUTH_UNAUTHENTICATED",
+      "statuses": [
+        401
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/session-auth.guard.ts",
+          "line": 56,
+          "exception": "UnauthorizedException",
+          "status": 401,
+          "message": "Authentication required"
+        },
+        {
+          "file": "apps/api/src/common/session-auth.guard.ts",
+          "line": 72,
+          "exception": "UnauthorizedException",
+          "status": 401,
+          "message": "Authentication required"
+        }
+      ]
+    },
+    {
+      "code": "AUTH_USER_DEACTIVATED",
+      "statuses": [
+        401
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/session-auth.guard.ts",
+          "line": 79,
+          "exception": "UnauthorizedException",
+          "status": 401,
+          "message": "Account is deactivated"
+        }
+      ]
+    },
+    {
+      "code": "BOT_DETECTED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/bot-protection/bot-protection.guard.ts",
+          "line": 54,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Request could not be completed."
+        }
+      ]
+    },
+    {
+      "code": "CAMPAIGN_INVALID_COUPON",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/campaigns/campaign.service.ts",
+          "line": 210,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Coupon \"${couponCode}\" is not an active promotion."
+        }
+      ]
+    },
+    {
+      "code": "CAMPAIGN_NOT_EDITABLE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/campaigns/campaign.service.ts",
+          "line": 161,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "A ${campaign.status} campaign cannot be edited."
+        }
+      ]
+    },
+    {
+      "code": "CAMPAIGN_NOT_SENDABLE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/campaigns/campaign.service.ts",
+          "line": 240,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "A ${campaign.status} campaign cannot be sent."
+        },
+        {
+          "file": "apps/api/src/modules/campaigns/campaign.service.ts",
+          "line": 257,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "This campaign is already sending or sent."
+        }
+      ]
+    },
+    {
+      "code": "CAPTCHA_FAILED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/bot-protection/bot-protection.guard.ts",
+          "line": 75,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Captcha verification failed."
+        }
+      ]
+    },
+    {
+      "code": "CAPTCHA_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/bot-protection/bot-protection.guard.ts",
+          "line": 65,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Captcha verification is required."
+        }
+      ]
+    },
+    {
+      "code": "CART_EMPTY",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/cart/cart.service.ts",
+          "line": 905,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Cart is empty"
+        }
+      ]
+    },
+    {
+      "code": "CART_IDENTITY_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/cart/cart.service.ts",
+          "line": 868,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Cart identity required (userId or sessionId)"
+        }
+      ]
+    },
+    {
+      "code": "CART_INSUFFICIENT_STOCK",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/cart/cart-insufficient-stock.exception.ts",
+          "line": 16,
+          "exception": "CartInsufficientStockException",
+          "status": 400,
+          "message": "Insufficient stock for the requested quantity"
+        }
+      ]
+    },
+    {
+      "code": "CART_ITEM_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/cart/cart.service.ts",
+          "line": 917,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Cart item \"${itemId}\" not found"
+        }
+      ]
+    },
+    {
+      "code": "CART_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/cart/cart.service.ts",
+          "line": 893,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Cart not found"
+        }
+      ]
+    },
+    {
+      "code": "CART_VARIANT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/cart/cart-variant-not-found.exception.ts",
+          "line": 15,
+          "exception": "CartVariantNotFoundException",
+          "status": 404,
+          "message": "Product variant not found or unavailable"
+        }
+      ]
+    },
+    {
+      "code": "CATEGORY_DESCENDANT_AS_PARENT",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/categories/categories.service.ts",
+          "line": 538,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "Cannot set a descendant as parent"
+        }
+      ]
+    },
+    {
+      "code": "CATEGORY_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/categories/category-not-found.exception.ts",
+          "line": 11,
+          "exception": "CategoryNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "CATEGORY_PARENT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/categories/category-parent-not-found.exception.ts",
+          "line": 11,
+          "exception": "CategoryParentNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "COUPON_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/promotions/coupon-invalid.exception.ts",
+          "line": 18,
+          "exception": "CouponInvalidException",
+          "status": 400,
+          "message": "Invalid coupon"
+        }
+      ]
+    },
+    {
+      "code": "CUSTOMER_EMAIL_IN_USE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 511,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "Email already in use"
+        }
+      ]
+    },
+    {
+      "code": "CUSTOMER_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/customer-not-found.exception.ts",
+          "line": 7,
+          "exception": "CustomerNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_AMOUNT_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-card-amount-invalid.exception.ts",
+          "line": 10,
+          "exception": "GiftCardAmountInvalidException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_CODE_TAKEN",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-cards.service.ts",
+          "line": 284,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Gift card code \"${code}\" is already in use"
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_CURRENCY_NOT_ENABLED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-card-currency-not-enabled.exception.ts",
+          "line": 12,
+          "exception": "GiftCardCurrencyNotEnabledException",
+          "status": 400,
+          "message": "Currency \"${currency}\" is not enabled for this store"
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_DEACTIVATED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-card-deactivated.exception.ts",
+          "line": 10,
+          "exception": "GiftCardDeactivatedException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_INSUFFICIENT_BALANCE",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-card-insufficient-balance.exception.ts",
+          "line": 10,
+          "exception": "GiftCardInsufficientBalanceException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-card-invalid.exception.ts",
+          "line": 18,
+          "exception": "GiftCardInvalidException",
+          "status": 400,
+          "message": "Invalid or expired gift card"
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_NO_RECIPIENT",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-cards.service.ts",
+          "line": 478,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Gift card has no recipient email on file"
+        }
+      ]
+    },
+    {
+      "code": "GIFT_CARD_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/gift-cards/gift-card-not-found.exception.ts",
+          "line": 13,
+          "exception": "GiftCardNotFoundException",
+          "status": 404,
+          "message": "Gift card \"${id}\" not found"
+        }
+      ]
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/exceptions/idempotency.exception.ts",
+          "line": 45,
+          "exception": "IdempotencyKeyConflictException",
+          "status": 409,
+          "message": "X-Idempotency-Key was previously used with a different request body."
+        }
+      ]
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_FORBIDDEN",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/exceptions/idempotency.exception.ts",
+          "line": 63,
+          "exception": "IdempotencyKeyForbiddenException",
+          "status": 403,
+          "message": "X-Idempotency-Key was previously used by another caller."
+        }
+      ]
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_MALFORMED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/exceptions/idempotency.exception.ts",
+          "line": 27,
+          "exception": "IdempotencyKeyMalformedException",
+          "status": 400,
+          "message": "X-Idempotency-Key must be a UUID v4 string."
+        }
+      ]
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/common/exceptions/idempotency.exception.ts",
+          "line": 14,
+          "exception": "IdempotencyKeyRequiredException",
+          "status": 400,
+          "message": "X-Idempotency-Key header is required for this endpoint."
+        }
+      ]
+    },
+    {
+      "code": "INVALID_UNSUBSCRIBE_TOKEN",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/mail/unsubscribe.controller.ts",
+          "line": 34,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "The unsubscribe link is invalid or has expired."
+        }
+      ]
+    },
+    {
+      "code": "INVALID_WEBHOOK_URL",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/webhooks/webhooks.utils.ts",
+          "line": 43,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Webhook URL is not a valid URL"
+        }
+      ]
+    },
+    {
+      "code": "INVENTORY_ADJUST_MODE",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/inventory/inventory-adjust-mode.exception.ts",
+          "line": 17,
+          "exception": "InventoryAdjustModeException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "INVENTORY_SET_BELOW_RESERVED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/inventory/inventory-set-below-reserved.exception.ts",
+          "line": 14,
+          "exception": "InventorySetBelowReservedException",
+          "status": 400,
+          "message": "Cannot set stock to ${setTo}: ${reserved} unit(s) are already reserved"
+        }
+      ]
+    },
+    {
+      "code": "INVENTORY_STOCK_CONFLICT",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/inventory/inventory-stock-conflict.exception.ts",
+          "line": 16,
+          "exception": "InventoryStockConflictException",
+          "status": 409,
+          "message": "Stock changed since this screen was opened"
+        }
+      ]
+    },
+    {
+      "code": "LICENSE_FILE_MISSING",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/license/license.controller.ts",
+          "line": 81,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "attach the license file as `file`"
+        }
+      ]
+    },
+    {
+      "code": "LICENSE_FILE_NOT_CONFIGURED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/license/license.service.ts",
+          "line": 106,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "this engine has no ${LICENSE_FILE_ENV} path configured, so there is nowhere to install a license"
+        }
+      ]
+    },
+    {
+      "code": "LICENSE_REFUSED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/license/license.service.ts",
+          "line": 116,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "LICENSE_WRITE_FAILED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/license/license.service.ts",
+          "line": 148,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "the license verified but could not be written (${code})"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_ADDRESS_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 2425,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Address \"${addressId}\" not found"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_CANCEL_INELIGIBLE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-cancel-ineligible.exception.ts",
+          "line": 26,
+          "exception": "OrderCancelIneligibleException",
+          "status": 409,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "ORDER_CANCEL_SHIPMENT_IN_TRANSIT",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-cancel-shipment-in-transit.exception.ts",
+          "line": 17,
+          "exception": "OrderCancelShipmentInTransitException",
+          "status": 409,
+          "message": "This order has a shipment in transit and cannot be cancelled. Use the return flow instead."
+        }
+      ]
+    },
+    {
+      "code": "ORDER_CART_EMPTY",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-cart-empty.exception.ts",
+          "line": 15,
+          "exception": "OrderCartEmptyException",
+          "status": 400,
+          "message": "Cart is empty"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_CUSTOMER_NOT_FOUND",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 807,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Customer not found"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_EDIT_INSUFFICIENT_STOCK",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-edit-insufficient-stock.exception.ts",
+          "line": 13,
+          "exception": "OrderEditInsufficientStockException",
+          "status": 409,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "ORDER_EDIT_ITEM_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1817,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Order item \"${removal.orderItemId}\" not found"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_EDIT_VARIANT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1766,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Variant \"${addItem.variantId}\" not found"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_GUEST_ADDRESS_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-guest-address-required.exception.ts",
+          "line": 16,
+          "exception": "OrderGuestAddressRequiredException",
+          "status": 400,
+          "message": "A shipping address is required to check out as a guest"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_GUEST_CHECKOUT_DISABLED",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-guest-checkout-disabled.exception.ts",
+          "line": 21,
+          "exception": "OrderGuestCheckoutDisabledException",
+          "status": 403,
+          "message": "Guest checkout is not available"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_GUEST_EMAIL_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-guest-email-required.exception.ts",
+          "line": 17,
+          "exception": "OrderGuestEmailRequiredException",
+          "status": 400,
+          "message": "A contact email is required to check out as a guest"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_GUEST_SESSION_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-guest-session-required.exception.ts",
+          "line": 19,
+          "exception": "OrderGuestSessionRequiredException",
+          "status": 400,
+          "message": "A cart session is required to check out as a guest"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_IDEMPOTENCY_IN_PROGRESS",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-idempotency-in-flight.exception.ts",
+          "line": 16,
+          "exception": "OrderIdempotencyInFlightException",
+          "status": 409,
+          "message": "Order creation already in progress for this idempotency key"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_INSUFFICIENT_STOCK",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-insufficient-stock.exception.ts",
+          "line": 19,
+          "exception": "OrderInsufficientStockException",
+          "status": 409,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "ORDER_INVOICE_NOT_READY",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-invoice-not-ready.exception.ts",
+          "line": 16,
+          "exception": "OrderInvoiceNotReadyException",
+          "status": 404,
+          "message": "Invoice not yet generated"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-not-found.exception.ts",
+          "line": 11,
+          "exception": "OrderNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "ORDER_NOT_YOURS",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-not-yours.exception.ts",
+          "line": 12,
+          "exception": "OrderNotYoursException",
+          "status": 403,
+          "message": "Not your order"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_NOTHING_TO_REFUND",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-nothing-to-refund.exception.ts",
+          "line": 8,
+          "exception": "OrderNothingToRefundException",
+          "status": 409,
+          "message": "Order ${orderId} has nothing left to refund"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_PAYMENT_METHOD_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-payment-method-invalid.exception.ts",
+          "line": 17,
+          "exception": "OrderPaymentMethodInvalidException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "ORDER_PAYMENT_METHOD_UNAVAILABLE",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-payment-method-unavailable.exception.ts",
+          "line": 17,
+          "exception": "OrderPaymentMethodUnavailableException",
+          "status": 400,
+          "message": "No payment method is available"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_PAYMENT_NOT_OPENED",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-payment-not-opened.exception.ts",
+          "line": 8,
+          "exception": "OrderPaymentNotOpenedException",
+          "status": 409,
+          "message": "Order ${orderId} has no open payment session"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_SHIPMENT_ITEM_NOT_IN_ORDER",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1526,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Item \"${si.orderItemId}\" does not belong to this order"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_SHIPMENT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1597,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Shipment \"${shipmentId}\" not found for order \"${orderId}\""
+        }
+      ]
+    },
+    {
+      "code": "ORDER_SHIPMENT_ORDER_CLOSED",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/order-shipment-order-closed.exception.ts",
+          "line": 37,
+          "exception": "OrderShipmentOrderClosedException",
+          "status": 409,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "ORDER_SHIPPING_ADDRESS_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 2444,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Shipping address is required"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_STATUS_TRANSITION_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1070,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Cannot transition from ${order.status} to ${newStatus}"
+        },
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1116,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Cannot transition from ${order.status} to ${newStatus}"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_UNEDITABLE_STATUS",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 1717,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Order in ${order.status} status cannot be edited"
+        }
+      ]
+    },
+    {
+      "code": "ORDER_VARIANT_NOT_FOUND",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/orders/orders.service.ts",
+          "line": 849,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Variant \"${item.variantId}\" not found or unavailable"
+        }
+      ]
+    },
+    {
+      "code": "OWNER_GUARD_PUBLIC_CONFLICT",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "libs/shared/common/src/guards/owner-guard.exceptions.ts",
+          "line": 14,
+          "exception": "OwnerGuardPublicConflictException",
+          "status": 403,
+          "message": "@OwnerGuard route cannot also be @Public()"
+        }
+      ]
+    },
+    {
+      "code": "OWNER_GUARD_USER_MISSING",
+      "statuses": [
+        401
+      ],
+      "sites": [
+        {
+          "file": "libs/shared/common/src/guards/owner-guard.exceptions.ts",
+          "line": 34,
+          "exception": "OwnerGuardUserMissingException",
+          "status": 401,
+          "message": "Authenticated user required"
+        }
+      ]
+    },
+    {
+      "code": "PAYMENT_PROVIDER_REJECTED",
+      "statuses": [
+        502
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/payments/payment-provider-rejected.exception.ts",
+          "line": 8,
+          "exception": "PaymentProviderRejectedException",
+          "status": 502,
+          "message": "The payment provider rejected the request"
+        }
+      ]
+    },
+    {
+      "code": "PAYMENT_PROVIDER_UNAVAILABLE",
+      "statuses": [
+        503
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/payments/payment-provider-unavailable.exception.ts",
+          "line": 8,
+          "exception": "PaymentProviderUnavailableException",
+          "status": 503,
+          "message": "The payment provider is unavailable, try again later"
+        }
+      ]
+    },
+    {
+      "code": "PAYMENT_PROVIDER_UNKNOWN",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/payments/payment-provider-unknown.exception.ts",
+          "line": 8,
+          "exception": "PaymentProviderUnknownException",
+          "status": 400,
+          "message": "Payment provider is not available"
+        }
+      ]
+    },
+    {
+      "code": "PAYMENT_TRANSITION_NOT_ALLOWED",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/payments/payment-transition-not-allowed.exception.ts",
+          "line": 9,
+          "exception": "PaymentTransitionNotAllowedException",
+          "status": 409,
+          "message": "This payment action is not allowed in the current payment status"
+        }
+      ]
+    },
+    {
+      "code": "PAYMENT_WEBHOOK_SIGNATURE_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/payments/payment-webhook-signature-invalid.exception.ts",
+          "line": 8,
+          "exception": "PaymentWebhookSignatureInvalidException",
+          "status": 400,
+          "message": "The webhook signature is invalid"
+        }
+      ]
+    },
+    {
+      "code": "PAYMENT_WEBHOOK_UNSUPPORTED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/payments/payment-webhook-unsupported.exception.ts",
+          "line": 8,
+          "exception": "PaymentWebhookUnsupportedException",
+          "status": 400,
+          "message": "This payment provider does not accept webhooks"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_ALREADY_ARCHIVED",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/products.service.ts",
+          "line": 1204,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "Product is already archived"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_ARCHIVED_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/products.service.ts",
+          "line": 1238,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Archived product not found"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_ASSET_PRIMARY_CONFLICT",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/products.service.ts",
+          "line": 1400,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Only one asset can be marked as primary"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_ATTRIBUTE_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-attribute-not-found.exception.ts",
+          "line": 10,
+          "exception": "ProductAttributeNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_ATTRIBUTE_VALUE_CODE_TAKEN",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-attribute-value-code-taken.exception.ts",
+          "line": 11,
+          "exception": "ProductAttributeValueCodeTakenException",
+          "status": 409,
+          "message": "Value code \"${code}\" already exists in this attribute"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_ATTRIBUTE_VALUE_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-attribute-value-not-found.exception.ts",
+          "line": 10,
+          "exception": "ProductAttributeValueNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_CATEGORY_NOT_FOUND",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-category-not-found.exception.ts",
+          "line": 15,
+          "exception": "ProductCategoryNotFoundException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_FAQ_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-faq-not-found.exception.ts",
+          "line": 10,
+          "exception": "ProductFaqNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-not-found.exception.ts",
+          "line": 12,
+          "exception": "ProductNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_SKU_TAKEN",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-sku-taken.exception.ts",
+          "line": 11,
+          "exception": "ProductSkuTakenException",
+          "status": 409,
+          "message": "SKU \"${sku}\" is already in use"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_SLUG_TAKEN",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-slug-taken.exception.ts",
+          "line": 10,
+          "exception": "ProductSlugTakenException",
+          "status": 409,
+          "message": "Slug \"${slug}\" is already taken"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_SPEC_DUPLICATE_KEY",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-spec-duplicate-key.exception.ts",
+          "line": 19,
+          "exception": "ProductSpecDuplicateKeyException",
+          "status": 400,
+          "message": "Specifications ${labels.map((l) => `\"${l}\"`).join(' and ')} are the same specification"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_SPEC_EMPTY_KEY",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-spec-empty-key.exception.ts",
+          "line": 15,
+          "exception": "ProductSpecEmptyKeyException",
+          "status": 400,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_TYPE_CODE_TAKEN",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-type-code-taken.exception.ts",
+          "line": 11,
+          "exception": "ProductTypeCodeTakenException",
+          "status": 409,
+          "message": "Product type code \"${code}\" already exists"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_TYPE_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-type-not-found.exception.ts",
+          "line": 10,
+          "exception": "ProductTypeNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_VARIANT_LAST_ACTIVE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/products.service.ts",
+          "line": 1376,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "Cannot delete the last active variant"
+        }
+      ]
+    },
+    {
+      "code": "PRODUCT_VARIANT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/products/product-variant-not-found.exception.ts",
+          "line": 12,
+          "exception": "ProductVariantNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "PROFILE_CURRENT_PASSWORD_INCORRECT",
+      "statuses": [
+        401
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/profile-current-password-incorrect.exception.ts",
+          "line": 17,
+          "exception": "ProfileCurrentPasswordIncorrectException",
+          "status": 401,
+          "message": "Current password is incorrect"
+        }
+      ]
+    },
+    {
+      "code": "PROFILE_CURRENT_PASSWORD_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/profile-current-password-required.exception.ts",
+          "line": 15,
+          "exception": "ProfileCurrentPasswordRequiredException",
+          "status": 400,
+          "message": "Current password is required to change email, phone, or password"
+        }
+      ]
+    },
+    {
+      "code": "PROFILE_EMAIL_IN_USE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/profile-email-in-use.exception.ts",
+          "line": 15,
+          "exception": "ProfileEmailInUseException",
+          "status": 409,
+          "message": "Email already in use"
+        }
+      ]
+    },
+    {
+      "code": "QUESTION_ALREADY_ANSWERED",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/question-already-answered.exception.ts",
+          "line": 20,
+          "exception": "QuestionAlreadyAnsweredException",
+          "status": 409,
+          "message": "This question has already been answered"
+        }
+      ]
+    },
+    {
+      "code": "QUESTION_NOT_AVAILABLE_FOR_ANSWER",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/question-not-available.exception.ts",
+          "line": 14,
+          "exception": "QuestionNotAvailableForAnswerException",
+          "status": 400,
+          "message": "This question is not available for answers"
+        }
+      ]
+    },
+    {
+      "code": "REVIEW_DUPLICATE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/review-duplicate.exception.ts",
+          "line": 15,
+          "exception": "ReviewDuplicateException",
+          "status": 409,
+          "message": "You have already submitted a review for this product"
+        }
+      ]
+    },
+    {
+      "code": "REVIEW_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/review-not-found.exception.ts",
+          "line": 11,
+          "exception": "ReviewNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "REVIEW_NOT_OWNED",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/review-not-owned.exception.ts",
+          "line": 15,
+          "exception": "ReviewNotOwnedException",
+          "status": 403,
+          "message": "Not your review"
+        }
+      ]
+    },
+    {
+      "code": "REVIEW_PRODUCT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/review-product-not-found.exception.ts",
+          "line": 16,
+          "exception": "ReviewProductNotFoundException",
+          "status": 404,
+          "message": "Product \"${slug}\" not found"
+        }
+      ]
+    },
+    {
+      "code": "REVIEW_QUESTION_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/review-question-not-found.exception.ts",
+          "line": 11,
+          "exception": "ReviewQuestionNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "REVIEW_VERIFIED_PURCHASE_REQUIRED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/reviews/review-eligibility.exception.ts",
+          "line": 16,
+          "exception": "ReviewVerifiedPurchaseRequiredException",
+          "status": 400,
+          "message": "A verified purchase is required to leave a review"
+        }
+      ]
+    },
+    {
+      "code": "ROLE_NAME_TAKEN",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 744,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "Role name already exists"
+        }
+      ]
+    },
+    {
+      "code": "ROLE_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/role-not-found.exception.ts",
+          "line": 7,
+          "exception": "RoleNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "SEO_FOREIGN_URL",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/seo/seo-submit.exceptions.ts",
+          "line": 66,
+          "exception": "SeoForeignUrlException",
+          "status": 400,
+          "message": "url must be on the public storefront origin."
+        }
+      ]
+    },
+    {
+      "code": "SEO_MULTIPLE_INSPECT_TARGETS",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/seo/seo-inspect.exceptions.ts",
+          "line": 28,
+          "exception": "SeoMultipleInspectTargetsException",
+          "status": 400,
+          "message": "Provide exactly one inspection target: url or productId — not both."
+        }
+      ]
+    },
+    {
+      "code": "SEO_MULTIPLE_TARGETS",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/seo/seo-submit.exceptions.ts",
+          "line": 29,
+          "exception": "SeoMultipleTargetsException",
+          "status": 400,
+          "message": "Provide exactly one submit target: url, productIds, or sitemap — not several."
+        }
+      ]
+    },
+    {
+      "code": "SEO_NO_APPLICABLE_ENGINE",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/seo/seo-submit.exceptions.ts",
+          "line": 48,
+          "exception": "SeoNoApplicableEngineException",
+          "status": 400,
+          "message": "None of the requested engines can be submitted to for this target type."
+        }
+      ]
+    },
+    {
+      "code": "SEO_NO_INSPECT_TARGET",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/seo/seo-inspect.exceptions.ts",
+          "line": 15,
+          "exception": "SeoNoInspectTargetException",
+          "status": 400,
+          "message": "An inspection target is required: one of url or productId."
+        }
+      ]
+    },
+    {
+      "code": "SEO_NO_TARGET",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/seo/seo-submit.exceptions.ts",
+          "line": 16,
+          "exception": "SeoNoTargetException",
+          "status": 400,
+          "message": "A submit target is required: one of url, productIds, or sitemap."
+        }
+      ]
+    },
+    {
+      "code": "SETTINGS_CURRENCY_CONFIG_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 364,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "currencyConfig must be an object with a `code`"
+        },
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 381,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "currencyConfig must be an object with a `code`"
+        }
+      ]
+    },
+    {
+      "code": "SETTINGS_DEFAULT_LOCALE_UNSUPPORTED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 325,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "defaultLocale must be one of the supportedLocales"
+        }
+      ]
+    },
+    {
+      "code": "SETTINGS_KEY_READ_ONLY",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 209,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "${key} is written by the license verification, not through settings"
+        }
+      ]
+    },
+    {
+      "code": "SETTINGS_LOCALE_NOT_IN_CATALOGUE",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 308,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "the engine ships no strings for ${foreign.join(', ')} (registry: ${registryLocaleCodes().join(', ')})"
+        }
+      ]
+    },
+    {
+      "code": "SETTINGS_MONEY_SEPARATORS_EQUAL",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 338,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "decimalSeparator and thousandsSeparator must differ"
+        }
+      ]
+    },
+    {
+      "code": "SETTINGS_RTL_LOCALE_UNSUPPORTED",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/settings/settings.service.ts",
+          "line": 317,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "rtlLocales must be a subset of supportedLocales (${outside.join(', ')})"
+        }
+      ]
+    },
+    {
+      "code": "SHIPPING_METHOD_INVALID",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/shipping/shipping-method-invalid.exception.ts",
+          "line": 15,
+          "exception": "ShippingMethodInvalidException",
+          "status": 400,
+          "message": "Selected shipping method is not valid for this destination"
+        }
+      ]
+    },
+    {
+      "code": "SHIPPING_UNAVAILABLE",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/shipping/shipping-unavailable.exception.ts",
+          "line": 16,
+          "exception": "ShippingUnavailableException",
+          "status": 400,
+          "message": "Shipping is not available for this destination"
+        }
+      ]
+    },
+    {
+      "code": "STAFF_EMAIL_IN_USE",
+      "statuses": [
+        409
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 597,
+          "exception": "ConflictException",
+          "status": 409,
+          "message": "Email already registered"
+        }
+      ]
+    },
+    {
+      "code": "STAFF_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/staff-not-found.exception.ts",
+          "line": 7,
+          "exception": "StaffNotFoundException",
+          "status": 404,
+          "message": null
+        }
+      ]
+    },
+    {
+      "code": "STAFF_SELF_DEACTIVATE_FORBIDDEN",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 704,
+          "exception": "ForbiddenException",
+          "status": 403,
+          "message": "Cannot deactivate your own account"
+        }
+      ]
+    },
+    {
+      "code": "STAFF_SELF_MODIFY_FORBIDDEN",
+      "statuses": [
+        403
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 654,
+          "exception": "ForbiddenException",
+          "status": 403,
+          "message": "Cannot modify your own staff record"
+        }
+      ]
+    },
+    {
+      "code": "TEST_SEND_EMAIL_ONLY",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/notifications/notification-templates.service.ts",
+          "line": 302,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Only email templates can be test-sent (this one is \"${template.channel}\")"
+        }
+      ]
+    },
+    {
+      "code": "TEST_SEND_NO_RECIPIENT",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/campaigns/campaign.service.ts",
+          "line": 432,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Your account has no email on file."
+        },
+        {
+          "file": "apps/api/src/modules/notifications/notification-templates.service.ts",
+          "line": 315,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Your account has no email address to send a test to"
+        }
+      ]
+    },
+    {
+      "code": "UNKNOWN_TEMPLATE_TOKEN",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/notifications/notification-templates.service.ts",
+          "line": 364,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Template references undeclared variable(s): ${unknown.join(', ')}. Add them to the flow's variables list or remove the token."
+        }
+      ]
+    },
+    {
+      "code": "USER_CREDENTIAL_CHANGE_FORBIDDEN",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 137,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Cannot change credentials for this account type"
+        }
+      ]
+    },
+    {
+      "code": "USER_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/users/users.service.ts",
+          "line": 95,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "User not found"
+        }
+      ]
+    },
+    {
+      "code": "VALIDATION_ERROR",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/main.ts",
+          "line": 249,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Validation failed"
+        }
+      ]
+    },
+    {
+      "code": "WEBHOOK_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/webhooks/webhooks.service.ts",
+          "line": 109,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Webhook subscription not found"
+        },
+        {
+          "file": "apps/api/src/modules/webhooks/webhooks.service.ts",
+          "line": 172,
+          "exception": "NotFoundException",
+          "status": 404,
+          "message": "Webhook subscription not found"
+        }
+      ]
+    },
+    {
+      "code": "WEBHOOK_URL_INTERNAL_IP",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/webhooks/webhooks.utils.ts",
+          "line": 55,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Webhook URL must not target internal or loopback addresses"
+        }
+      ]
+    },
+    {
+      "code": "WEBHOOK_URL_NOT_HTTPS",
+      "statuses": [
+        400
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/webhooks/webhooks.utils.ts",
+          "line": 49,
+          "exception": "BadRequestException",
+          "status": 400,
+          "message": "Webhook URL must use the HTTPS scheme"
+        }
+      ]
+    },
+    {
+      "code": "WISHLIST_PRODUCT_NOT_FOUND",
+      "statuses": [
+        404
+      ],
+      "sites": [
+        {
+          "file": "apps/api/src/modules/wishlist/wishlist-product-not-found.exception.ts",
+          "line": 23,
+          "exception": "WishlistProductNotFoundException",
+          "status": 404,
+          "message": "Product \"${productId}\" not found"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+-- ============================================================
+-- E2.14 — Drop Cart.crossSellProductIds raw String[] column
+-- Per DR-20 (specs/decision-records/20-cart-cross-sell-product-ids-dropped.md)
+-- Closes audit plan §1.11 line 190 (§9.2 R1–R4 entity-reference String[] violation).
+--
+-- The column is unused in the live tree: the application populates the
+-- response field `CartResponse.crossSellProductIds` from the in-memory
+-- `CROSS_SELL_STUB: string[] = []` constant at
+-- `apps/api/src/modules/cart/cart.constants.ts:17`. No code path persists
+-- Product IDs into this column, so the drop is non-destructive in the
+-- application-correctness sense.
+--
+-- Rollback: see DR-20 §Consequences — re-add `crossSellProductIds String[]
+-- @default([])` in a forward-revert migration. No data preserved.
+--
+-- Lock: ALTER TABLE ... DROP COLUMN takes an ACCESS EXCLUSIVE lock for the
+-- duration of the metadata update. For a column with no NOT NULL constraint
+-- and no default value the lock is sub-millisecond at production scale; the
+-- `Cart` table is high-traffic but the lock window does not block reads
+-- against committed rows.
+-- ============================================================
+
+ALTER TABLE "Cart" DROP COLUMN "crossSellProductIds";

@@ -1,0 +1,57 @@
+{
+  "fixture": {
+    "id": "gulf-rtl",
+    "description": "Gulf-shaped store: ar default + en, RTL, two-decimal currency with the symbol before the number, 5 percent VAT, no tax mention on prices."
+  },
+  "identity": {
+    "storeName": { "default": "Marsa Market", "ar": "سوق المرسى", "en": "Marsa Market" },
+    "brandName": "marsa",
+    "description": {
+      "default": "Electronics and home essentials, delivered across the Emirates.",
+      "ar": "إلكترونيات ومستلزمات منزلية، توصيل إلى جميع الإمارات.",
+      "en": "Electronics and home essentials, delivered across the Emirates."
+    },
+    "legalName": { "default": "Marsa Trading LLC", "ar": "مرسى للتجارة ذ.م.م", "en": "Marsa Trading LLC" },
+    "contact": { "email": "care@marsa.example", "phone": "+971500000000" },
+    "address": {
+      "street": {
+        "default": "Building 12, Al Wasl Road, Jumeirah",
+        "ar": "مبنى 12، شارع الوصل، جميرا",
+        "en": "Building 12, Al Wasl Road, Jumeirah"
+      },
+      "locality": "Dubai",
+      "region": "Dubai",
+      "postalCode": null,
+      "country": "AE"
+    },
+    "areaServed": ["AE"],
+    "businessType": "OnlineStore"
+  },
+  "brand": {
+    "baseColors": { "primary": "#1F6F8B", "secondary": "#D08C2E", "accent": "#243447" },
+    "fontKit": "arabic-latin",
+    "logoAssetId": null,
+    "faviconAssetId": null
+  },
+  "localization": {
+    "supportedLocales": ["ar", "en"],
+    "defaultLocale": "ar",
+    "rtlLocales": ["ar"],
+    "timezone": "Asia/Dubai"
+  },
+  "money": {
+    "currencyCode": "AED",
+    "symbol": "د.إ",
+    "symbolPosition": "before",
+    "decimalSeparator": ".",
+    "thousandsSeparator": ",",
+    "displayPrecision": 2,
+    "taxDisplay": "none",
+    "vatRate": 0.05
+  },
+  "domains": {
+    "storefront": "https://marsa.example",
+    "admin": "https://admin.marsa.example",
+    "api": "https://api.marsa.example"
+  }
+}

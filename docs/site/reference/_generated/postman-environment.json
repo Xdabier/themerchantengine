@@ -1,0 +1,16 @@
+{
+  "x-generated-by": "npm run docs:generate",
+  "name": "The Merchant Engine (local)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:53000/api",
+      "enabled": true
+    },
+    {
+      "key": "locale",
+      "value": "en",
+      "enabled": true
+    }
+  ]
+}

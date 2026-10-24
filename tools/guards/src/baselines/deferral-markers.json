@@ -1,0 +1,6 @@
+{
+  "apps/admin-services-e2e/src/helpers/shape.ts": 1,
+  "apps/api/jest.config.ts": 1,
+  "apps/storefront-e2e/src/responsive-overflow.journey.spec.ts": 1,
+  "apps/storefront-e2e/src/search.journey.spec.ts": 1
+}

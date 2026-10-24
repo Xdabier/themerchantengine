@@ -1,0 +1,23 @@
+{
+  "name": "guards",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/guards/src",
+  "projectType": "application",
+  "tags": ["scope:tools", "type:app"],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/tools/guards"],
+      "options": {
+        "jestConfig": "tools/guards/jest.config.ts"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p tools/guards/tsconfig.json --noEmit",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  }
+}

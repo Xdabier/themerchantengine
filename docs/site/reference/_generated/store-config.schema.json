@@ -1,0 +1,455 @@
+{
+  "x-generated-by": "npm run docs:generate",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "identity": {
+      "type": "object",
+      "properties": {
+        "storeName": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "default"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "brandName": {
+          "type": "string"
+        },
+        "description": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "default"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "legalName": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "default"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "contact": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string",
+              "pattern": "^$|^\\+[1-9][0-9]{6,14}$"
+            }
+          },
+          "required": [
+            "email",
+            "phone"
+          ],
+          "additionalProperties": false
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "street": {
+              "type": "object",
+              "properties": {
+                "default": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "default"
+              ],
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "locality": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "postalCode": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "country": {
+              "type": "string",
+              "pattern": "^$|^[A-Z]{2}$"
+            }
+          },
+          "required": [
+            "street",
+            "locality",
+            "region",
+            "postalCode",
+            "country"
+          ],
+          "additionalProperties": false
+        },
+        "areaServed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "businessType": {
+          "type": "string",
+          "enum": [
+            "OnlineStore",
+            "LocalBusiness",
+            "Hybrid"
+          ]
+        }
+      },
+      "required": [
+        "storeName",
+        "brandName",
+        "description",
+        "legalName",
+        "contact",
+        "address",
+        "areaServed",
+        "businessType"
+      ],
+      "additionalProperties": false
+    },
+    "brand": {
+      "type": "object",
+      "properties": {
+        "baseColors": {
+          "type": "object",
+          "properties": {
+            "primary": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "secondary": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "accent": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "primary",
+            "secondary",
+            "accent"
+          ],
+          "additionalProperties": false
+        },
+        "fontKit": {
+          "type": "string",
+          "enum": [
+            "latin-rounded",
+            "arabic-latin"
+          ]
+        },
+        "logoAssetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "faviconAssetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generatedPalette": {
+          "type": "object",
+          "properties": {
+            "tokens": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "enum": [
+                  "--brand-bg",
+                  "--brand-surface",
+                  "--brand-surface-elevated",
+                  "--brand-text",
+                  "--brand-text-muted",
+                  "--brand-text-inverse",
+                  "--brand-primary",
+                  "--brand-primary-hover",
+                  "--brand-primary-active",
+                  "--brand-on-primary",
+                  "--brand-accent",
+                  "--brand-on-accent",
+                  "--brand-success",
+                  "--brand-warning",
+                  "--brand-error",
+                  "--brand-info",
+                  "--brand-border",
+                  "--brand-border-strong",
+                  "--brand-border-interactive",
+                  "--brand-focus-ring",
+                  "--brand-surface-strong",
+                  "--brand-on-functional"
+                ]
+              },
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^#[0-9A-Fa-f]{6}$"
+              },
+              "required": [
+                "--brand-bg",
+                "--brand-surface",
+                "--brand-surface-elevated",
+                "--brand-text",
+                "--brand-text-muted",
+                "--brand-text-inverse",
+                "--brand-primary",
+                "--brand-primary-hover",
+                "--brand-primary-active",
+                "--brand-on-primary",
+                "--brand-accent",
+                "--brand-on-accent",
+                "--brand-success",
+                "--brand-warning",
+                "--brand-error",
+                "--brand-info",
+                "--brand-border",
+                "--brand-border-strong",
+                "--brand-border-interactive",
+                "--brand-focus-ring",
+                "--brand-surface-strong",
+                "--brand-on-functional"
+              ]
+            },
+            "adjustments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "contrast",
+                      "no-accent-given",
+                      "accent-from-secondary"
+                    ]
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "against": {
+                    "type": "string"
+                  },
+                  "ratio": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "token",
+                  "reason",
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "tokens",
+            "adjustments"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "baseColors",
+        "fontKit",
+        "logoAssetId",
+        "faviconAssetId"
+      ],
+      "additionalProperties": false
+    },
+    "localization": {
+      "type": "object",
+      "properties": {
+        "supportedLocales": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "defaultLocale": {
+          "type": "string"
+        },
+        "rtlLocales": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "timezone": {
+          "type": "string",
+          "pattern": "^[A-Za-z_]+\\/[A-Za-z_]+(\\/[A-Za-z_]+)?$|^UTC$"
+        }
+      },
+      "required": [
+        "supportedLocales",
+        "defaultLocale",
+        "rtlLocales",
+        "timezone"
+      ],
+      "additionalProperties": false
+    },
+    "money": {
+      "type": "object",
+      "properties": {
+        "currencyCode": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "symbolPosition": {
+          "type": "string",
+          "enum": [
+            "before",
+            "after"
+          ]
+        },
+        "decimalSeparator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "thousandsSeparator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "displayPrecision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "taxDisplay": {
+          "type": "string",
+          "enum": [
+            "HT",
+            "TTC",
+            "none"
+          ]
+        },
+        "vatRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "currencyCode",
+        "symbol",
+        "symbolPosition",
+        "decimalSeparator",
+        "thousandsSeparator",
+        "displayPrecision",
+        "taxDisplay",
+        "vatRate"
+      ],
+      "additionalProperties": false
+    },
+    "domains": {
+      "type": "object",
+      "properties": {
+        "storefront": {
+          "type": "string",
+          "pattern": "^$|^https?:\\/\\/[a-z0-9.-]+(:[0-9]{2,5})?$"
+        },
+        "admin": {
+          "type": "string",
+          "pattern": "^$|^https?:\\/\\/[a-z0-9.-]+(:[0-9]{2,5})?$"
+        },
+        "api": {
+          "type": "string",
+          "pattern": "^$|^https?:\\/\\/[a-z0-9.-]+(:[0-9]{2,5})?$"
+        }
+      },
+      "required": [
+        "storefront",
+        "admin",
+        "api"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "identity",
+    "brand",
+    "localization",
+    "money",
+    "domains"
+  ],
+  "additionalProperties": false
+}

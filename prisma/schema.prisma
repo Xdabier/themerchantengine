@@ -1,0 +1,2235 @@
+// ============================================================
+// merchants-engine — Prisma Schema
+// Spec: specs/merchants-engine-technical-spec-v2.2.md §04, §05, §09
+// 60 models (§05 table + §09 audit additions: ReturnAsset, ProcessedWebhook
+// + models already incorporated: ReviewAsset, HelpfulVote, PromotionProduct,
+// PromotionCategory)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  SUPPORT
+  CUSTOMER
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum AssetType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+}
+
+enum AssetStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+  RETURN_REQUESTED
+  /// Terminal state: return fully processed and closed (§4.8 H-1). Set by closeReturn().
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  CANCELLED
+}
+
+enum ShipmentStatus {
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  // Set by the order cancel cascade, never by an admin choosing it from the
+  // shipment status select. A cancelled shipment accepts no further status
+  // change (plan M phase M1, finding AD4).
+  CANCELLED
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+enum QuestionStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+  BUY_X_GET_Y
+  VOLUME_DISCOUNT
+  TIERED_PRICE
+}
+
+enum PromotionApplicationMethod {
+  AUTOMATIC
+  COUPON
+}
+
+enum SectionType {
+  HERO
+  FEATURED_PRODUCTS
+  CATEGORY_SHOWCASE
+  PROMOTIONAL_BANNER
+  TRUST_SIGNALS
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  ITEM_RECEIVED
+  REFUND_PROCESSED
+  CLOSED
+  REJECTED
+}
+
+enum ReturnReason {
+  WRONG_SIZE
+  DEFECTIVE
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  OTHER
+}
+
+enum ReturnRefundMethod {
+  ORIGINAL_PAYMENT
+  STORE_CREDIT
+  EXCHANGE
+}
+
+enum RestockDecision {
+  RESTOCK
+  DAMAGED
+  DISPOSE
+}
+
+enum AdjustmentReason {
+  RECOUNT
+  DAMAGE
+  SHRINKAGE
+  RECEIVED
+  RETURN_RESTOCK
+  RETURN_DAMAGED
+  CORRECTION
+  OTHER
+}
+
+enum MovementType {
+  SALE
+  RETURN
+  ADJUSTMENT
+  TRANSFER
+  RESERVATION
+  RESERVATION_RELEASE
+}
+
+enum ShippingMethodType {
+  FLAT_RATE
+  WEIGHT_BASED
+  PRICE_BASED
+  CARRIER_CALCULATED
+  FREE
+}
+
+enum CmsPageType {
+  STATIC
+  POLICY
+  LANDING
+}
+
+enum RedirectType {
+  MOVED_PERMANENTLY
+  FOUND
+}
+
+// ============================================================
+// AUTH & USERS (4 models: User, Address, Role, RolePermission) + Better Auth-owned models (Session, Account, Verification, TwoFactor) introduced at BA2 and replacing the retired RefreshToken table dropped at BA5.7
+// ============================================================
+
+/// Core user entity. Soft-deleted via deletedAt (§9.6); isActive tracks GDPR/active state.
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  phone               String?
+  passwordHash        String?
+  firstName           String
+  lastName            String
+  role                UserRole  @default(CUSTOMER)
+  isActive            Boolean   @default(true)
+  emailVerified       Boolean   @default(false)
+  phoneVerified       Boolean   @default(false)
+  avatarUrl           String?
+  /// BCP-47 locale preference (e.g. "fr", "en"). Set by the user on /me.
+  locale              String?
+  /// FK to a custom Role entity for granular RBAC (optional — admins/managers only)
+  roleId              String?
+  /// Better Auth `user.name` (DR-24) — backfilled `firstName + ' ' + lastName`
+  /// by the BA2 migration; derived from first/last on new sign-ups.
+  name                String
+  /// Better Auth twoFactor plugin — true once the user enables TOTP 2FA.
+  twoFactorEnabled    Boolean?  @default(false)
+  /// Resend webhook-driven deliverability state: null (unknown) | "ok" |
+  /// "bounced" | "complained". Set on hard bounce / complaint events so the
+  /// MailService can short-circuit future sends and operators can triage.
+  emailDeliverability String?
+  /// First hard-bounce timestamp from Resend (`email.bounced` event with
+  /// `bounce.type=hard`). Cleared by manual operator override.
+  emailBouncedAt      DateTime?
+  /// First spam-complaint timestamp from Resend (`email.complained`). Always
+  /// adds an EmailSuppression row alongside.
+  emailComplainedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  /// Soft delete (§9.6). Prisma middleware filters WHERE deletedAt IS NULL.
+  deletedAt           DateTime?
+
+  customRole              Role?                    @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  addresses               Address[]
+  sessions                Session[]
+  accounts                Account[]
+  twoFactors              TwoFactor[]
+  cart                    Cart?
+  orders                  Order[]
+  reviews                 Review[]
+  wishlistItems           WishlistItem[]
+  helpfulVotes            HelpfulVote[]
+  questions               ProductQuestion[]        @relation("QuestionAsker")
+  returns                 Return[]
+  purchasedCards          GiftCard[]               @relation("PurchasedGiftCards")
+  auditLogs               AuditLogEntry[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  subscribers             Subscriber[]             @relation("UserSubscribers")
+  createdCampaigns        Campaign[]               @relation("CreatedCampaigns")
+
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+  @@index([roleId])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+/// Saved delivery/billing address. Cascade-deleted when user is hard-deleted.
+model Address {
+  id                String   @id @default(cuid())
+  userId            String
+  label             String?
+  fullName          String
+  phone             String
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  state             String?
+  postalCode        String?
+  country           String
+  isDefaultShipping Boolean  @default(false)
+  isDefaultBilling  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Custom role definition for granular RBAC beyond the base UserRole enum.
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       User[]
+}
+
+/// Permission string attached to a Role. Format: "module:action" (e.g. "products:create").
+model RolePermission {
+  id         String @id @default(cuid())
+  roleId     String
+  permission String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permission])
+  @@index([roleId])
+}
+
+// ============================================================
+// BETTER AUTH (4 models: Session, Account, Verification, TwoFactor)
+// Authentication + session management owned by Better Auth — DR-24,
+// feature better-auth-migration. The RBAC models (Role / RolePermission,
+// above) are unchanged. The retired RefreshToken model was dropped at BA5.7
+// (post-canary cleanup, ≥24 h after the BA5.6 prod smoke green).
+// ============================================================
+
+/// Better Auth session — one opaque, server-validated session token per row,
+/// looked up by `token`. Replaces the retired RefreshToken rotation model.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  /// Opaque session token carried in the signed session cookie.
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Better Auth account — holds the credential (bcrypt `password`) for
+/// email + password sign-in, and the OAuth tokens when social login is on.
+/// Existing `User.passwordHash` values are migrated into `credential` rows.
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  /// "credential" for email+password; the provider id for social accounts.
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  /// bcrypt hash for `credential` accounts; null for social accounts.
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Better Auth verification token — backs email verification, password reset,
+/// and magic-link tokens. Keyed by `identifier` (the user's email).
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+/// Better Auth two-factor secret (twoFactor plugin) — one row per user with
+/// TOTP 2FA enabled.
+model TwoFactor {
+  id          String  @id @default(cuid())
+  userId      String
+  /// TOTP shared secret. Never returned in an API response.
+  secret      String
+  /// Serialized backup codes. Never returned in an API response.
+  backupCodes String
+  verified    Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================
+// PRODUCTS (10 models: ProductType, Attribute, AttributeValue, Brand,
+//   Product, ProductVariant, VariantAttributeValue, ProductCategory,
+//   ProductAsset, ProductFaq)
+// ============================================================
+
+/// Groups products by type and defines which attributes apply (e.g. "Clothing", "Electronics").
+/// taxClassId links to TaxClass so the tax engine can apply the correct rate per zone (§4.16).
+model ProductType {
+  id         String   @id @default(cuid())
+  /// Translatable: { default, fr, en }
+  name       Json
+  /// Unique machine-readable identifier (e.g. "clothing", "electronics").
+  code       String   @unique
+  /// Tax classification for all products of this type (Standard, Reduced, Zero-Rated, Exempt).
+  taxClassId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  taxClass   TaxClass?   @relation(fields: [taxClassId], references: [id], onDelete: SetNull)
+  attributes Attribute[]
+  products   Product[]
+  // GIN index on name (JSONB): CREATE INDEX ON "ProductType" USING gin(name)
+
+  @@index([taxClassId])
+  @@index([code])
+}
+
+/// Attribute definition scoped to a ProductType (e.g. "Color", "Size").
+model Attribute {
+  id            String   @id @default(cuid())
+  productTypeId String
+  /// Translatable: { default, fr, en }
+  name          Json
+  /// Unique within a product type (e.g. "color", "size").
+  code          String
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  productType     ProductType      @relation(fields: [productTypeId], references: [id], onDelete: Restrict)
+  attributeValues AttributeValue[]
+  // GIN index on name (JSONB): CREATE INDEX ON "Attribute" USING gin(name)
+
+  @@unique([productTypeId, code])
+  @@index([productTypeId])
+}
+
+/// A specific value for an Attribute (e.g. "Red" for "Color").
+model AttributeValue {
+  id          String   @id @default(cuid())
+  attributeId String
+  /// Translatable: { default, fr, en }
+  value       Json
+  /// Unique within an attribute (e.g. "red", "xl").
+  code        String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attribute              Attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  variantAttributeValues VariantAttributeValue[]
+  // GIN index on value (JSONB): CREATE INDEX ON "AttributeValue" USING gin(value)
+
+  @@unique([attributeId, code])
+  @@index([attributeId])
+}
+
+/// Brand entity surfaced to JSON-LD `Product.brand` per DR-09 product-rich-results.
+/// Translatable name + description per §3.2. Soft-deleted per §3.4.
+/// Backfilled from the deprecated free-text `Product.brand` column in the same
+/// migration that introduces this model; the legacy column is retained for one
+/// release and dropped in a future S25 contract migration per the
+/// expand → migrate code → contract pattern.
+model Brand {
+  id          String    @id @default(cuid())
+  /// Translatable: { default, fr, en }
+  name        Json
+  /// Unique slug derived from the legacy free-text brand at backfill time.
+  slug        String    @unique
+  /// Translatable, optional. Surfaced on a future admin Brand CRUD UI (S25).
+  description Json?
+  /// Optional logo asset. ON DELETE SET NULL keeps the brand row when the asset is deleted.
+  logoAssetId String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  /// Soft delete (§9.6). Prisma middleware filters WHERE deletedAt IS NULL.
+  deletedAt   DateTime?
+
+  logoAsset Asset?    @relation("BrandLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
+  products  Product[]
+  // GIN index on name (JSONB): CREATE INDEX ON "Brand" USING gin(name)
+
+  @@index([slug])
+  @@index([deletedAt])
+}
+
+/// Core product entity. Soft-deleted via deletedAt (status ARCHIVED + deletedAt). §9.3, §9.6
+model Product {
+  id               String        @id @default(cuid())
+  name             Json // Translatable
+  slug             String        @unique
+  description      Json? // Translatable
+  shortDescription Json? // Translatable
+  status           ProductStatus @default(DRAFT)
+  productTypeId    String?
+  /// @deprecated Free-text legacy column. Backfilled into Brand FK via the
+  /// migration that introduces brandId. Read-only fallback for products whose
+  /// brandId is NULL (slug normalization collisions during backfill, or new
+  /// products written before admin Brand CRUD lands in S25). Drop in the S25
+  /// contract migration per the expand → migrate code → contract pattern.
+  brand            String?
+  /// FK to Brand. Resolved by `Product.brand` Translatable JSONB at JSON-LD emit time.
+  brandId          String?
+  /// Top-level GTIN (UPC, EAN, ISBN, etc.). Optional. Surfaced to JSON-LD.
+  gtin             String?
+  /// Manufacturer Part Number. Optional. Surfaced to JSON-LD; pairs with brand
+  /// for non-GTIN identification per Google's product-rich-results spec.
+  mpn              String?
+  tags             String[]
+  isFeatured       Boolean       @default(false)
+  isDigital        Boolean       @default(false)
+  sortOrder        Int           @default(0)
+  metaTitle        Json? // Translatable
+  metaDescription  Json? // Translatable
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  /// Soft delete (§9.6). Prisma middleware filters WHERE deletedAt IS NULL.
+  deletedAt        DateTime?
+
+  productType       ProductType?       @relation(fields: [productTypeId], references: [id], onDelete: SetNull)
+  brandRelation     Brand?             @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  variants          ProductVariant[]
+  categories        ProductCategory[]
+  assets            ProductAsset[]
+  faqs              ProductFaq[]
+  specs             ProductSpec[]
+  reviews           Review[]
+  wishlistItems     WishlistItem[]
+  orderItems        OrderItem[]
+  questions         ProductQuestion[]
+  promotionProducts PromotionProduct[]
+  // GIN indexes on name, description, shortDescription, metaTitle, metaDescription (JSONB)
+
+  @@index([slug])
+  @@index([status])
+  @@index([productTypeId])
+  @@index([brandId])
+  @@index([isFeatured])
+  @@index([deletedAt])
+  /// Serves the storefront facet filter, which queries `tags` with hasSome.
+  /// Without it every facet click is a sequential scan over the catalogue.
+  @@index([tags(ops: ArrayOps)], type: Gin)
+}
+
+/// SKU-level variant of a product. isActive for soft-disable without full deletion. §9.3
+model ProductVariant {
+  id                 String    @id @default(cuid())
+  productId          String
+  sku                String    @unique
+  price              Decimal   @db.Decimal(12, 3)
+  compareAtPrice     Decimal?  @db.Decimal(12, 3)
+  costPrice          Decimal?  @db.Decimal(12, 3)
+  weight             Decimal?  @db.Decimal(8, 3)
+  length             Decimal?  @db.Decimal(8, 3)
+  width              Decimal?  @db.Decimal(8, 3)
+  height             Decimal?  @db.Decimal(8, 3)
+  barcode            String?
+  isDefault          Boolean   @default(false)
+  /// Soft-disable flag per §9.3. CartItems referencing inactive variants must be flagged.
+  isActive           Boolean   @default(true)
+  /// Digital product fields
+  maxDownloads       Int?
+  downloadExpiryDays Int?
+  licenseKey         String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  /// Soft delete per §9.6
+  deletedAt          DateTime?
+
+  product             Product                 @relation(fields: [productId], references: [id], onDelete: Restrict)
+  attributeValues     VariantAttributeValue[]
+  downloadableFiles   VariantDownloadFile[]
+  stockLevels         StockLevel[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+  inventoryMovements  InventoryMovement[]
+  returnItems         ReturnItem[]
+  exchangeReturnItems ReturnItem[]            @relation("ExchangeVariant")
+
+  @@index([productId])
+  @@index([sku])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+/// Join table: digital product files attached to a variant (§4.3 downloadableFiles).
+/// When an order is placed for a digital variant, these assets become the download source.
+model VariantDownloadFile {
+  variantId String
+  assetId   String
+  sortOrder Int    @default(0)
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  asset   Asset          @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@id([variantId, assetId])
+  @@index([variantId])
+  @@index([assetId])
+}
+
+/// Join table: maps a ProductVariant to its AttributeValues. Composite PK per spec §9.7.
+model VariantAttributeValue {
+  variantId        String
+  attributeValueId String
+
+  variant        ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id], onDelete: Restrict)
+
+  @@id([variantId, attributeValueId])
+  @@index([variantId])
+  @@index([attributeValueId])
+}
+
+/// Join table: maps a Product to its Categories. Composite PK per spec §9.7.
+model ProductCategory {
+  productId  String
+  categoryId String
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([productId, categoryId])
+  @@index([productId])
+  @@index([categoryId])
+}
+
+/// Join table: maps a Product to its Assets with ordering. Composite PK per spec §9.7.
+model ProductAsset {
+  productId String
+  assetId   String
+  sortOrder Int     @default(0)
+  isPrimary Boolean @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  asset   Asset   @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@id([productId, assetId])
+  @@index([productId])
+  @@index([assetId])
+}
+
+/// FAQ entry attached to a product (translatable question & answer).
+model ProductFaq {
+  id        String   @id @default(cuid())
+  productId String
+  question  Json // Translatable
+  answer    Json // Translatable
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  // GIN indexes on question, answer (JSONB)
+
+  @@index([productId])
+}
+
+// ============================================================
+// INVENTORY (3 models: InventoryLocation, StockLevel, InventoryMovement)
+// ============================================================
+
+
+/// Free-form product specification row, one label to one value.
+///
+/// Deliberately NOT Attribute/AttributeValue: those are scoped to a ProductType
+/// (`@@unique([productTypeId, code])`, `onDelete: Restrict`) and their only
+/// outbound edge reaches a ProductVariant, never a Product. Using them would
+/// mean allocating a typed Attribute row before an operator could type a
+/// specification, which is the opposite of free-form.
+///
+/// `label` and `value` are Translatable per §3.2, because both are rendered to
+/// the customer. The admin autocompletes from labels and values already in use,
+/// so selecting an existing one carries both locales and only a genuinely new
+/// term is ever typed twice.
+model ProductSpec {
+  id        String   @id @default(cuid())
+  productId String
+  /// Translatable: { default, fr, en }
+  label     Json
+  /// Translatable: { default, fr, en }
+  value     Json
+  /// Accent-folded, lowercased `label.default`. DERIVED SERVER-SIDE, never
+  /// accepted from a client: it is the uniqueness key, so a supplied value is
+  /// both a silent-overwrite vector on this product and a way to poison the
+  /// cross-product autocomplete. It also stops "Matériau" and "Materiau"
+  /// fragmenting into two specifications that filter separately.
+  key       String
+  /// Accent-folded, lowercased `value.default`. Serves the value-side
+  /// autocomplete and the facet grouping.
+  valueKey  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// The operator's "one to one", enforced by the database rather than by a
+  /// validator: a product carries at most one row per specification.
+  @@unique([productId, key])
+  /// Label autocomplete and the per-key facet rollup.
+  @@index([key])
+  /// Value autocomplete scoped to a label, and the facet value counts.
+  @@index([key, valueKey])
+}
+
+/// Physical or virtual location for stock (warehouse, store, 3PL, etc.).
+model InventoryLocation {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   Json?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stockLevels        StockLevel[]
+  inventoryMovements InventoryMovement[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+/// Current stock level for a variant at a specific location.
+/// available = onHand - reserved (computed virtual, not stored per §9.1 S1).
+model StockLevel {
+  id         String   @id @default(cuid())
+  variantId  String
+  locationId String
+  onHand     Int      @default(0)
+  reserved   Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  variant  ProductVariant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  location InventoryLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@unique([variantId, locationId])
+  @@index([variantId])
+  @@index([locationId])
+}
+
+/// Immutable log of every stock change. Append-only — never soft-deleted (§9.6).
+model InventoryMovement {
+  id            String            @id @default(cuid())
+  variantId     String
+  locationId    String
+  type          MovementType
+  /// Positive = stock in, negative = stock out.
+  quantity      Int
+  reason        AdjustmentReason?
+  /// "ORDER" | "RETURN" | "ADJUSTMENT" — referenceId links to the source record.
+  referenceType String?
+  referenceId   String?
+  /// userId of the staff member who performed the action (stored as string, not FK).
+  performedBy   String?
+  notes         String?
+  createdAt     DateTime          @default(now())
+
+  variant  ProductVariant    @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  location InventoryLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@index([variantId])
+  @@index([locationId])
+  @@index([type])
+  @@index([referenceType, referenceId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// CATEGORIES (1 model: Category)
+// ============================================================
+
+/// Hierarchical product taxonomy using materialized path for O(1) subtree queries.
+model Category {
+  id              String    @id @default(cuid())
+  name            Json // Translatable
+  slug            String    @unique
+  description     Json? // Translatable
+  parentId        String?
+  imageId         String?
+  sortOrder       Int       @default(0)
+  isVisible       Boolean   @default(true)
+  /// Materialized path e.g. "/root-id/parent-id/this-id". Used for subtree queries.
+  path            String    @default("/")
+  depth           Int       @default(0)
+  metaTitle       Json? // Translatable
+  metaDescription Json? // Translatable
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  /// Soft delete (§9.6). Prisma middleware filters WHERE deletedAt IS NULL.
+  deletedAt       DateTime?
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  image    Asset?     @relation("CategoryImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  products            ProductCategory[]
+  promotionCategories PromotionCategory[]
+  // GIN indexes on name, description, metaTitle, metaDescription (JSONB)
+
+  @@index([parentId])
+  @@index([slug])
+  @@index([isVisible])
+  @@index([deletedAt])
+  @@index([path])
+}
+
+// ============================================================
+// ASSETS (1 model: Asset)
+// ============================================================
+
+/// Media file (image, video, document, audio) stored in object storage.
+/// status tracks processing pipeline (resize, blurhash generation, etc.).
+model Asset {
+  id                  String      @id @default(cuid())
+  alt                 Json? // Translatable
+  type                AssetType
+  mimeType            String
+  fileSize            Int
+  width               Int?
+  height              Int?
+  /// Duration in seconds (video/audio only).
+  duration            Int?
+  blurhash            String?
+  status              AssetStatus @default(PENDING)
+  /// JSON map of processed variants: { thumb: { url, w, h }, medium: ... }
+  variants            Json?
+  /// Public-canonical variant path (per asset-variant-serving feature, AV0+).
+  /// AV0: still mirrors the upload path (no behaviour change).
+  /// AV1: becomes the canonical public-variant path written by the image
+  /// processor; URL is set to the matching variant URL.
+  storagePath         String
+  url                 String
+  /// Private storage path of the uploaded original.
+  /// - AV0: mirrors `storagePath` so AV1's flip-to-private does not require backfill.
+  /// - AV1: holds the actual private path written by `AssetsService.upload`
+  ///   with `visibility: 'private'`.
+  /// - Post-processor: set to NULL when `RETAIN_ORIGINALS=false` and the
+  ///   processor deletes the original from storage (tombstone semantics
+  ///   per `agent_docs/assets-pipeline.md` §4).
+  /// Never returned in storefront-public payloads. Admin reads via the
+  /// signed-URL endpoint shipped at AV1.
+  originalStoragePath String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  productAssets        ProductAsset[]
+  variantDownloadFiles VariantDownloadFile[]
+  reviewAssets         ReviewAsset[]
+  returnAssets         ReturnAsset[]
+  categories           Category[]            @relation("CategoryImage")
+  brandLogos           Brand[]               @relation("BrandLogo")
+  // GIN index on alt (JSONB): CREATE INDEX ON "Asset" USING gin(alt)
+}
+
+// ============================================================
+// CART (2 models: Cart, CartItem)
+// ============================================================
+
+/// Shopping cart. One active cart per user (@unique userId) or per session (@unique sessionId).
+/// NULL userId/sessionId: Prisma allows multiple NULLs; uniqueness applies to non-null values.
+model Cart {
+  id               String    @id @default(cuid())
+  /// Logged-in user cart. @unique enforces one cart per user (§9.7).
+  userId           String?   @unique
+  /// Anonymous session cart. @unique enforces one cart per session (§9.7).
+  sessionId        String?   @unique
+  couponCode       String?
+  /// Gift card the shopper applied on the cart page. A tender, not a discount:
+  /// it is validated on apply, re-validated at checkout, and deducted from the
+  /// order total there. Persisted so the cart survives a reload and so the
+  /// checkout payload does not depend on the browser holding it (DR-30 closed
+  /// the mint that made an unpaid card worth holding).
+  giftCardCode     String?
+  subtotal         Decimal   @default(0) @db.Decimal(12, 3)
+  discountAmount   Decimal   @default(0) @db.Decimal(12, 3)
+  shippingEstimate Decimal?  @db.Decimal(12, 3)
+  taxEstimate      Decimal?  @db.Decimal(12, 3)
+  total            Decimal   @default(0) @db.Decimal(12, 3)
+  abandonedAt      DateTime?
+  recoveredAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items CartItem[]
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([abandonedAt])
+  @@index([deletedAt])
+}
+
+/// Line item in a cart. Stores locale-resolved snapshots at time of add-to-cart.
+model CartItem {
+  id             String   @id @default(cuid())
+  cartId         String
+  variantId      String
+  quantity       Int      @default(1)
+  /// Locale-resolved product name snapshot (not Translatable — already resolved).
+  productName    String
+  variantLabel   String?
+  productSlug    String
+  unitPrice      Decimal  @db.Decimal(12, 3)
+  compareAtPrice Decimal? @db.Decimal(12, 3)
+  /// Cached stock state at add-to-cart time. Must be re-validated at checkout.
+  inStock        Boolean  @default(true)
+  stockAvailable Int      @default(0)
+  thumbnailUrl   String?
+  weight         Decimal? @db.Decimal(8, 3)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+  @@index([variantId])
+}
+
+// ============================================================
+// ORDERS (4 models: Order, OrderItem, Shipment, Invoice)
+// ============================================================
+
+/// Immutable order record — never soft-deleted (§9.6). Addresses stored as JSON snapshots.
+model Order {
+  id                 String        @id @default(cuid())
+  /// Format: {prefix}-{year}-{sequence} via PostgreSQL SEQUENCE (§9.4 C4). @unique.
+  orderNumber        String        @unique
+  userId             String?
+  status             OrderStatus   @default(PENDING)
+  paymentStatus      PaymentStatus @default(PENDING)
+  /// Shipping address snapshot at time of checkout.
+  shippingAddress    Json
+  /// Billing address snapshot at time of checkout.
+  billingAddress     Json
+  subtotal           Decimal       @db.Decimal(12, 3)
+  discountAmount     Decimal       @default(0) @db.Decimal(12, 3)
+  shippingAmount     Decimal       @default(0) @db.Decimal(12, 3)
+  taxAmount          Decimal       @default(0) @db.Decimal(12, 3)
+  total              Decimal       @db.Decimal(12, 3)
+  /// Snapshot of the shipping method name at time of order.
+  shippingMethodName String?
+  /// Guest checkout identity. All three are null on an account order, and
+  /// `userId` is null when they are set: an order belongs to a user OR to a
+  /// guest, never to both.
+  ///
+  /// `guestEmail` is the contact address, the confirmation-mail recipient and
+  /// the challenge the public track page checks. `guestSessionId` is the
+  /// anonymous cart session that placed the order, which is what lets the
+  /// guest read it back from the same browser without a token. `guestLocale`
+  /// is captured because there is no user row to read a locale from, and
+  /// without it every guest email would go out in the default locale.
+  guestEmail         String?
+  guestSessionId     String?
+  guestLocale        String?
+  /// Snapshot of the tender chosen at checkout, same pattern as
+  /// `shippingMethodName`: the code for machines, the locale-resolved name for
+  /// display, both frozen at order time so a later rename or a disabled method
+  /// cannot rewrite history.
+  paymentMethodCode  String?
+  paymentMethodName  String?
+  /// Reference the payment provider returned from `createSession` (DR-34).
+  /// Server-written only; inbound payment webhooks find the order by it.
+  paymentReference   String?       @unique
+  /// ISO 4217 code written from the runtime config at order time (DR-31); no column default.
+  currency           String
+  notes              String?
+  internalNotes      String?
+  couponCode         String?
+  /// Stored in Redis (24hr TTL, §9.5 I1), mirrored here for audit.
+  idempotencyKey     String?       @unique
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  /// Set when order status transitions to DELIVERED — used for return window calculation (§4.9 H-2).
+  deliveredAt        DateTime?
+
+  user          User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items         OrderItem[]
+  shipments     Shipment[]
+  invoice       Invoice?
+  returns       Return[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([userId])
+  @@index([guestSessionId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([orderNumber])
+  @@index([createdAt])
+  @@index([idempotencyKey])
+}
+
+/// Append-only record of every order status transition (§9.6, finding AD6).
+///
+/// The customer-facing timeline reads this. The `order.status_changed`
+/// `AuditLogEntry` row is NOT a substitute: it is best-effort (its writer is
+/// wrapped in try/catch, so it can silently miss), it carries staff ids, and it
+/// is not written in the same transaction as the status change.
+///
+/// Written inside the transaction that moves the order, so a transition either
+/// lands with its history row or does not land at all.
+model OrderStatusHistory {
+  id         String       @id @default(cuid())
+  orderId    String
+  /// Null on the row written when the order is created; there is no prior state.
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  createdAt  DateTime     @default(now())
+
+  /// Cascade, unlike `Shipment.onDelete: Restrict`. A shipment is a real-world
+  /// artifact worth blocking a delete over; this is a subordinate log of one
+  /// order and is meaningless without it. Cascade also keeps every existing
+  /// test cleanup that deletes orders working unchanged.
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// The timeline is always read as "this order, oldest first".
+  @@index([orderId, createdAt])
+}
+
+/// Immutable order line item — never soft-deleted (§9.6). Stores data snapshots.
+model OrderItem {
+  id                String    @id @default(cuid())
+  orderId           String
+  /// Nullable: variant may be deleted after order placed.
+  variantId         String?
+  /// Nullable: product may be archived after order placed.
+  productId         String?
+  /// Product name snapshot (Translatable Json) at time of purchase.
+  productName       Json
+  variantLabel      String?
+  sku               String
+  unitPrice         Decimal   @db.Decimal(12, 3)
+  quantity          Int
+  discountAmount    Decimal   @default(0) @db.Decimal(12, 3)
+  taxAmount         Decimal   @default(0) @db.Decimal(12, 3)
+  total             Decimal   @db.Decimal(12, 3)
+  weight            Decimal?  @db.Decimal(8, 3)
+  thumbnailUrl      String?
+  /// Digital product delivery fields.
+  downloadUrl       String?
+  maxDownloads      Int?
+  downloadsUsed     Int       @default(0)
+  downloadExpiresAt DateTime?
+  createdAt         DateTime  @default(now())
+
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  product     Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  returnItems ReturnItem[]
+
+  @@index([orderId])
+  @@index([variantId])
+  @@index([productId])
+}
+
+/// Shipment record for one or more items in an order (supports split shipments).
+model Shipment {
+  id             String         @id @default(cuid())
+  orderId        String
+  carrier        String?
+  trackingNumber String?
+  status         ShipmentStatus @default(PROCESSING)
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  /// JSON snapshot of which OrderItem IDs + quantities are in this shipment.
+  items          Json
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([status])
+  @@index([trackingNumber])
+}
+
+/// Tax invoice generated for an order. Immutable once issued (§9.6).
+model Invoice {
+  id                 String   @id @default(cuid())
+  orderId            String   @unique
+  /// Format: INV-{year}-{sequence}. @unique per spec §9.7.
+  invoiceNumber      String   @unique
+  /// JSON snapshot of line items at invoice generation time.
+  items              Json
+  subtotal           Decimal  @db.Decimal(12, 3)
+  discountAmount     Decimal  @default(0) @db.Decimal(12, 3)
+  shippingAmount     Decimal  @default(0) @db.Decimal(12, 3)
+  taxAmount          Decimal  @default(0) @db.Decimal(12, 3)
+  total              Decimal  @db.Decimal(12, 3)
+  /// Snapshot of the shipping method name at invoice generation. Mirrors
+  /// Order.shippingMethodName so the invoice payload carries which method was charged.
+  shippingMethodName String?
+  taxBreakdown       Json?
+  billingAddress     Json
+  issuedAt           DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceNumber])
+  @@index([issuedAt])
+}
+
+// ============================================================
+// RETURNS (3 models: Return, ReturnItem, ReturnAsset)
+// ============================================================
+
+/// Return request header. Immutable once created per status flow (§4.9).
+model Return {
+  id           String              @id @default(cuid())
+  /// Format: RET-{year}-{sequence}. @unique per spec §9.7.
+  returnNumber String              @unique
+  orderId      String
+  customerId   String
+  status       ReturnStatus        @default(REQUESTED)
+  reason       ReturnReason
+  reasonDetail String?
+  refundMethod ReturnRefundMethod?
+  refundAmount Decimal?            @db.Decimal(12, 3)
+  adminNotes   String?
+  requestedAt  DateTime            @default(now())
+  approvedAt   DateTime?
+  receivedAt   DateTime?
+  refundedAt   DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  order    Order         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  customer User          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  items    ReturnItem[]
+  photos   ReturnAsset[]
+
+  @@index([orderId])
+  @@index([customerId])
+  @@index([status])
+  @@index([returnNumber])
+}
+
+/// Line item in a return request.
+model ReturnItem {
+  id                String           @id @default(cuid())
+  returnId          String
+  orderItemId       String
+  variantId         String?
+  /// For EXCHANGE refund method: the variant the customer wants in exchange (C-1 §4.9).
+  exchangeVariantId String?
+  quantity          Int
+  restockDecision   RestockDecision?
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  return          Return          @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItem       OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+  variant         ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  exchangeVariant ProductVariant? @relation("ExchangeVariant", fields: [exchangeVariantId], references: [id], onDelete: SetNull)
+
+  @@index([returnId])
+  @@index([orderItemId])
+  @@index([variantId])
+  @@index([exchangeVariantId])
+}
+
+/// Join table: photos uploaded by customer for a return request. (§9.2 R4)
+model ReturnAsset {
+  returnId String
+  assetId  String
+
+  return Return @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  asset  Asset  @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@id([returnId, assetId])
+  @@index([returnId])
+  @@index([assetId])
+}
+
+// ============================================================
+// REVIEWS (4 models: Review, ReviewAsset, ProductQuestion, HelpfulVote)
+// ============================================================
+
+/// Customer product review. One per customer per product (§9.7 C6).
+model Review {
+  id               String       @id @default(cuid())
+  productId        String
+  userId           String
+  /// Translatable: { default, fr, en }
+  title            Json?
+  /// Translatable: { default, fr, en }
+  body             Json
+  /// Submission locale captured at create time (`Accept-Language` or null when missing).
+  locale           String?
+  rating           Int
+  verifiedPurchase Boolean      @default(false)
+  /// Materialized count from HelpfulVote records (§9.1 S4). Updated on vote.
+  helpfulCount     Int          @default(0)
+  status           ReviewStatus @default(PENDING)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  assets  ReviewAsset[]
+
+  /// One review per customer per product (§9.7).
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+  @@index([status])
+  @@index([rating])
+}
+
+/// Join table: media assets attached to a review. (§9.2 R1)
+model ReviewAsset {
+  reviewId String
+  assetId  String
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  asset  Asset  @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@id([reviewId, assetId])
+  @@index([reviewId])
+  @@index([assetId])
+}
+
+/// Q&A entry for a product. Supports anonymous questions.
+model ProductQuestion {
+  id             String         @id @default(cuid())
+  productId      String
+  /// Translatable: { default, fr, en }
+  question       Json
+  /// Submission locale captured at create time (`Accept-Language` or null when missing).
+  questionLocale String?
+  /// userId of the customer who asked. Nullable for anonymous questions.
+  askedById      String?
+  /// Translatable: { default, fr, en }
+  answer         Json?
+  /// userId of the staff member who answered. Stored as string (no FK).
+  answeredBy     String?
+  isAdminAnswer  Boolean        @default(false)
+  helpfulCount   Int            @default(0)
+  status         QuestionStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  asker   User?   @relation("QuestionAsker", fields: [askedById], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([status])
+  @@index([askedById])
+}
+
+/// Polymorphic helpful vote. One vote per user per entity (§9.7). (§9.1 S4)
+model HelpfulVote {
+  id         String   @id @default(cuid())
+  userId     String
+  /// "review" | "question"
+  entityType String
+  entityId   String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// One vote per user per entity (§9.7).
+  @@unique([userId, entityType, entityId])
+  @@index([userId])
+  @@index([entityType, entityId])
+}
+
+// ============================================================
+// PROMOTIONS (4 models: Promotion, PromotionUsage, PromotionProduct, PromotionCategory)
+// ============================================================
+
+/// Discount/promotion rule. Supports automatic and coupon-based application.
+/// usageCount removed — computed from PromotionUsage COUNT() (§9.1 S3).
+model Promotion {
+  id                 String                     @id @default(cuid())
+  name               Json // Translatable
+  description        Json? // Translatable
+  type               PromotionType
+  applicationMethod  PromotionApplicationMethod
+  /// Unique coupon code. Only set when applicationMethod = COUPON (§9.7).
+  couponCode         String?                    @unique
+  /// Percentage (0–100) or fixed amount depending on type.
+  value              Decimal                    @db.Decimal(12, 3)
+  minimumOrderAmount Decimal?                   @db.Decimal(12, 3)
+  maximumDiscount    Decimal?                   @db.Decimal(12, 3)
+  usageLimit         Int?
+  usageLimitPerUser  Int?
+  /// Exclusive promotions cannot stack with other promotions.
+  isExclusive        Boolean                    @default(false)
+  /// Lower priority number = higher priority. Controls conflict resolution.
+  priority           Int                        @default(0)
+  /// For BUY_X_GET_Y: buy this many…
+  buyQuantity        Int?
+  /// …get this many free.
+  getQuantity        Int?
+  /// JSON config for VOLUME_DISCOUNT / TIERED_PRICE: [{min, max, value}]
+  tierConfig         Json?
+  startsAt           DateTime?
+  endsAt             DateTime?
+  isActive           Boolean                    @default(true)
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  /// Soft delete (§9.6).
+  deletedAt          DateTime?
+
+  usages             PromotionUsage[]
+  eligibleProducts   PromotionProduct[]
+  eligibleCategories PromotionCategory[]
+  // GIN indexes on name, description (JSONB)
+
+  @@index([couponCode])
+  @@index([isActive])
+  @@index([applicationMethod])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@index([deletedAt])
+}
+
+/// Immutable record of a promotion being used. Append-only (§9.6).
+model PromotionUsage {
+  id             String   @id @default(cuid())
+  promotionId    String
+  /// Nullable for guest orders. Stored as string (no FK to avoid coupling).
+  userId         String?
+  orderId        String
+  discountAmount Decimal  @db.Decimal(12, 3)
+  usedAt         DateTime @default(now())
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Restrict)
+
+  @@index([promotionId])
+  @@index([userId])
+  @@index([orderId])
+}
+
+/// Join table: specific products eligible for a promotion. (§9.2 R2)
+model PromotionProduct {
+  promotionId String
+  productId   String
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, productId])
+  @@index([promotionId])
+  @@index([productId])
+}
+
+/// Join table: specific categories eligible for a promotion. (§9.2 R2)
+model PromotionCategory {
+  promotionId String
+  categoryId  String
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, categoryId])
+  @@index([promotionId])
+  @@index([categoryId])
+}
+
+// ============================================================
+// GIFT CARDS (2 models: GiftCard, GiftCardTransaction)
+// ============================================================
+
+/// Gift card or store credit (purchasedBy = null means store-issued credit).
+/// Never deleted; can only be deactivated (§9.3). Transactions are immutable.
+model GiftCard {
+  id              String    @id @default(cuid())
+  /// Unique redemption code (§9.7).
+  code            String    @unique
+  /// Immutable initial balance set at creation.
+  initialBalance  Decimal   @db.Decimal(12, 3)
+  /// Materialized cache — updated atomically via WHERE currentBalance >= amount (§9.1 S2, §9.4 C2).
+  currentBalance  Decimal   @db.Decimal(12, 3)
+  /// ISO 4217 code chosen at purchase, defaulting to the store currency (DR-31); no column default.
+  currency        String
+  recipientEmail  String?
+  recipientName   String?
+  personalMessage Json? // Translatable
+  /// Null = store-issued credit.
+  purchasedBy     String?
+  expiresAt       DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  /// Soft delete (§9.6). GiftCards are never hard-deleted.
+  deletedAt       DateTime?
+
+  purchaser    User?                 @relation("PurchasedGiftCards", fields: [purchasedBy], references: [id], onDelete: SetNull)
+  transactions GiftCardTransaction[]
+  // GIN index on personalMessage (JSONB)
+
+  @@index([code])
+  @@index([purchasedBy])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+/// Immutable ledger entry for a gift card. Append-only (§9.6).
+/// amount: positive = credit, negative = debit.
+model GiftCardTransaction {
+  id         String   @id @default(cuid())
+  giftCardId String
+  amount     Decimal  @db.Decimal(12, 3)
+  orderId    String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  giftCard GiftCard @relation(fields: [giftCardId], references: [id], onDelete: Restrict)
+
+  @@index([giftCardId])
+  @@index([orderId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// WISHLIST (1 model: WishlistItem)
+// ============================================================
+
+/// Thin join between User and Product. Composite PK per spec §9.7.
+model WishlistItem {
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+// ============================================================
+// SEARCH (3 models: SearchEvent, MerchandisingRule, SearchSynonym)
+// ============================================================
+
+/// Analytics record of a search query. Append-only (§9.6).
+model SearchEvent {
+  id               String   @id @default(cuid())
+  query            String
+  resultCount      Int
+  clickedProductId String?
+  clickPosition    Int?
+  convertedToCart  Boolean  @default(false)
+  convertedToOrder Boolean  @default(false)
+  locale           String?
+  /// Stored as string (no FK — analytics should not block on user deletion).
+  userId           String?
+  sessionId        String?
+  createdAt        DateTime @default(now())
+
+  @@index([query])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([locale])
+}
+
+/// Merchandising rule: Boost, Bury, Pin, Synonym, or Redirect a search query result.
+model MerchandisingRule {
+  id        String   @id @default(cuid())
+  /// "boost" | "bury" | "pin" | "redirect"
+  type      String
+  query     String?
+  productId String?
+  position  Int?
+  priority  Int      @default(0)
+  isActive  Boolean  @default(true)
+  config    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([query])
+  @@index([isActive])
+}
+
+/// Synonym group: all terms in the array are treated as equivalent in search.
+model SearchSynonym {
+  id        String   @id @default(cuid())
+  /// e.g. ["laptop", "notebook", "computer"]
+  terms     String[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// ============================================================
+// SHIPPING (2 models: ShippingZone, ShippingMethod)
+// ============================================================
+
+/// Geographic shipping zone. Lower priority number = higher precedence (§4.15, §9.9).
+model ShippingZone {
+  id               String    @id @default(cuid())
+  name             Json // Translatable
+  countries        String[]
+  states           String[]
+  /// JSON array of {from: string, to: string} postal code ranges.
+  postalCodeRanges Json?
+  /// Lower number = higher priority. First matching zone wins (§9.9).
+  priority         Int       @default(0)
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  /// Soft delete (§9.6). Active orders snapshot method/rate.
+  deletedAt        DateTime?
+
+  methods ShippingMethod[]
+  // GIN index on name (JSONB)
+
+  @@index([isActive])
+  @@index([priority])
+  @@index([deletedAt])
+}
+
+/// Shipping method within a zone. Soft-deactivated via isActive (§9.3).
+model ShippingMethod {
+  id               String             @id @default(cuid())
+  zoneId           String
+  name             Json // Translatable
+  type             ShippingMethodType
+  price            Decimal?           @db.Decimal(12, 3)
+  /// JSON array: [{minKg, maxKg, price}]. Money in JSON, so it carries no
+  /// scale and no Decimal migration reaches it; validated at the DTO instead.
+  weightRanges     Json?
+  /// JSON array: [{minAmount, maxAmount, price}]. Same caveat as weightRanges.
+  priceRanges      Json?
+  freeAbove        Decimal?           @db.Decimal(12, 3)
+  estimatedDaysMin Int?
+  estimatedDaysMax Int?
+  isActive         Boolean            @default(true)
+  sortOrder        Int                @default(0)
+  /// The store's preselected standard method for this zone. At most one default
+  /// per zone, enforced by a partial-unique index (WHERE isDefault AND deletedAt
+  /// IS NULL). Drives checkout auto-pick + admin order-create preselection (§4.15).
+  isDefault        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  /// Soft delete (§9.6). Orders that used this method retain their snapshot.
+  deletedAt        DateTime?
+
+  zone ShippingZone @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  // GIN index on name (JSONB)
+
+  @@index([zoneId])
+  @@index([isActive])
+  @@index([type])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// TAX (2 models: TaxZone, TaxClass)
+// ============================================================
+
+/// Tax zone with a base rate applied to matching countries.
+model TaxZone {
+  id         String    @id @default(cuid())
+  /// Translatable: { default, fr, en }
+  name       Json
+  countries  String[]
+  /// e.g. 0.0500 = 5%. Stored as Decimal(5,4).
+  rate       Decimal   @db.Decimal(5, 4)
+  isDefault  Boolean   @default(false)
+  isCompound Boolean   @default(false)
+  priority   Int       @default(0)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  /// Soft delete (§9.6).
+  deletedAt  DateTime?
+
+  taxClasses TaxClass[]
+
+  @@index([isDefault])
+  @@index([isActive])
+  @@index([priority])
+  @@index([deletedAt])
+}
+
+/// Tax class (rate override) within a TaxZone: Standard, Reduced, Zero-Rated, Exempt.
+model TaxClass {
+  id        String   @id @default(cuid())
+  zoneId    String
+  /// `name` is a functional type-tag (not a display label) — stays plain String per DR-22.
+  name      String
+  rate      Decimal  @db.Decimal(5, 4)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  zone         TaxZone       @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  productTypes ProductType[]
+
+  @@index([zoneId])
+}
+
+// ============================================================
+// STOREFRONT CONFIG (1 model: StorefrontSection)
+// ============================================================
+
+/// A configurable section on a storefront page (hero, banner, announcement bar, etc.).
+model StorefrontSection {
+  id           String      @id @default(cuid())
+  /// The page this section belongs to (e.g. "home", "category/electronics").
+  pageSlug     String
+  type         SectionType
+  /// Translatable section title.
+  title        Json? // Translatable
+  /// Type-specific configuration JSON. All text fields inside must be Translatable.
+  config       Json?
+  sortOrder    Int         @default(0)
+  isVisible    Boolean     @default(true)
+  /// Visibility window start (null = no restriction).
+  visibleFrom  DateTime?
+  /// Visibility window end (null = no restriction).
+  visibleUntil DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  /// Soft delete (§9.6).
+  deletedAt    DateTime?
+
+  @@index([pageSlug])
+  @@index([type])
+  @@index([isVisible])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// CMS (1 model: CmsPage)
+// ============================================================
+
+/// Static/policy/landing page managed via CMS. slug is globally unique (§9.7).
+model CmsPage {
+  id               String      @id @default(cuid())
+  title            Json // Translatable
+  /// Globally unique URL slug (§9.7). e.g. "/about", "/privacy-policy".
+  slug             String      @unique
+  content          Json // Translatable (rich text, sanitized)
+  type             CmsPageType @default(STATIC)
+  isPublished      Boolean     @default(false)
+  metaTitle        Json? // Translatable
+  metaDescription  Json? // Translatable
+  sortOrder        Int         @default(0)
+  showInNavigation Boolean     @default(false)
+  template         String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  /// Soft delete (§9.6).
+  deletedAt        DateTime?
+  // GIN indexes on title, content, metaTitle, metaDescription (JSONB)
+
+  @@index([slug])
+  @@index([type])
+  @@index([isPublished])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// SEO (2 models: SeoRedirect, SeoSubmission)
+// ============================================================
+
+/// URL redirect rule. fromPath is globally unique (§9.7).
+model SeoRedirect {
+  id              String       @id @default(cuid())
+  /// Source path to redirect from. @unique per spec §9.7.
+  fromPath        String       @unique
+  toPath          String
+  /// MOVED_PERMANENTLY = 301, FOUND = 302.
+  type            RedirectType @default(MOVED_PERMANENTLY)
+  isAutoGenerated Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([fromPath])
+  @@index([type])
+}
+
+/// Search-engine submission audit record (DR-17). Append-only (§9.6 / §3.4) —
+/// same class as AnalyticsEvent / WebhookDelivery, so NO `deletedAt` and NOT in
+/// SOFT_DELETE_MODELS. One row PER ENGINE per submission attempt, so each engine's
+/// fail-open outcome is independently auditable. Closes the DR-16 silent-failure
+/// class by making every submit (manual + auto-regen + cron) durably queryable.
+/// `actorId` is a plain string (no FK) so the log survives user deletion — mirrors
+/// AnalyticsEvent.userId.
+model SeoSubmission {
+  id             String   @id @default(cuid())
+  /// Better Auth user id that triggered it; NULL for cron / auto-regen.
+  actorId        String?
+  /// "manual" | "auto-regen" | "cron"
+  trigger        String
+  /// "url" | "products" | "sitemap"
+  targetType     String
+  /// The submitted URL, sitemap feedpath, or a compact product-id/count descriptor.
+  targetRef      String
+  /// "indexnow" | "gsc" | "bing"
+  engine         String
+  requestedCount Int      @default(0)
+  submittedCount Int      @default(0)
+  /// IndexNow 5-min dedup skips (0 for gsc/bing).
+  skippedDeduped Int      @default(0)
+  /// Fail-open outcome from SearchEngineSubmitResult.accepted.
+  accepted       Boolean
+  /// Fail-open reason: "disabled" | "all deduped" | mapped engine error.
+  /// NEVER a stack trace, raw engine body, or API key (§3.7).
+  reason         String?
+  /// X-Request-Id for cross-log correlation.
+  correlationId  String?
+  createdAt      DateTime @default(now())
+
+  @@index([engine, createdAt])
+  @@index([targetType, createdAt])
+  @@index([createdAt])
+}
+
+// ============================================================
+// ANALYTICS (1 model: AnalyticsEvent)
+// ============================================================
+
+/// Funnel event record. Append-only (§9.6). Cross-cutting concern (§9.8 SC4).
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  /// Funnel step: "product_view" | "add_to_cart" | "begin_checkout" |
+  ///              "add_shipping_info" | "add_payment_info" | "purchase"
+  eventType String
+  /// Stored as strings — no FK to avoid coupling or blocking on user deletion.
+  userId    String?
+  sessionId String?
+  productId String?
+  orderId   String?
+  data      Json?
+  locale    String?
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([productId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@index([sessionId])
+}
+
+// ============================================================
+// WEBHOOKS (3 models: WebhookSubscription, WebhookDelivery, ProcessedWebhook)
+// ============================================================
+
+/// External webhook subscriber. Deactivated after 5 consecutive failures (§4.23).
+model WebhookSubscription {
+  id              String    @id @default(cuid())
+  url             String
+  /// Array of event types to subscribe to: ["order.created", "inventory.low_stock", ...]
+  events          String[]
+  /// HMAC-SHA256 signing secret. Sent as X-Webhook-Signature header.
+  secret          String
+  isActive        Boolean   @default(true)
+  failureCount    Int       @default(0)
+  lastDeliveredAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([isActive])
+  @@index([failureCount])
+}
+
+/// Delivery attempt record for a webhook event. Append-only (§9.6).
+/// Retry backoff: 1m, 5m, 30m, 2h, 24h.
+model WebhookDelivery {
+  id             String    @id @default(cuid())
+  subscriptionId String
+  eventType      String
+  /// UUID in the event payload — used by subscriber for deduplication (§9.11 I3).
+  eventId        String
+  payload        Json
+  responseStatus Int?
+  responseBody   String?
+  attempt        Int       @default(1)
+  succeededAt    DateTime?
+  failedAt       DateTime?
+  nextRetryAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  subscription WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([eventType])
+  @@index([eventId])
+  @@index([createdAt])
+  @@index([nextRetryAt])
+}
+
+/// Inbound webhook deduplication table. Prevents replaying the same provider event. (§9.11)
+model ProcessedWebhook {
+  id              String   @id @default(cuid())
+  provider        String
+  externalEventId String
+  processedAt     DateTime @default(now())
+
+  /// Idempotency: one record per provider+eventId combination (§9.7).
+  @@unique([provider, externalEventId])
+  @@index([provider])
+  @@index([processedAt])
+}
+
+// ============================================================
+// AUDIT LOG (1 model: AuditLogEntry)
+// ============================================================
+
+/// Immutable audit trail entry. 12-month retention. Never soft-deleted (§4.24, §9.6).
+model AuditLogEntry {
+  id         String   @id @default(cuid())
+  /// Nullable — system actions have no userId.
+  userId     String?
+  /// e.g. "user.login", "product.update", "order.status_changed"
+  action     String
+  entityType String?
+  entityId   String?
+  /// JSON diff: { before: {...}, after: {...} }
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// NOTIFICATIONS (1 model: Notification)
+// ============================================================
+
+/// In-app notification for a user.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  /// e.g. "order.shipped", "review.published"
+  type      String
+  title     Json // Translatable
+  body      Json? // Translatable
+  data      Json?
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  /// Soft delete (§3.4, NE7 Risk R8). Prisma middleware filters WHERE deletedAt IS NULL.
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // GIN indexes on title, body (JSONB)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// NOTIFICATION TEMPLATES + LOG (2 models)
+// ============================================================
+
+/// Operator-authored template rendered server-side before dispatching
+/// to the provider (email/SMS/push). `subject` is null for SMS/push.
+/// Variables are free-form string keys referenced in the body via
+/// {{handlebars}} — the backend renders them when an event fires.
+model NotificationTemplate {
+  id          String   @id @default(cuid())
+  /// Short unique identifier — also the join key used by NotificationLog.
+  code        String   @unique
+  /// Translatable subject line (email only; null for sms/push).
+  subject     Json?
+  /// Translatable body — plain text or HTML depending on channel.
+  body        Json
+  /// Channel the template targets.
+  /// Values: "email" | "sms" | "push".
+  channel     String
+  /// Event trigger code — e.g. "order.shipped", "review.published".
+  event       String
+  /// Variables the template references; shown as an insert menu in
+  /// the editor. Free-form so new events can extend without a
+  /// migration.
+  variables   String[]
+  /// Legacy content-override flag. Since NE1 the kill-switch is `sendEnabled`
+  /// and content selection is keyed on a non-empty body — `isEnabled` no
+  /// longer governs whether a flow sends or which content wins. Retained for
+  /// backward compatibility until the NE6 editor swap.
+  isEnabled   Boolean  @default(true)
+  /// Per-flow kill-switch consulted by `MailService.enqueue` (NE1). When
+  /// false the flow is skipped before the queue add (NotificationLog
+  /// `status='skipped'`). Defaults true so the migration never silently
+  /// darkens an existing flow.
+  sendEnabled Boolean  @default(true)
+  /// Delivery class — drives the consent/unsubscribe gate added in NE7.
+  /// Values: "TRANSACTIONAL" | "LIFECYCLE" | "MARKETING".
+  category    String   @default("TRANSACTIONAL")
+  /// Non-disableable flag for security/legal flows (auth.*, order.*, refund
+  /// confirmations). The admin UI renders the toggle read-only and the
+  /// enqueue gate refuses to skip a locked flow.
+  isLocked    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  logs NotificationLog[] @relation("TemplateLogs")
+
+  @@index([event])
+  @@index([channel])
+}
+
+/// Audit row for every dispatched notification — kept separate from the
+/// in-app Notification model because we want the history even when the
+/// recipient account is later deleted.
+model NotificationLog {
+  id           String   @id @default(cuid())
+  /// Nullable FK — log survives template deletion.
+  templateId   String?
+  /// Denormalised so the log renders when the template is gone.
+  templateCode String
+  channel      String
+  /// Address/phone/device token depending on channel.
+  recipient    String
+  /// Values: "queued" | "sent" | "delivered" | "bounced" | "complained" |
+  /// "failed" | "suppressed" | "skipped" | "enqueue-failed". `String` (not enum)
+  /// so MailService can extend without a migration. queued = handed to BullMQ;
+  /// sent = Resend accepted; delivered/bounced/complained = Resend webhook
+  /// callback; failed = retries exhausted; suppressed = EmailSuppression row
+  /// hit, never dispatched; skipped = per-flow kill-switch (sendEnabled=false)
+  /// or global pause tripped before the queue add, never dispatched (NE1);
+  /// enqueue-failed = the dispatch bridge (resolver or queue.add) threw before a
+  /// job was handed off, never dispatched (NE4, Risk R10).
+  status       String
+  /// Provider error message, if status in {bounced, failed, complained}.
+  error        String?
+  /// Extra provider metadata (message id, etc.).
+  metadata     Json?
+  sentAt       DateTime @default(now())
+
+  template NotificationTemplate? @relation("TemplateLogs", fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([templateCode])
+  @@index([status])
+  @@index([sentAt])
+}
+
+/// Email addresses suppressed from future sends. Inserted on Resend
+/// `email.complained` (always) and `email.bounced` with `bounce.type=hard`
+/// (operator policy — re-sending to a hard-bounced address damages domain
+/// reputation). MailService consults this table before every enqueue;
+/// matched recipients short-circuit to NotificationLog{status:"suppressed"}.
+model EmailSuppression {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  /// "bounce.hard" | "complaint" | "operator.manual"
+  reason    String
+  /// "resend" | "manual"
+  source    String
+  createdAt DateTime  @default(now())
+  /// Soft delete (§3.4, NE7 Risk R8). `unsuppress()` sets this rather than
+  /// hard-deleting so the audit trail survives; `suppress()` revives a
+  /// soft-deleted row (clears deletedAt) so a re-bounce re-suppresses.
+  deletedAt DateTime?
+
+  @@index([email])
+  @@index([deletedAt])
+}
+
+/// Per-user, per-category communication consent (NE7). The `enqueue` gate
+/// consults this for non-transactional flows only: an absent row means NOT
+/// consented (opt-in required, per the NE7 spec), so a LIFECYCLE/MARKETING
+/// flow is skipped until the customer opts in via the storefront preference
+/// center. Transactional flows ignore this table entirely.
+model NotificationPreference {
+  id        String    @id @default(cuid())
+  userId    String
+  /// "TRANSACTIONAL" | "LIFECYCLE" | "MARKETING" — mirrors NotificationTemplate.category.
+  category  String
+  /// Per-channel consent. Email is the only channel wired today; sms/push are
+  /// forward-looking so the preference center can expand without a migration.
+  email     Boolean   @default(false)
+  sms       Boolean   @default(false)
+  push      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft delete (§3.4). Filtered by the Prisma middleware.
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@index([userId])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// MARKETING / BROADCAST PLANE (3 models: Subscriber, Campaign, CampaignSend) — NE9
+// ============================================================
+
+/// Newsletter subscriber — the marketing audience. May be anonymous (footer
+/// signup, no account) or linked to a User. Double opt-in (operator decision O5,
+/// 2026-06-19): a fresh signup is UNCONFIRMED (`confirmedAt` null) and receives
+/// ONLY the `newsletter.confirm` email; campaigns go exclusively to
+/// `confirmedAt != null` subscribers. One-click / footer unsubscribe sets
+/// `unsubscribedAt` (kept, not deleted, so re-subscribe is auditable).
+model Subscriber {
+  id             String    @id @default(cuid())
+  /// Lowercased email — the marketing identity. Unique among non-deleted rows.
+  email          String    @unique
+  /// Optional link to an account (null for anonymous signups). SetNull on user
+  /// hard-delete so the marketing record + send audit survive.
+  userId         String?
+  /// BCP-47 send locale captured at signup, one of the store's enabled
+  /// locales; steers campaign copy. No column default: the application writes
+  /// the store default locale from the runtime config at signup (DR-31).
+  locale         String
+  /// Where the signup came from — "newsletter-footer" | "checkout" | "import".
+  source         String
+  /// Set on the double opt-in confirmation click. Null = pending confirmation.
+  confirmedAt    DateTime?
+  /// Set on one-click / footer unsubscribe. A campaign batch excludes any row
+  /// with this set; re-subscribe clears it.
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  /// Soft delete (§3.4). Filtered by the Prisma middleware.
+  deletedAt      DateTime?
+
+  user  User?          @relation("UserSubscribers", fields: [userId], references: [id], onDelete: SetNull)
+  sends CampaignSend[]
+
+  @@index([userId])
+  @@index([confirmedAt])
+  @@index([unsubscribedAt])
+  @@index([deletedAt])
+}
+
+/// A marketing broadcast — operator-composed (admin campaign composer) or
+/// system-authored (the scheduled win-back job). `subject`/`body` are Translatable
+/// (composed into the brand-floor layout at send time). Sent on the ISOLATED
+/// `campaign` BullMQ queue, batched via Resend `emails.batch.send` — NEVER the
+/// transactional `mail` queue, so a large blast can never starve a password reset
+/// or burn the transactional rate budget (plan §3g, Risk R9).
+model Campaign {
+  id          String    @id @default(cuid())
+  /// Internal admin label (not sent).
+  name        String
+  /// Translatable subject line.
+  subject     Json
+  /// Translatable body — inner content block; composed into renderLayout at send.
+  body        Json
+  /// Audience selector — "ALL_CONFIRMED" | "AT_RISK" | "CHURNED" | "ACTIVE" |
+  /// "LOYAL" | "NEW". Resolved to confirmed, consenting, non-suppressed recipients
+  /// at send time.
+  segment     String
+  /// Optional coupon code attached (an existing Promotion.couponCode), surfaced in
+  /// the body via {{couponCode}}. Validated to an active promotion by the composer.
+  couponCode  String?
+  /// Lifecycle: "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "CANCELLED" | "FAILED".
+  status      String    @default("DRAFT")
+  /// "BROADCAST" (operator) | "WINBACK" (system, scheduled job).
+  kind        String    @default("BROADCAST")
+  /// Idempotency window key for system campaigns (e.g. "winback:2026-W25"); unique
+  /// so a re-run of the job in the same window finds the existing campaign instead
+  /// of creating + re-sending a duplicate. Null for operator campaigns.
+  windowKey   String?   @unique
+  /// When a SCHEDULED campaign should start (null for send-now / draft).
+  scheduledAt DateTime?
+  /// When the send actually began.
+  sentAt      DateTime?
+  /// Admin actor who created it (null for system campaigns). SetNull on delete.
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  /// Soft delete (§3.4). Filtered by the Prisma middleware.
+  deletedAt   DateTime?
+
+  createdBy User?          @relation("CreatedCampaigns", fields: [createdById], references: [id], onDelete: SetNull)
+  sends     CampaignSend[]
+
+  @@index([status])
+  @@index([segment])
+  @@index([kind])
+  @@index([scheduledAt])
+  @@index([createdById])
+  @@index([deletedAt])
+}
+
+/// Per-recipient send record for a campaign — the campaign-plane audit trail
+/// (mirrors NotificationLog for the transactional plane). The `@@unique` is the
+/// idempotency guard: at-most-once send per (campaign, recipient), so a
+/// re-enqueued batch or a re-run win-back job skips an already-recorded recipient
+/// (Risk R9 / R5).
+model CampaignSend {
+  id                String    @id @default(cuid())
+  campaignId        String
+  /// Nullable link to the Subscriber (null when the recipient is a segment User
+  /// reached via consent but not on the subscriber list — e.g. win-back).
+  subscriberId      String?
+  /// Denormalised recipient email so the row renders after a subscriber purge.
+  recipient         String
+  /// "queued" | "sent" | "delivered" | "bounced" | "failed" | "skipped" |
+  /// "suppressed". `String` (not enum) — no migration to extend.
+  status            String
+  /// Resend message id, when sent.
+  providerMessageId String?
+  /// Provider/processor error, when failed.
+  error             String?
+  /// Stable per-recipient dedupe key (also the Resend Idempotency-Key).
+  dedupeKey         String?
+  sentAt            DateTime  @default(now())
+  /// Soft delete (§3.4).
+  deletedAt         DateTime?
+
+  campaign   Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subscriber Subscriber? @relation(fields: [subscriberId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, recipient])
+  @@index([campaignId])
+  @@index([subscriberId])
+  @@index([status])
+  @@index([providerMessageId])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// CARRIERS (1 model: Carrier)
+// ============================================================
+
+/// Admin-configured shipping carrier entry. Runtime integration is
+/// delegated to whichever `provider` is wired up — this model stores
+/// config (API key, services, zone membership) only.
+model Carrier {
+  id        String    @id @default(cuid())
+  /// Short, unique operator identifier — e.g. "dhl_express".
+  code      String    @unique
+  /// Translatable display name shown to the operator.
+  name      Json
+  /// Provider family — drives which config applies.
+  /// Values: "dhl" | "fedex" | "ups" | "aramex" | "manual".
+  provider  String
+  /// Supported services, e.g. ["express", "economy"]. Operator-owned
+  /// strings; the provider integration is responsible for mapping them
+  /// to whatever the upstream API expects.
+  services  String[]
+  /// ISO alpha-2 codes for countries this carrier can ship to. Empty
+  /// list means "any".
+  zones     String[]
+  /// Whether the carrier is offered at checkout.
+  isActive  Boolean   @default(false)
+  /// Ordering used when rates are tied. Lower sorts first.
+  sortOrder Int       @default(0)
+  /// Provider-specific config blob. Secrets are masked on read via
+  /// `CarriersService.maskConfig` (same rules as payment methods).
+  config    Json      @default("{}")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  /// Soft-delete — admin "delete" sets this + isActive=false.
+  deletedAt DateTime?
+
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// PAYMENTS (1 model: PaymentMethod)
+// ============================================================
+
+/// Admin-configured payment method entry (spec §4.22 — provider integrations
+/// stay placeholder; this model stores the *config*, not the runtime
+/// implementation). `config` is a provider-specific JSON blob that is
+/// secret-masked on read (see `PaymentMethodsService.maskConfig`).
+model PaymentMethod {
+  id          String    @id @default(cuid())
+  /// Short, unique operator identifier — e.g. "stripe_live", "cod", "gift_card".
+  code        String    @unique
+  /// Translatable display name shown in the storefront checkout.
+  name        Json
+  /// Optional translatable description.
+  description Json?
+  /// Provider family — drives which config fields apply.
+  /// Values: "stripe" | "paypal" | "cod" | "manual" | "gift_card".
+  provider    String
+  /// Whether the method is offered to customers at checkout.
+  isActive    Boolean   @default(false)
+  /// Operators enable test mode during dry-runs.
+  isTestMode  Boolean   @default(false)
+  /// Sort ascending — smaller numbers surface first on the storefront.
+  sortOrder   Int       @default(0)
+  /// Provider-specific secrets + flags. Writes merge with the existing
+  /// blob; reads mask `apiKey`, `webhookSecret`, `clientSecret`.
+  config      Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  /// Soft-delete — admin "delete" sets this + isActive=false.
+  deletedAt   DateTime?
+
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// SETTINGS (1 model: StoreSetting)
+// ============================================================
+
+/// Key-value store for store-wide configuration. Grouped by domain.
+/// group examples: "general", "localization", "checkout", "payment", "shipping", "tax", "notifications"
+model StoreSetting {
+  id        String   @id @default(cuid())
+  group     String
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// One value per group+key combination.
+  @@unique([group, key])
+  @@index([group])
+}
+
+// ============================================================
+// SEQUENCE COUNTERS (§9.4 C4)
+// ============================================================
+
+/// Atomic counter for generating sequential numbers (order numbers, invoice numbers).
+/// Replaces raw PostgreSQL SEQUENCE with Prisma-compatible upsert pattern.
+model SequenceCounter {
+  id    String @id @default(cuid())
+  /// Sequence name: "order", "invoice", "return"
+  name  String
+  /// Year partition — counters reset yearly.
+  year  Int
+  /// Current value — atomically incremented via upsert.
+  value Int    @default(0)
+
+  @@unique([name, year], map: "name_year")
+}

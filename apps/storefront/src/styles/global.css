@@ -1,0 +1,252 @@
+/*
+ * Storefront global stylesheet.
+ *
+ * Layers in order:
+ *   1. Brand tokens (must come first, because `@import` rules must precede all
+ *      other statements per CSS spec).
+ *   2. Self-hosted brand fonts (Baloo 2, Inter, JetBrains Mono).
+ *   3. Tailwind base / components / utilities.
+ *   4. Project resets and reduced-motion overrides.
+ *
+ * Every `unicode-range` below covers U+0100-024F for the French accented set
+ * and U+2000-206F for general punctuation. The second range is load-bearing:
+ * the §3.2 price format separates thousands with U+202F, the narrow no-break
+ * space, and a face that excludes it would drop out mid-number and hand that
+ * one character to the system fallback.
+ */
+
+/* ── §1 Brand tokens (`@import` first per CSS spec) ── */
+@import './brand.css';
+
+/* ── §3.3 Self-hosted fonts ── */
+
+/* Baloo 2 — display. Page titles, section titles, product names,
+   foregrounded figures. Never a long text block (§3). */
+@font-face {
+  font-family: 'Baloo 2';
+  src: url('/fonts/baloo2-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  src: url('/fonts/baloo2-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  src: url('/fonts/baloo2-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+
+/* Inter — body. Body copy, interface, everything else. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+
+/* JetBrains Mono — identifiers only. Product references, SKUs, order,
+   invoice, and tracking numbers. Never a styling effect (§3). */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122;
+}
+
+/* ── Kit `arabic-latin` — Cairo (display) + Tajawal (Arabic body). Inter and
+   JetBrains Mono are shared with the other kit and declared above.
+
+   Both kits ship in every build and the config selects one through
+   `--brand-kit-display` / `--brand-kit-body`. A browser downloads only the
+   faces the selected families actually use, so shipping both costs nothing on
+   the wire; the alternative was a per-install build, which is the thing this
+   epic removes. ── */
+@font-face {
+  font-family: 'Cairo';
+  src: url('/fonts/cairo-800.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('/fonts/tajawal-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0600-06FF, U+0750-077F, U+0900-097F, U+FB50-FDFF, U+FE70-FEFF;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('/fonts/tajawal-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0600-06FF, U+0750-077F, U+0900-097F, U+FB50-FDFF, U+FE70-FEFF;
+}
+/* Tajawal ships no native weight 600; browsers synthesize it from 500. */
+@font-face {
+  font-family: 'Tajawal';
+  src: url('/fonts/tajawal-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0600-06FF, U+0750-077F, U+0900-097F, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+/* ── Tailwind base ── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Project base ── */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--brand-bg);
+  color: var(--brand-text);
+  font-family: var(--brand-font-body);
+  font-size: var(--brand-text-body);
+  line-height: 1.6;
+}
+
+body {
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* §7.2 motion: respect prefers-reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus ring — accessible and brand-aligned. */
+:focus-visible {
+  outline: 2px solid var(--brand-focus);
+  outline-offset: 2px;
+}
+
+/* Skip-link visible on focus for keyboard users. */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: -40px;
+  padding: 8px 16px;
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  inset-block-start: 0;
+  /* Override the global Ardoise :focus-visible ring — Ardoise on Ardoise
+   * would be invisible against the skip-link background. WCAG 1.4.11. */
+  outline: 2px solid var(--brand-on-primary);
+  outline-offset: 2px;
+}
+
+/* ── Rich text ──
+   Typography for admin-authored HTML rendered through [innerHTML]: product and
+   category descriptions today, CMS page bodies next.
+
+   Global, not component-scoped, because injected children are created by the
+   browser and never carry a component's _ngcontent attribute, so a scoped rule
+   silently matches nothing. Only the editor's own allow-list is styled: p,
+   strong, em, a, ul, ol, li, h1 to h4
+   (libs/admin-ui/src/atoms/rich-text-editor/sanitize.ts).
+
+   Logical properties throughout, per the §3.10 responsive rules. */
+.rich-text-content p {
+  margin-block: 0 0.75rem;
+}
+.rich-text-content p:last-child {
+  margin-block-end: 0;
+}
+.rich-text-content ul,
+.rich-text-content ol {
+  margin-block: 0 0.75rem;
+  padding-inline-start: 1.25rem;
+}
+.rich-text-content ul {
+  list-style: disc;
+}
+.rich-text-content ol {
+  list-style: decimal;
+}
+.rich-text-content li {
+  margin-block-end: 0.25rem;
+}
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3,
+.rich-text-content h4 {
+  /* Brand floor 3.1: section titles are Baloo 2, and 3 says Baloo 2 is never
+     used for a long text block, so only headings take it. */
+  margin-block: 1rem 0.5rem;
+  font-family: var(--brand-font-display);
+  font-size: var(--brand-text-product);
+  font-weight: 600;
+  color: var(--brand-text);
+}
+.rich-text-content strong {
+  font-weight: 600;
+}
+.rich-text-content a {
+  color: var(--brand-primary);
+  text-decoration: underline;
+}

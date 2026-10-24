@@ -1,0 +1,24 @@
+{
+  "claims": {
+    "id": "lic-fixture-untrusted",
+    "licensee": "Fixture Agency",
+    "plan": "studio",
+    "storeCap": 3,
+    "domains": [
+      "demo.example",
+      "admin.demo.example",
+      "api.demo.example",
+      "atlas.example",
+      "admin.atlas.example",
+      "api.atlas.example",
+      "marsa.example",
+      "admin.marsa.example",
+      "api.marsa.example",
+      "localhost",
+      "127.0.0.1"
+    ],
+    "issuedAt": "2026-09-03T00:00:00.000Z",
+    "expiresAt": "2099-01-01T00:00:00.000Z"
+  },
+  "signature": "LdagVN9lg2ujWdjMAAF8o/LLzrdWKLLUDh2Xp+MBDrd8gVVqAUsLKcPGHe9lmT8T/yqA1WeJcFaB1C4/m3DrAw=="
+}

@@ -1,0 +1,447 @@
+/*
+ * Admin dashboard global styles.
+ * Authority: docs/badii-studio-brand-guidelines.md
+ * Rule: never hardcode hex in components — always reference tokens via Tailwind
+ * utilities (bg-void-black, text-paper-white, etc.) or CSS variables below.
+ * Zero border-radius. No gradients. No decoration.
+ */
+
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+/*
+ * CDK overlay CSS — required for @angular/cdk/dialog + overlay positioning.
+ * Without it the cdk-dialog-container mounts in the DOM but renders with
+ * zero dimensions + visibility: hidden, so Dialog.open() looks like a
+ * no-op to the user. Discovered via an e2e regression where the
+ * adjust-balance dialog never opened. Do not remove unless we migrate
+ * off CDK overlay.
+ */
+@import '@angular/cdk/overlay-prebuilt.css';
+
+/*
+ * Side-panel CDK panelClass — explicit CSS instead of runtime Tailwind
+ * utilities so the overlay pane gets guaranteed position + width. The
+ * alternative (panelClass: 'fixed right-0 top-0') relied on Tailwind JIT
+ * picking up .ts-string utilities, which left the pane at auto/shrink
+ * width and Playwright rightly reported the container as hidden.
+ */
+.cdk-overlay-pane.side-panel-right {
+  /*
+   * `!important` on position is load-bearing: CDK's GlobalPositionStrategy
+   * writes `position: static` inline on the pane and centres it with flex on
+   * the wrapper, which silently beat this rule and left every "side panel"
+   * floating in the middle of the screen.
+   */
+  position: fixed !important;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 28rem;
+  max-width: 100vw;
+  height: 100vh;
+}
+
+/*
+ * Brand backdrop scrim. Every dialog + drawer open site passes
+ * `backdropClass: 'cdk-overlay-backdrop-brand'`, which replaces CDK's default
+ * `cdk-overlay-dark-backdrop` — and with no rule of our own the backdrop
+ * element rendered fully transparent, so modals did not read as modal.
+ * The prebuilt CDK CSS still owns the positioning + opacity transition;
+ * this rule only supplies the colour.
+ */
+.cdk-overlay-backdrop.cdk-overlay-backdrop-brand {
+  /*
+   * Deliberately Void Black in both colour modes: a scrim's job is to sink
+   * the page behind the dialog, and a Paper White scrim on a Paper White
+   * ground sinks nothing.
+   */
+  background: color-mix(in srgb, var(--color-void-black) 72%, transparent);
+}
+
+/*
+ * Satoshi — self-hosted font migration is tracked for a later phase. For now
+ * the font stack falls back to system-ui, which still respects brand weight
+ * and typographic hierarchy rules. DO NOT re-add the Fontshare CDN link in
+ * index.html — a prior attempt caused DOMContentLoaded to hang in Chromium
+ * (beasties + modulepreload + CDN stylesheet interaction on Windows).
+ */
+
+/*
+ * Native date inputs ship a dark calendar glyph that disappears against Void
+ * Black. Inverting it is the whole of what CSS can do here: the placeholder
+ * order (`mm/dd/yyyy`) follows the operator's browser locale and is not
+ * addressable from CSS or attributes, so the analytics screens echo the
+ * applied range in the canonical admin format instead (plan E, decision D10).
+ */
+input[type='date']::-webkit-calendar-picker-indicator {
+  /*
+   * The glyph ships dark. Inverting it is right on Void Black and wrong on
+   * Paper White, where it would turn a visible icon invisible, so the filter
+   * is a token rather than a constant.
+   */
+  filter: var(--picker-indicator-filter);
+  cursor: pointer;
+  opacity: 0.8;
+}
+input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Brand design tokens exposed as CSS variables for non-Tailwind contexts. */
+:root {
+  /* Palette — source: docs/badii-studio-brand-guidelines.md §5 COLOR PALETTE */
+  --color-void-black: #0a0a0a;
+  --color-paper-white: #e8e4df;
+  --color-pure-white: #ffffff;
+  /* Merchant Engine product mark accent (logo square only). */
+  --color-engine-accent: #ff3b00;
+  --color-neutral-800: #1a1a1a;
+  --color-neutral-700: #2a2a2a;
+  --color-neutral-500: #6b6b6b;
+  --color-neutral-300: #9a9a9a;
+
+  --color-status-success: #2d8659;
+  --color-status-warning: #d4760a;
+  --color-status-error: #c0392b;
+  --color-status-info: #4a90a4;
+
+  /*
+   * Light mode adds exactly these seven and no more
+   * (agent_docs/admin/brand-tokens.md, Light mode). The four status hexes
+   * above were chosen for a dark ground and do not reach 4.5:1 as text on
+   * Paper White, so light mode renders status text and icons through the ink
+   * variants instead.
+   */
+  --color-paper-elevated: #f4f1ed;
+  --color-ink-muted-light: #3d3d3d;
+  --color-line-light: #c4bfb8;
+  --color-status-success-ink: #1e5c3d;
+  --color-status-success-ink-dark: #319362;
+  --color-status-error-ink-dark: #d75b4e;
+  --color-status-warning-ink: #7a4300;
+  --color-status-error-ink: #8e2a20;
+  --color-status-info-ink: #2c5f6e;
+
+  /* Typography */
+  --font-sans: 'Satoshi', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* Motion — brand says minimal, cursor state only. */
+  --ease-sharp: cubic-bezier(0.2, 0, 0, 1);
+  --duration-instant: 0ms;
+  --duration-fast: 80ms;
+  --duration-base: 120ms;
+}
+
+/*
+ * Semantic layer (constitution 3.9, agent_docs/admin/brand-tokens.md).
+ *
+ * Components consume these, never the palette above. The palette is what a
+ * colour IS; the semantic token is what a colour is FOR, and only the
+ * semantic name survives a mode switch.
+ *
+ * Values are space-separated RGB channels rather than hex because Tailwind
+ * composes them as `rgb(var(--token) / <alpha-value>)`, which is what keeps
+ * the opacity modifiers (`bg-surface-elevated/80`) resolving. A hex here
+ * would silently break every one of them.
+ *
+ * Three blocks, and the order matters. Dark is the default and the reference
+ * floor, so it lands on bare `:root`. The media query follows the operator's
+ * system setting but is scoped away from an explicit dark choice. The
+ * attribute selector comes last so a manual choice beats the system in both
+ * directions. The two light blocks are byte-identical by construction and a
+ * spec asserts it, because a token that drifts between them would be a mode
+ * that renders differently depending on how the operator reached it.
+ */
+:root,
+:root[data-theme='dark'] {
+    --scheme: dark;
+    --picker-indicator-filter: invert(1);
+
+    --surface: 10 10 10;
+    --surface-elevated: 26 26 26;
+    --surface-emphasis: 232 228 223;
+    --surface-emphasis-hover: 255 255 255;
+    --ink: 232 228 223;
+    --ink-emphasis: 255 255 255;
+    --ink-muted: 154 154 154;
+    --ink-disabled: 107 107 107;
+    --on-emphasis: 10 10 10;
+    --line: 42 42 42;
+    --line-strong: 107 107 107;
+    --preview-ground: 255 255 255;
+    --brand-mark: 255 59 0;
+
+    /*
+     * Two of the four are ink variants rather than the base hex. `#2D8659`
+     * and `#C0392B` are 4.40:1 and 3.64:1 as text on Void Black, below the
+     * 4.5:1 floor, and they render live validation errors and dashboard
+     * deltas. Warning and info clear the floor as they are and stay base.
+     * The fills and tints below are unchanged, so badges and the destructive
+     * button look exactly as they did.
+     */
+    --status-success: 49 147 98;
+    --status-warning: 212 118 10;
+    --status-error: 215 91 78;
+    --status-info: 74 144 164;
+
+    --status-success-fill: 45 134 89;
+    --status-warning-fill: 212 118 10;
+    --status-error-fill: 192 57 43;
+    --status-info-fill: 74 144 164;
+
+    --status-success-tint: 45 134 89;
+    --status-warning-tint: 212 118 10;
+    --status-error-tint: 192 57 43;
+    --status-info-tint: 74 144 164;
+
+    --on-status-success: 255 255 255;
+    --on-status-warning: 10 10 10;
+    --on-status-error: 255 255 255;
+    --on-status-info: 10 10 10;
+
+    --on-status-success-fill: 255 255 255;
+    --on-status-warning-fill: 10 10 10;
+    --on-status-error-fill: 255 255 255;
+    --on-status-info-fill: 10 10 10;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --scheme: light;
+    --picker-indicator-filter: none;
+
+    --surface: 232 228 223;
+    --surface-elevated: 244 241 237;
+    --surface-emphasis: 10 10 10;
+    --surface-emphasis-hover: 26 26 26;
+    --ink: 10 10 10;
+    --ink-emphasis: 10 10 10;
+    --ink-muted: 61 61 61;
+    --ink-disabled: 107 107 107;
+    --on-emphasis: 232 228 223;
+    --line: 196 191 184;
+    --line-strong: 61 61 61;
+    --preview-ground: 255 255 255;
+    --brand-mark: 255 59 0;
+
+    --status-success: 30 92 61;
+    --status-warning: 122 67 0;
+    --status-error: 142 42 32;
+    --status-info: 44 95 110;
+
+    --status-success-fill: 45 134 89;
+    --status-warning-fill: 212 118 10;
+    --status-error-fill: 192 57 43;
+    --status-info-fill: 74 144 164;
+
+    --status-success-tint: 210 217 207;
+    --status-warning-tint: 230 215 197;
+    --status-error-tint: 227 207 201;
+    --status-info-tint: 213 218 216;
+
+    --on-status-success: 30 92 61;
+    --on-status-warning: 122 67 0;
+    --on-status-error: 142 42 32;
+    --on-status-info: 44 95 110;
+
+    --on-status-success-fill: 255 255 255;
+    --on-status-warning-fill: 10 10 10;
+    --on-status-error-fill: 255 255 255;
+    --on-status-info-fill: 10 10 10;
+  }
+}
+
+:root[data-theme='light'] {
+    --scheme: light;
+    --picker-indicator-filter: none;
+
+    --surface: 232 228 223;
+    --surface-elevated: 244 241 237;
+    --surface-emphasis: 10 10 10;
+    --surface-emphasis-hover: 26 26 26;
+    --ink: 10 10 10;
+    --ink-emphasis: 10 10 10;
+    --ink-muted: 61 61 61;
+    --ink-disabled: 107 107 107;
+    --on-emphasis: 232 228 223;
+    --line: 196 191 184;
+    --line-strong: 61 61 61;
+    --preview-ground: 255 255 255;
+    --brand-mark: 255 59 0;
+
+    --status-success: 30 92 61;
+    --status-warning: 122 67 0;
+    --status-error: 142 42 32;
+    --status-info: 44 95 110;
+
+    --status-success-fill: 45 134 89;
+    --status-warning-fill: 212 118 10;
+    --status-error-fill: 192 57 43;
+    --status-info-fill: 74 144 164;
+
+    --status-success-tint: 210 217 207;
+    --status-warning-tint: 230 215 197;
+    --status-error-tint: 227 207 201;
+    --status-info-tint: 213 218 216;
+
+    --on-status-success: 30 92 61;
+    --on-status-warning: 122 67 0;
+    --on-status-error: 142 42 32;
+    --on-status-info: 44 95 110;
+
+    --on-status-success-fill: 255 255 255;
+    --on-status-warning-fill: 10 10 10;
+    --on-status-error-fill: 255 255 255;
+    --on-status-info-fill: 10 10 10;
+}
+
+@layer base {
+  /* Reset radius everywhere. Brutalist mandate. */
+  *,
+  *::before,
+  *::after {
+    border-radius: 0 !important;
+  }
+
+  html {
+    color-scheme: var(--scheme);
+  }
+
+  body {
+    background-color: rgb(var(--surface));
+    color: rgb(var(--ink));
+    font-family: var(--font-sans);
+    font-variant-ligatures: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*
+   * Focus ring. `--ink`, not `--line-strong`: the ring has to stay the
+   * strongest thing on the surface in both modes, and `--line-strong` is
+   * 3.72:1 on Void Black.
+   */
+  *:focus-visible {
+    outline: 2px solid rgb(var(--ink));
+    outline-offset: 2px;
+  }
+
+  /* Links — no decoration by default, underline on hover. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+  }
+
+  /* Scrollbars — minimalist, ink thumb on an elevated track. */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--surface-elevated));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--line-strong));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--ink));
+  }
+}
+
+@layer utilities {
+  /* Tabular numeric alignment. Font family stays Satoshi (the body default)
+     so the 889 dashboard sites that carry this class — prose, CTA labels,
+     eyebrow labels, table cells, error/success/empty-state banners — render
+     in Satoshi per `docs/badii-studio-brand-guidelines.md §05 TYPOGRAPHY`
+     Body + Accent/CTA. Elements that genuinely need JetBrains Mono (per §05
+     "Code / Technical — Code, file paths, technical specs, pricing tables")
+     add `font-mono` explicitly alongside .tabular.
+     R7 brand-auditor decision (2026-04-22): the class was historically
+     applied as a general-purpose small-text + numeric-alignment utility
+     rather than strictly to numeric/technical content. Redefining here
+     closes the systemic brand-auditor sweep instead of hand-migrating 889
+     sites individually. Data-display sites that want JetBrains Mono must
+     opt in via `font-mono tabular-nums` explicitly. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * Rich-text editor pane.
+ *
+ * Tailwind preflight sets `list-style: none` on ul/ol and flattens every
+ * heading to body size, and the editable's old `prose-sm prose-invert` classes
+ * were inert because `@tailwindcss/typography` is not installed. So a merchant
+ * who clicked "Bulleted list" saw no bullets and one who clicked H2 saw body
+ * text, while the stored value was correct in both cases. This restores what
+ * the allow-list actually keeps, so the pane shows what the save stores.
+ *
+ * Global, not component-scoped: nothing here can live inside the component's
+ * `styles` because contenteditable children are created by the browser and by
+ * `execCommand`, so they never carry the `_ngcontent` attribute.
+ *
+ * Brand floor: `--ink`, no radius (the base layer already forces it), no
+ * new colours, spacing only.
+ */
+.rich-text-editor-surface p {
+  margin-block: 0 0.75rem;
+}
+.rich-text-editor-surface p:last-child {
+  margin-block-end: 0;
+}
+.rich-text-editor-surface ul,
+.rich-text-editor-surface ol {
+  margin-block: 0 0.75rem;
+  padding-inline-start: 1.25rem;
+}
+.rich-text-editor-surface ul {
+  list-style: disc;
+}
+.rich-text-editor-surface ol {
+  list-style: decimal;
+}
+.rich-text-editor-surface li {
+  margin-block-end: 0.25rem;
+}
+.rich-text-editor-surface h1,
+.rich-text-editor-surface h2,
+.rich-text-editor-surface h3,
+.rich-text-editor-surface h4 {
+  margin-block: 1rem 0.5rem;
+  font-weight: 500;
+  color: rgb(var(--ink));
+}
+.rich-text-editor-surface h1 {
+  font-size: 1.5rem;
+}
+.rich-text-editor-surface h2 {
+  font-size: 1.25rem;
+}
+.rich-text-editor-surface h3 {
+  font-size: 1.125rem;
+}
+.rich-text-editor-surface h4 {
+  font-size: 1rem;
+}
+.rich-text-editor-surface strong {
+  font-weight: 600;
+}
+.rich-text-editor-surface em {
+  font-style: italic;
+}
+.rich-text-editor-surface a {
+  text-decoration: underline;
+}

@@ -1,0 +1,17 @@
+{
+  "version": "next",
+  "released": null,
+  "releasedAt": null,
+  "tracks": [
+    "getting-started",
+    "operate",
+    "customize",
+    "build-a-storefront",
+    "reference"
+  ],
+  "counts": {
+    "apiModules": 34,
+    "unitTests": null,
+    "e2eTests": null
+  }
+}

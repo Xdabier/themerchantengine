@@ -1,0 +1,180 @@
+{
+  "data": [
+    {
+      "product": {
+        "id": "ff5e3ef6-421a-51bb-9bb5-eafb311c7897",
+        "name": "Tête de lampe de rechange More Dent H-BR-603 / H-BR-605",
+        "slug": "tete-de-lampe-de-rechange",
+        "brand": "More Dent",
+        "tags": [
+          "marque:more-dent",
+          "disponibilite:en-stock"
+        ],
+        "isFeatured": false,
+        "createdAt": "2026-08-25T03:13:24.008Z",
+        "minPrice": 48,
+        "avgRating": 0,
+        "reviewCount": 0,
+        "inStock": true,
+        "availability": "IN_STOCK",
+        "thumbnail": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/thumbnail.webp",
+        "primaryAsset": {
+          "id": "01b1a567-47bc-54db-a431-c477688b2518",
+          "assetId": "01b1a567-47bc-54db-a431-c477688b2518",
+          "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/small.webp",
+          "altText": "Tête optique de rechange pour lampe à photopolymériser More Dent.",
+          "isPrimary": true,
+          "assetVariants": [
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/thumbnail.webp",
+              "width": 150,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/thumbnail.avif",
+              "width": 150,
+              "format": "avif"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/small.webp",
+              "width": 400,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/small.avif",
+              "width": 400,
+              "format": "avif"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/medium.webp",
+              "width": 800,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/medium.avif",
+              "width": 800,
+              "format": "avif"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/large.webp",
+              "width": 1200,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/01b1a567-47bc-54db-a431-c477688b2518/large.avif",
+              "width": 1200,
+              "format": "avif"
+            }
+          ]
+        },
+        "categories": [
+          {
+            "id": "22dda6e8-019e-5d9f-97ce-e7ba569d3f36",
+            "name": "Restauration et fraises"
+          },
+          {
+            "id": "4e96edf0-b546-5bc3-8046-66fad1b36894",
+            "name": "Lampes à polymériser"
+          }
+        ]
+      },
+      "eventId": "cmtjatdp40003h0qsjqn2unrp",
+      "score": 7.14285733550787
+    },
+    {
+      "product": {
+        "id": "00193c2e-1cbd-52b4-8627-24a362889699",
+        "name": "Lampe à polymériser LED 5 W BR-603 en aluminium More Dent",
+        "slug": "lampe-a-polymeriser-led-en-aluminium",
+        "brand": "More Dent",
+        "tags": [
+          "marque:more-dent",
+          "disponibilite:rupture",
+          "certification:ce-iso",
+          "materiau:aluminium",
+          "alimentation:electrique",
+          "eclairage:led",
+          "couleur:noir",
+          "couleur:argent",
+          "couleur:bleu",
+          "couleur:rose",
+          "couleur:rouge"
+        ],
+        "isFeatured": false,
+        "createdAt": "2026-08-25T03:13:24.008Z",
+        "minPrice": 165,
+        "avgRating": 0,
+        "reviewCount": 0,
+        "inStock": false,
+        "availability": "OUT_OF_STOCK",
+        "thumbnail": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/thumbnail.webp",
+        "primaryAsset": {
+          "id": "e71c089a-de47-5cd0-90fb-7f62f92edce3",
+          "assetId": "e71c089a-de47-5cd0-90fb-7f62f92edce3",
+          "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/small.webp",
+          "altText": "Lampe à polymériser dentaire LED More Dent BR-603 avec corps en aluminium.",
+          "isPrimary": true,
+          "assetVariants": [
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/thumbnail.webp",
+              "width": 150,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/thumbnail.avif",
+              "width": 150,
+              "format": "avif"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/small.webp",
+              "width": 400,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/small.avif",
+              "width": 400,
+              "format": "avif"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/medium.webp",
+              "width": 800,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/medium.avif",
+              "width": 800,
+              "format": "avif"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/large.webp",
+              "width": 1200,
+              "format": "webp"
+            },
+            {
+              "url": "https://assets.example.test/assets/e71c089a-de47-5cd0-90fb-7f62f92edce3/large.avif",
+              "width": 1200,
+              "format": "avif"
+            }
+          ]
+        },
+        "categories": [
+          {
+            "id": "22dda6e8-019e-5d9f-97ce-e7ba569d3f36",
+            "name": "Restauration et fraises"
+          },
+          {
+            "id": "4e96edf0-b546-5bc3-8046-66fad1b36894",
+            "name": "Lampes à polymériser"
+          }
+        ]
+      },
+      "eventId": "cmtjatdp40003h0qsjqn2unrp",
+      "score": 6.7315791383385655
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "pageSize": 2,
+    "total": 6
+  }
+}

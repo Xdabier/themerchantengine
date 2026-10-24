@@ -1,0 +1,74 @@
+{
+  "profile": "both",
+  "license": { "file": "license.json" },
+  "identity": {
+    "storeName": { "default": "Atlas", "fr": "Atlas", "en": "Atlas" },
+    "brandName": "atlas",
+    "description": { "default": "Outdoor gear for the coast" },
+    "legalName": { "default": "Atlas SAS" },
+    "contactEmail": "hello@atlas.example",
+    "contactPhone": "+33100000000",
+    "street": { "default": "1 Rue de la Demo" },
+    "locality": "Lyon",
+    "region": "Auvergne-Rhône-Alpes",
+    "postalCode": "69001",
+    "country": "FR",
+    "businessType": "OnlineStore"
+  },
+  "domains": {
+    "storefront": "https://atlas.example",
+    "admin": "https://admin.atlas.example",
+    "api": "https://api.atlas.example",
+    "certbotEmail": "ops@atlas.example"
+  },
+  "brand": {
+    "primary": "#1F4E79",
+    "secondary": "#F2B441",
+    "accent": "",
+    "fontKit": "arabic-latin",
+    "logoPath": ""
+  },
+  "localization": {
+    "supportedLocales": ["ar", "fr", "en"],
+    "defaultLocale": "fr",
+    "timezone": "Europe/Paris"
+  },
+  "money": {
+    "currencyCode": "EUR",
+    "symbol": "€",
+    "symbolPosition": "after",
+    "decimalSeparator": ",",
+    "thousandsSeparator": " ",
+    "displayPrecision": 2,
+    "vatPercent": 20,
+    "taxDisplay": "TTC",
+    "shippingFlatRate": 7
+  },
+  "storage": {
+    "endpoint": "https://s3.gra.io.cloud.ovh.net",
+    "region": "gra",
+    "bucket": "atlas-assets",
+    "publicUrl": "https://atlas-assets.s3.gra.io.cloud.ovh.net",
+    "accessKey": "REPLACE_WITH_THE_ACCESS_KEY",
+    "secretKey": "REPLACE_WITH_THE_SECRET_KEY"
+  },
+  "mail": {
+    "fromEmail": "noreply@atlas.example",
+    "fromName": "Atlas",
+    "replyTo": "hello@atlas.example",
+    "contactFormRecipient": "hello@atlas.example",
+    "apiKey": "re_REPLACE",
+    "webhookSecret": "whsec_REPLACE",
+    "testRecipient": "ops@atlas.example"
+  },
+  "turnstile": { "siteKey": "0xREPLACE_SITE_KEY", "secretKey": "0xREPLACE_SECRET_KEY" },
+  "seo": { "indexNowKey": "", "bingApiKey": "", "gscServiceAccountFile": "" },
+  "payments": { "cod": true, "manual": false, "stripe": false },
+  "owner": {
+    "email": "owner@atlas.example",
+    "firstName": "Ada",
+    "lastName": "Atlas",
+    "password": "Replace_With_A_Strong_Password1"
+  },
+  "demoCatalogue": false
+}

@@ -1,0 +1,82 @@
+-- Plan M phase M1 (order lifecycle seam), finding AD4.
+--
+-- WHAT
+--   `ShipmentStatus` gains a fourth member, CANCELLED.
+--
+-- WHY
+--   Before this, a shipment could only be PROCESSING, SHIPPED or DELIVERED, so
+--   a cancelled order left its shipment rows sitting in PROCESSING forever and
+--   the admin panel kept offering to advance them. The warehouse could ship an
+--   order the customer had already cancelled. The cancel path now cascades
+--   every PROCESSING shipment on the order to CANCELLED inside the same
+--   transaction as the order update, which needs a value to cascade to.
+--
+-- WHO WRITES IT
+--   Only the cancel cascade in `OrdersService.updateStatus`. It is deliberately
+--   absent from the admin shipment status select and from the
+--   `UpdateShipmentDto` allowlist, so no admin request can set it directly and
+--   no request can move a row back out of it.
+--
+-- DATA IMPACT
+--   None. This adds a value to an enum type; it writes no rows, changes no
+--   column, and touches no index. Every existing shipment keeps the status it
+--   has. There is no backfill because there is nothing to backfill: a shipment
+--   that predates this migration was never cancellable, so PROCESSING is the
+--   honest record of what happened.
+--
+-- ORDERING AND ROLLBACK
+--   Forward: schema first, code second. New code against the old enum fails on
+--   the cascade write, because it sends a value the type does not have. In this
+--   repository that separation is hard to reach on a normal push, because CI
+--   applies the schema from the same commit in the `migrate` stage before
+--   `deploy` runs. It matters on a manual box.
+--
+--   Old code against the new enum is safe ONLY during the deploy window, while
+--   no row carries the value yet. It stops being safe the first time the cancel
+--   cascade runs: Prisma validates enums on deserialisation, so a client built
+--   from the three-member enum throws
+--     Value 'CANCELLED' not found in enum 'ShipmentStatus'
+--   on every read that touches such a row. Rows without the value keep reading
+--   fine, which is why this looks healthy in a smoke test and then fails on one
+--   customer's order.
+--
+--   ROLLBACK IS NOT `git revert`. Reverting the code reverts `schema.prisma`
+--   with it, and CI runs `prisma db push --accept-data-loss` from whatever
+--   schema the checked-out commit carries. With one CANCELLED row present that
+--   push fails outright:
+--     ERROR: invalid input value for enum "ShipmentStatus_new": "CANCELLED"
+--   `--accept-data-loss` does not rescue it; it suppresses the prompt, and the
+--   USING cast still fails. The job runs under `set -e` and `deploy-engine`
+--   needs it, so a naive revert takes the pipeline down mid-rollback.
+--
+--   The real rollback is three ordered steps, and step 1 is a data-mutating
+--   statement on live rows that needs its own human approval BEFORE it is
+--   needed, not during an incident:
+--     1. UPDATE "Shipment" SET status = 'PROCESSING' WHERE status = 'CANCELLED';
+--        plus a decision about the orders those shipments belong to, which are
+--        CANCELLED orders that will regain a live-looking parcel.
+--     2. Revert the application code by hand, KEEPING this enum member in
+--        `schema.prisma`. A partial revert, not `git revert`.
+--     3. Drop the member only after step 1 is verified to have left zero rows,
+--        and only by recreating the type.
+--
+--   Postgres has no `ALTER TYPE ... DROP VALUE`, which is why step 3 is a type
+--   recreation rather than a one-liner.
+--
+-- INVALIDATED STATE
+--   None. No cached session, permission matrix, or Translatable resolution
+--   cache keys on shipment status.
+--
+-- IF THIS FILE IS EVER REPLAYED
+--   `ADD VALUE IF NOT EXISTS` is safe inside the migration transaction on
+--   Postgres 12+ as long as the new value is not itself used in the same
+--   transaction. It is not: this file only declares it.
+--
+-- NOTE ON THIS REPOSITORY
+--   Per clarifications §1.34 the deployed schema is applied with
+--   `prisma db push`, not `prisma migrate deploy`, so this file is the written
+--   record of the change rather than the thing CI executes. `db push` derives
+--   the same `ALTER TYPE` from `prisma/schema.prisma`.
+
+-- AlterEnum
+ALTER TYPE "ShipmentStatus" ADD VALUE IF NOT EXISTS 'CANCELLED';

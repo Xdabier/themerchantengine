@@ -1,0 +1,69 @@
+{
+  "fixture": {
+    "id": "trilingual",
+    "description": "Three-locale store: ar default + fr + en, ar in the RTL set, the Arabic-capable font kit, the neutral locale set DR-33 boots with."
+  },
+  "identity": {
+    "storeName": {
+      "default": "Atlas Market",
+      "ar": "سوق أطلس",
+      "fr": "Marché Atlas",
+      "en": "Atlas Market"
+    },
+    "brandName": "atlas",
+    "description": {
+      "default": "Everyday goods, delivered to your door.",
+      "ar": "منتجات يومية تصلك إلى باب منزلك.",
+      "fr": "Des produits du quotidien, livrés chez vous.",
+      "en": "Everyday goods, delivered to your door."
+    },
+    "legalName": {
+      "default": "Atlas Trading Ltd",
+      "ar": "أطلس للتجارة المحدودة",
+      "fr": "Atlas Commerce SARL",
+      "en": "Atlas Trading Ltd"
+    },
+    "contact": { "email": "care@atlas.example", "phone": "+441000000000" },
+    "address": {
+      "street": {
+        "default": "10 Harbour Street",
+        "ar": "10 شارع الميناء",
+        "fr": "10 rue du Port",
+        "en": "10 Harbour Street"
+      },
+      "locality": "London",
+      "region": "England",
+      "postalCode": "EC1A 1BB",
+      "country": "GB"
+    },
+    "areaServed": ["GB"],
+    "businessType": "OnlineStore"
+  },
+  "brand": {
+    "baseColors": { "primary": "#2F5D8A", "secondary": "#C98A3B", "accent": "#26364A" },
+    "fontKit": "arabic-latin",
+    "logoAssetId": null,
+    "faviconAssetId": null
+  },
+  "localization": {
+    "supportedLocales": ["ar", "fr", "en"],
+    "defaultLocale": "ar",
+    "rtlLocales": ["ar"],
+    "timezone": "UTC"
+  },
+  "money": {
+    "currencyCode": "GBP",
+    "symbol": "£",
+    "symbolPosition": "before",
+    "decimalSeparator": ".",
+    "thousandsSeparator": ",",
+    "displayPrecision": 2,
+    "taxDisplay": "TTC",
+    "vatRate": 0.2
+  },
+  "domains": {
+    "storefront": "https://atlas.example",
+    "admin": "https://admin.atlas.example",
+    "api": "https://api.atlas.example"
+  }
+}
