@@ -12,7 +12,8 @@
 <p align="center">
   <a href="https://themerchantengine.com/docs">Docs</a> ·
   <a href="docs/site/getting-started/install-locally.md">Try it locally</a> ·
-  <a href="https://github.com/Xdabier/themerchantengine/discussions">Discussions</a>
+  <a href="https://github.com/Xdabier/themerchantengine/discussions">Discussions</a> ·
+  <a href="https://badii.studio">Have it built and run for you</a>
 </p>
 
 <p align="center">
@@ -151,6 +152,10 @@ Read [Install on a server](docs/site/getting-started/install-on-a-server.md) fir
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) applies to every space of the project.
 - Questions and ideas go to [Discussions](https://github.com/Xdabier/themerchantengine/discussions). Bugs go to [Issues](https://github.com/Xdabier/themerchantengine/issues).
 - Every release is listed in the [CHANGELOG](CHANGELOG.md).
+
+## Need it built or run for you?
+
+The engine is free to use on your own. If you would rather not run it yourself, [Badii Studio](https://badii.studio), the team behind it, installs, customizes, hosts and maintains stores built on it. Write to badii@badii.studio.
 
 ## License
 
