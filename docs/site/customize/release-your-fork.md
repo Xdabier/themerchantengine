@@ -21,8 +21,8 @@ The script is `scripts/release.mjs`, driven by `scripts/__tests__/release.spec.t
 Then it prints the plan: the commit, the bundle path, the tarball path and the tag. With `--dry-run` it stops here, having written nothing and built nothing. Without it:
 
 1. `npm run build:setup` bundles the install stepper to `tools/setup/dist/index.js` (`tools/setup/build.mjs`); everything the stepper imports is inlined, so a box runs it with Node alone.
-2. `git archive --format=tar HEAD` is extracted into a staging directory, the bundle is copied in at `tools/setup/dist/index.js`, and its modification time is set to now. The wrapper `setup.sh` rebuilds the stepper when any file under `tools/setup/src`, `tools/setup/build.mjs` or `libs/shared/common/src` is newer than the bundle, and `git archive` stamps every file with the commit time, so the fresh stamp is what stops a tarball user's first `./setup.sh` from trying to build.
-3. The staged tree is packed as `dist/release/themerchantengine-v<version>.tar.gz`. `--out <dir>` moves the directory; `dist/` is git-ignored.
+2. `git archive --format=tar HEAD` writes a tar, and the bundle is appended to it at `tools/setup/dist/index.js` with its modification time set to now. The archive is never extracted and repacked, so the exec bits git records, such as the one on `setup.sh`, survive a release cut on Windows. The wrapper `setup.sh` rebuilds the stepper when any file under `tools/setup/src`, `tools/setup/build.mjs` or `libs/shared/common/src` is newer than the bundle, and `git archive` stamps every file with the commit time, so the fresh stamp is what stops a tarball user's first `./setup.sh` from trying to build.
+3. The tar is gzipped to `dist/release/themerchantengine-v<version>.tar.gz`. The bundle entry is owned by root, so the name of the user who cut the release is not in it. `--out <dir>` moves the directory; `dist/` is git-ignored.
 4. An annotated tag `v<version>` is created, unless `--no-tag`.
 
 The closing lines are the two steps it leaves to you:

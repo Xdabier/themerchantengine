@@ -18,6 +18,7 @@ import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import * as zlib from 'node:zlib';
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
@@ -120,8 +121,9 @@ const staging = fs.mkdtempSync(path.join(os.tmpdir(), 'tme-release-'));
 try {
   // Relative paths under one cwd on purpose: the tar on Windows reads a drive
   // letter in an absolute path as a remote host. autocrlf off: a Windows
-  // release machine would otherwise ship CRLF to Linux boxes.
-  fs.mkdirSync(path.join(staging, 'tree'));
+  // release machine would otherwise ship CRLF to Linux boxes. The bundle is
+  // appended to the git archive tar rather than extracted and repacked: a
+  // Windows tar would repack every file without the exec bits git records.
   execFileSync(
     'git',
     [
@@ -135,20 +137,22 @@ try {
     ],
     { cwd: root, stdio: 'inherit' },
   );
-  execFileSync('tar', ['-xf', 'head.tar', '-C', 'tree'], { cwd: staging, stdio: 'inherit' });
-  const bundleTarget = path.join(staging, 'tree', 'tools', 'setup', 'dist', 'index.js');
+  const bundleTarget = path.join(staging, 'tools', 'setup', 'dist', 'index.js');
   fs.mkdirSync(path.dirname(bundleTarget), { recursive: true });
   fs.copyFileSync(bundle, bundleTarget);
   // The wrapper rebuilds when a source is newer than the bundle; git archive
   // stamps every file with the commit time, and the copy above is stamped now.
   const now = new Date();
   fs.utimesSync(bundleTarget, now, now);
-  execFileSync('tar', ['-czf', 'release.tar.gz', '-C', 'tree', '.'], {
+  // Root ownership, so the operator's user name does not ship in the header.
+  const gnuTar = execFileSync('tar', ['--version'], { encoding: 'utf8' }).includes('GNU tar');
+  const owner = gnuTar ? ['--owner=0', '--group=0'] : ['--uid', '0', '--gid', '0'];
+  execFileSync('tar', ['-rf', 'head.tar', '--numeric-owner', ...owner, 'tools/setup/dist/index.js'], {
     cwd: staging,
     stdio: 'inherit',
   });
   fs.mkdirSync(outDir, { recursive: true });
-  fs.copyFileSync(path.join(staging, 'release.tar.gz'), tarball);
+  fs.writeFileSync(tarball, zlib.gzipSync(fs.readFileSync(path.join(staging, 'head.tar'))));
 } finally {
   fs.rmSync(staging, { recursive: true, force: true });
 }

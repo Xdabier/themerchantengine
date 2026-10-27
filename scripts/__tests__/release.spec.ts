@@ -38,6 +38,8 @@ function scratchRepo(version = '9.9.9'): string {
   write('CHANGELOG.md', `# themerchantengine\n\n## ${version}\n\n- the entry\n`);
   write('setup.sh', '#!/usr/bin/env bash\necho wrapper\n');
   write('setup.ps1', 'Write-Host wrapper\n');
+  // No shebang and no .sh suffix: the Git Bash tar cannot guess this exec bit.
+  write('deploy/run-hook', 'echo hook\n');
   write('tools/setup/src/index.ts', 'export {};\n');
   write('tools/setup/build.mjs', '// stub\n');
   write('.gitignore', '.env*\n.setup-state.json\nnode_modules/\ntools/setup/dist/\ndist/\n');
@@ -51,6 +53,7 @@ function scratchRepo(version = '9.9.9'): string {
   git('config', 'user.name', 'spec');
   git('config', 'commit.gpgsign', 'false');
   git('add', '-A');
+  git('update-index', '--chmod=+x', 'setup.sh', 'deploy/run-hook');
   git('commit', '-q', '-m', 'initial');
   return dir;
 }
@@ -168,6 +171,34 @@ describe('npm run release', () => {
     for (const file of ['package.json', 'setup.sh', 'tools/setup/src/index.ts']) {
       expect(fs.readFileSync(path.join(extracted, file), 'utf8'), file).not.toContain('\r');
     }
+  });
+
+  it('keeps the exec bit git records, whatever tar the release machine has', () => {
+    const result = release(dir, '--no-tag', '--out', 'out');
+    expect(result.status).toBe(0);
+    const verbose = execFileSync('tar', ['-tvzf', 'themerchantengine-v9.9.9.tar.gz'], {
+      cwd: path.join(dir, 'out'),
+      encoding: 'utf8',
+    }).split('\n');
+    const mode = (file: string) =>
+      verbose.find((l) => l.trim().endsWith(file))?.trim().split(/\s+/)[0];
+    expect(mode('setup.sh')).toMatch(/^-rwx/);
+    expect(mode('deploy/run-hook')).toMatch(/^-rwx/);
+    expect(mode('setup.ps1')).toMatch(/^-rw-/);
+    expect(mode('tools/setup/dist/index.js')).toMatch(/^-rw-/);
+  });
+
+  it('does not write the release machine user into the bundle entry', () => {
+    const result = release(dir, '--no-tag', '--out', 'out');
+    expect(result.status).toBe(0);
+    const entry = execFileSync('tar', ['-tvzf', 'themerchantengine-v9.9.9.tar.gz'], {
+      cwd: path.join(dir, 'out'),
+      encoding: 'utf8',
+    })
+      .split('\n')
+      .find((l) => l.trim().endsWith('tools/setup/dist/index.js'));
+    expect(entry).toBeDefined();
+    expect(entry).not.toContain(os.userInfo().username);
   });
 
   it('refuses a dirty tree and says what to do', () => {
