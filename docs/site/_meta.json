@@ -1,7 +1,7 @@
 {
-  "version": "next",
-  "released": null,
-  "releasedAt": null,
+  "version": "1.0.0",
+  "released": "2026-10-27",
+  "releasedAt": "2026-10-27",
   "tracks": [
     "getting-started",
     "operate",
