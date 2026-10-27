@@ -1,0 +1,11 @@
+[Unit]
+Description=themerchantengine nightly database dump ({{PROJECT_NAME}})
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# A compressed dump per night, fourteen kept. The dump runs as the postgres
+# superuser inside the container over its local socket, so no password is
+# on this command line.
+ExecStart=/bin/sh -c 'mkdir -p {{BACKUP_DIR}} && docker exec {{PROJECT_NAME}}-postgres pg_dump -U postgres merchants_engine | gzip > {{BACKUP_DIR}}/pg-$(date +%%F).sql.gz && find {{BACKUP_DIR}} -name "pg-*.sql.gz" -mtime +14 -delete'

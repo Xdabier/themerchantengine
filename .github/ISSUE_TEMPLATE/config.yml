@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Xdabier/themerchantengine/security/advisories/new
+    about: Report security problems privately. Do not open a public issue.
+  - name: Documentation
+    url: https://themerchantengine.com
+    about: Install guides, the operator manual and the API reference.

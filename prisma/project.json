@@ -1,0 +1,16 @@
+{
+  "name": "prisma-scripts",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "prisma",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:util"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config prisma/vitest.config.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  }
+}

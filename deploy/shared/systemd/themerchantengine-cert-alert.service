@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily TLS certificate expiry sweep for the themerchantengine store
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory={{REPO_ROOT}}
+Environment=HOME=/root
+Environment=ENV_FILE={{ENV_FILE}}
+ExecStart=/bin/bash {{REPO_ROOT}}/deploy/shared/cert-expiry-alert.sh
+TimeoutStartSec=180

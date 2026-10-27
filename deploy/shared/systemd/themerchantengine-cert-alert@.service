@@ -1,0 +1,14 @@
+[Unit]
+Description=Alert that %i failed, with a served-certificate report
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory={{REPO_ROOT}}
+Environment=HOME=/root
+Environment=ENV_FILE={{ENV_FILE}}
+# Reached via OnFailure=themerchantengine-cert-alert@%n.service, so %i is the
+# name of the unit that failed.
+ExecStart=/bin/bash {{REPO_ROOT}}/deploy/shared/cert-expiry-alert.sh --reason %i
+TimeoutStartSec=180

@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    // Angular 16+ exposes @angular/common/http (and other Angular subpaths)
+    // only via the package.json `exports` field — no redirect file on disk.
+    // ts-jest's full TS Program-mode resolver finds these locally on Windows
+    // but silently fails on the CI Linux runner with TS 5.9 + ts-jest 29.4
+    // + bundler resolution, emitting TS2307 on every @angular/common/http
+    // import. `isolatedModules: true` makes ts-jest skip cross-file Program
+    // mode and call ts.transpileModule() per file — Jest 30's runtime
+    // resolver then handles the exports field natively. Type-checking still
+    // runs in `nx lint admin-services` via the same tsconfig chain.
+    "module": "esnext",
+    "target": "es2022",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "types": ["jest", "node"]
+  },
+  "files": ["src/test-setup.ts"],
+  "include": [
+    "jest.config.ts",
+    "jest.config.cts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

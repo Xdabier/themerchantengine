@@ -1,0 +1,4 @@
+{
+  "extends": ["../../.eslintrc.js"],
+  "ignorePatterns": ["**/*.js", "**/*.mjs", "**/*.d.ts", "src/__fixtures__/**", "node_modules/**"]
+}

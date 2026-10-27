@@ -1,0 +1,69 @@
+-- Feature oss-release-readiness phase OS4 (checkout and order wiring), DR-34.
+--
+-- WHAT
+--   One nullable column on `Order`, `paymentReference`, and a unique index on
+--   it.
+--
+-- WHY
+--   Checkout now calls `createSession` on the payment provider behind the
+--   chosen method, and every later payment call (authorize, capture, refund,
+--   cancel) needs the reference that call returned. An inbound payment webhook
+--   carries only that reference, so it is also how the webhook finds its
+--   order. Without the column the provider and the order cannot be joined.
+--
+--   The index is unique because one provider reference belongs to exactly one
+--   order. A duplicate would let a webhook for one order change another, so
+--   the database refuses it rather than trusting every provider to mint
+--   unique values.
+--
+-- WHO WRITES IT
+--   `OrdersService.createOrder`, once, right after the order row is created,
+--   from the provider's `createSession` result. Nothing else writes it and no
+--   DTO accepts it. It is never part of a customer response
+--   (`toCustomerOrder` is an allowlist and does not list it).
+--
+-- APPEND-ONLY, SO NO deletedAt
+--   `Order` is in the append-only set (constitution §3.4). No soft-delete
+--   column is added.
+--
+-- DATA IMPACT
+--   None. The column is nullable with no default and no backfill. No past
+--   order opened a provider session, so there is no truthful value to write.
+--   Postgres treats NULLs as distinct in a unique index, so every existing row
+--   satisfies it and the index builds over NULLs only. The table is small and
+--   this runs in the deploy window, so a plain CREATE UNIQUE INDEX is used
+--   rather than CONCURRENTLY.
+--
+-- ORDERING AND ROLLBACK
+--   Forward: schema first, code second. New code against the old schema fails
+--   on the update that writes the reference.
+--
+--   Old code against the new schema is safe: nothing before this phase
+--   selects or writes the column, and no existing column, constraint or index
+--   changes.
+--
+--   Rollback is a plain code revert and the column can stay. After a revert,
+--   orders placed in the meantime keep a reference nothing reads, and a
+--   provider webhook for them stops resolving to an order. For the offline
+--   providers (cod, manual) that changes nothing, since they take no webhooks.
+--
+--   The drop, if it is ever wanted, after exporting the column for any order
+--   paid through an online provider:
+--     ALTER TABLE "Order" DROP COLUMN "paymentReference";
+--   Postgres drops the index with its column.
+--
+-- INVALIDATED STATE
+--   None. No cache keys on this column. An idempotency record replayed from
+--   before the deploy returns an order payload without it, which is correct.
+--
+-- NOTE ON THIS REPOSITORY
+--   Per clarifications §1.34 the deployed schema is applied with
+--   `prisma db push`, not `prisma migrate deploy`, so this file is the written
+--   record of the change. `db push` derives the same statements from
+--   `prisma/schema.prisma`, and there is no backfill here to lose.
+
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN "paymentReference" TEXT;
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_paymentReference_key" ON "Order"("paymentReference");

@@ -1,0 +1,29 @@
+# Secret scanning (constitution §3.7). Run by the secret-scan job in
+# .github/workflows/ci.yml from the pinned gitleaks image, over the tree and
+# then over the history reachable from the ref. Locally, scan the tracked
+# files only, because a working directory also holds the installer's
+# rendered env files and node_modules, which are never committed:
+#
+#   dir="$(mktemp -d)"; git ls-files -z | tar --null -T - -c | tar -x -C "$dir"
+#   docker run --rm -v "$dir:/repo:ro" zricethezav/gitleaks:v8.21.2 dir /repo --config /repo/.gitleaks.toml
+#   docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:v8.21.2 git /repo --config /repo/.gitleaks.toml
+#
+# The default rule set applies. One path is allowed: the old test license
+# private key test/fixtures/license/private.pem, which signed fixtures only.
+# DR-35 removed the license feature and the tree carries no license file, but
+# commits from before OS6.7 do, so the history scan still needs the entry.
+# Nothing else is allowed by path; a finding anywhere else is a leak.
+
+title = "themerchantengine"
+
+[extend]
+useDefault = true
+
+# The scanner reports a path from the directory it was pointed at, so a
+# container run sees /repo/test/..., and the pattern is anchored on the path
+# segment rather than the string start. The secret-scan job canaries this:
+# a key at the old path stays silent, while keys beside it under another name
+# and under the same name in a neutral dir are both reported.
+[allowlist]
+description = "The test license private key in history, which signed fixtures only"
+paths = ['''(^|/)test/fixtures/license/private\.pem$''']

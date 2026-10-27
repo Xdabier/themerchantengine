@@ -1,0 +1,417 @@
+# themerchantengine CI (plan E5.2). One workflow, one job per gate, on every
+# push and pull request. Nothing here deploys: an operator installs and
+# updates a store with ./setup.sh (deploy/README.md), and a release is cut
+# with `npm run release`.
+#
+# The e2e jobs start Postgres and Redis from the repository's own
+# docker-compose.yml on the reserved test ports (55433, 56380), so every
+# harness runs in CI exactly as it runs on a developer's machine. The install
+# smoke job runs the real installer against the runner's Docker under the
+# local profile: the profile built to run without TLS and without third-party
+# accounts, the same renderer, runner steps, image builds and smoke probes as
+# a server install. A second run proves the installer is idempotent.
+#
+# Runners are 4-core GitHub-hosted Ubuntu. The image builds in install-smoke
+# are the long pole; its timeout is sized for a cold build of all three.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Nothing here writes to the repository. A pull request from a branch of this
+# repository runs its own code on these runners with Docker, so the token it
+# receives is read-only by declaration rather than by the repository default.
+permissions:
+  contents: read
+
+env:
+  CI: 'true'
+  NX_DAEMON: 'false'
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      # Two target names. The application projects declare `lint`; the shared
+      # libraries, the stepper, the scripts and the prisma project have only
+      # the inferred `eslint:lint`. The inferred target also exists on the
+      # application projects, where it lints a wider file set than their own
+      # `lint` and carries a pre-existing backlog, so it runs only for the
+      # projects that have no `lint` of their own. scripts/__tests__/ci.spec.ts
+      # pins that list against the workspace.
+      - run: npx nx run-many -t lint --parallel=1
+      - run: npx nx run-many -t eslint:lint --parallel=1 --projects=common,guards,permissions,admin-routes,setup-cli,repo-scripts,prisma-scripts
+
+  unit:
+    name: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      # Every project with a test target, which includes the stepper
+      # (setup-cli), the repository scripts (repo-scripts) and the prisma
+      # guards (prisma-scripts). The two seed suites have no Nx project.
+      - name: Nx projects
+        run: npx nx run-many -t test --parallel=1
+      - name: Seed suites
+        run: |
+          npm run test:store-config-seed
+          npm run test:fixture-catalogue-seed
+
+  verify-no-client-refs:
+    name: verify-no-client-refs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # The token table is export-ignored, so the public tree has nothing to
+      # scan for. verify-no-client-refs.spec.ts loads it in the engine repo.
+      - if: hashFiles('scripts/verify-no-client-refs.tokens.json') != ''
+        run: npm run verify:no-client-refs
+
+  # docs/site/reference/ is written by `npm run docs:generate` from the
+  # controllers, the schemas and the catalogues, and committed. Regenerating
+  # it here and refusing any difference is what keeps the public reference
+  # from drifting: a new route without a summary, a renamed env var or a new
+  # error code changes the tree, and the author commits the regenerated
+  # pages with the change. The OpenAPI export creates the application without
+  # listening and needs no database, but the BullMQ queues connect to Redis
+  # while the modules initialise.
+  docs-generate-check:
+    name: docs-generate-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Dev cache
+        run: docker compose up -d --wait redis-dev
+      - run: npm run docs:generate:check
+
+  # Constitution §3.7: no secret in the tree and none in the history that is
+  # pushed. The default gitleaks rules, with .gitleaks.toml allowing the one
+  # test key path still in history, over the checked-out tree and then over
+  # every commit reachable from the ref under test. The scanner is canaried
+  # first: a planted key in a scratch copy must be reported and one at the
+  # allowed path must not, or a green scan of the real tree proves nothing. The image is
+  # pinned by digest because it is handed the whole repository.
+  secret-scan:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GITLEAKS_IMAGE: zricethezav/gitleaks:v8.21.2@sha256:0e99e8821643ea5b235718642b93bb32486af9c8162c8b8731f7cbdc951a7f46
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Canary, planted keys must be found and the allowed path must not
+        run: |
+          canary="$(mktemp -d)"
+          mkdir -p "$canary/test/fixtures/secrets-canary" "$canary/test/fixtures/license" "$canary/out"
+          cp .gitleaks.toml "$canary/"
+          # The markers are assembled from two words so this file does not carry a key block itself.
+          kind='PRIVATE'
+          plant() { { printf -- '-----BEGIN %s KEY-----\n' "$kind"; openssl rand -base64 96 | fold -w 64; printf -- '-----END %s KEY-----\n' "$kind"; } > "$1"; }
+          # The leak sits in a neutral dir under the allowed filename: the
+          # allowlist must be exact on the directory.
+          plant "$canary/test/fixtures/secrets-canary/private.pem"
+          # The old license key path survives in history only. A key there must
+          # stay silent, and one beside it under another name must be reported:
+          # the allowlist must be exact on the filename.
+          plant "$canary/test/fixtures/license/private.pem"
+          plant "$canary/test/fixtures/license/other.pem"
+          docker run --rm -v "$canary:/repo" "$GITLEAKS_IMAGE" dir /repo --config /repo/.gitleaks.toml --no-banner --redact --report-format json --report-path /repo/out/report.json && {
+            echo "the scanner did not report the planted keys; the gate is decorative" >&2
+            exit 1
+          }
+          found="$(jq -r '.[].File' "$canary/out/report.json" | sort -u | tr '\n' ' ')"
+          [ "$found" = "/repo/test/fixtures/license/other.pem /repo/test/fixtures/secrets-canary/private.pem " ] || { echo "expected exactly the two planted keys to be reported, got: $found"; exit 1; }
+      - name: Scan the tree
+        run: docker run --rm -v "$PWD:/repo:ro" "$GITLEAKS_IMAGE" dir /repo --config /repo/.gitleaks.toml --no-banner --redact
+      - name: Scan the history reachable from this ref
+        run: docker run --rm -v "$PWD:/repo:ro" "$GITLEAKS_IMAGE" git /repo --config /repo/.gitleaks.toml --no-banner --redact
+
+  # The fresh-clone path (plan E4.2): the stepper builds from its own lockfile
+  # with no workspace node_modules present, and the bundle runs.
+  setup-standalone:
+    name: setup-standalone
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node tools/setup/verify-standalone.mjs
+
+  # Every nginx template rendered the way an install renders it, then parsed
+  # by the pinned nginx image with stub certificates. A broken vhost must
+  # never reach an install.
+  nginx-templates:
+    name: nginx-templates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/ci/render-nginx-templates.mjs "$RUNNER_TEMP/nginx"
+      - name: nginx -t, server edge
+        run: docker run --rm -v "$PWD:/repo:ro" -v "$RUNNER_TEMP/nginx:/rendered:ro" nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 sh /repo/scripts/ci/nginx-test.sh /rendered/server
+      # The local edge mounts no base conf (deploy/templates/compose.local.yml
+      # mounts ./nginx alone), so it is parsed without one, or a vhost that
+      # depends on the base would pass here and fail on a developer's machine.
+      - name: nginx -t, local edge
+        run: docker run --rm -e BASE_CONF=/dev/null -v "$PWD:/repo:ro" -v "$RUNNER_TEMP/nginx:/rendered:ro" nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 sh /repo/scripts/ci/nginx-test.sh /rendered/local
+      # The four compose templates, rendered with placeholder values and parsed
+      # by compose itself. The install smoke exercises the local one; the
+      # engine, storefront and both templates reach an operator's box with no
+      # other executing coverage.
+      - name: docker compose config, every template
+        run: |
+          for profile in engine storefront both local; do
+            docker compose -f "$RUNNER_TEMP/nginx/compose/$profile/docker-compose.yml" --env-file "$RUNNER_TEMP/nginx/compose/$profile/.env" config -q
+          done
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx nx build api
+      - name: Admin, budget-enforced
+        run: npx nx build admin --configuration=production
+      - run: npx nx build storefront --configuration=production
+      - name: Lighthouse, admin public routes
+        run: npx lhci autorun
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          include-hidden-files: true
+          retention-days: 14
+
+  backend-e2e:
+    name: backend-e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: cp .env.example .env
+      - name: Test database and cache
+        run: |
+          docker compose up -d --wait postgres-test redis-test
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: backend-e2e-api-log
+          path: test/.e2e-api.log
+          retention-days: 14
+
+  admin-e2e:
+    name: admin-e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: cp .env.example .env
+      - name: Test database and cache
+        run: docker compose up -d --wait postgres-test redis-test
+      # The visual baselines were rendered in this image; the bare runner's
+      # fonts render taller. The admin harness resets and flushes the test
+      # services through psql and redis-cli when CI is set.
+      - name: Playwright in the baseline image
+        run: >-
+          docker run --rm --network host --ipc=host -v "$PWD:/work" -w /work
+          -e CI -e NX_DAEMON=false mcr.microsoft.com/playwright:v1.59.1-noble@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+          bash -c "apt-get update && apt-get install -y --no-install-recommends postgresql-client redis-tools && npx nx e2e admin-e2e"
+      - if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: admin-e2e-report
+          path: dist/.playwright/apps/admin-e2e/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: admin-e2e-diffs-and-api-log
+          path: |
+            apps/admin-e2e/src/**/*.spec.ts-snapshots/*-actual-*.png
+            apps/admin-e2e/src/**/*.spec.ts-snapshots/*-diff-*.png
+            apps/admin-e2e/.playwright-state/api.log
+          retention-days: 14
+
+  storefront-e2e:
+    name: storefront-e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: cp .env.example .env
+      - name: Test database and cache
+        run: docker compose up -d --wait postgres-test redis-test
+      # Playwright waits on the API's readiness route before globalSetup runs,
+      # and that route reads the schema globalSetup would push.
+      - run: npm run db:seed:fixture-catalogue:test
+      # The visual baselines were rendered in this image; the bare runner's
+      # fonts render taller.
+      - name: Playwright in the baseline image
+        run: >-
+          docker run --rm --network host --ipc=host -v "$PWD:/work" -w /work
+          -e CI -e NX_DAEMON=false -e REDIS_PORT=56380 mcr.microsoft.com/playwright:v1.59.1-noble@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+          npx nx e2e storefront-e2e
+      - if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: storefront-e2e-report
+          path: dist/.playwright/apps/storefront-e2e/
+          retention-days: 14
+
+  # The production Nitro build against a seeded test API. Every Playwright
+  # project runs the dev server; only this gate reaches the production
+  # server's own data path (agent_docs/storefront/testing-strategy.md).
+  ssr-smoke:
+    name: ssr-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: cp .env.example .env
+      - name: Test database and cache
+        run: docker compose up -d --wait postgres-test redis-test
+      - run: npx nx build api
+      - name: Seed and hold the test API on 53001
+        run: |
+          nohup npx ts-node --transpile-only -r tsconfig-paths/register -P tsconfig.base.json scripts/ci/hold-test-api.ts > "$RUNNER_TEMP/hold-test-api.log" 2>&1 &
+          for i in $(seq 1 120); do
+            grep -q 'hold-test-api: ready' "$RUNNER_TEMP/hold-test-api.log" && break
+            if grep -q 'hold-test-api: ' "$RUNNER_TEMP/hold-test-api.log"; then cat "$RUNNER_TEMP/hold-test-api.log"; exit 1; fi
+            sleep 2
+          done
+          grep -q 'hold-test-api: ready' "$RUNNER_TEMP/hold-test-api.log" || { cat "$RUNNER_TEMP/hold-test-api.log"; exit 1; }
+      # The held API serves its routes with no global prefix (the backend e2e
+      # shape), so the storefront is pointed at the bare origin rather than the
+      # runner's default of /api.
+      - run: npm run test:storefront-ssr-smoke
+        env:
+          STOREFRONT_API_URL: http://localhost:53001
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ssr-smoke-logs
+          path: |
+            test/.e2e-api.log
+            ${{ runner.temp }}/hold-test-api.log
+          retention-days: 14
+
+  # The install the README promises, run for real: the wrapper, the stepper
+  # built from its own lockfile, the images built from source, the schema,
+  # the seeds, the owner account, the edge, and the probes the installer holds
+  # itself to. No workspace npm ci: an agency box never runs one.
+  install-smoke:
+    name: install-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      # Three images built from source on a runner with about 14 GB free; the
+      # preinstalled toolchains nobody here uses are the cheapest space.
+      - name: Free disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/.ghcup
+          df -h /
+      - name: Install, local profile
+        run: ./setup.sh --profile local --answers ci/answers.local.json
+      - name: Probe the installed store from outside the installer
+        run: |
+          curl -fsS http://localhost:53000/health | grep -q '"ok"'
+          curl -fsS http://localhost:53000/api/v1/store/config | grep -q '"identity"'
+          curl -fsS -D - -o /dev/null http://localhost:53200/ | grep -qi '^x-frame-options: DENY'
+          curl -fsS -o /dev/null -w '%{http_code}\n' http://localhost:53300/ | grep -qE '^(200|30[0-9])$'
+      - name: Install again, a re-run must be a no-op that ends the same way
+        run: |
+          ./setup.sh --profile local --answers ci/answers.local.json | tee "$RUNNER_TEMP/second-run.log"
+          grep -q 'backend server installed successfully!' "$RUNNER_TEMP/second-run.log"
+          grep -q 'storefront server installed successfully!' "$RUNNER_TEMP/second-run.log"
+          curl -fsS http://localhost:53000/health | grep -q '"ok"'
+      - name: Container logs
+        if: failure()
+        # The connection strings a datasource error echoes carry the generated
+        # database password; they are masked before the log reaches the job.
+        run: docker compose -f deploy/local/docker-compose.yml --env-file deploy/local/.env logs --no-color --tail 200 | sed -E 's#(://[^:/]+:)[^@]+@#\1***@#g'
+      - name: Tear down
+        if: always()
+        run: docker compose -f deploy/local/docker-compose.yml --env-file deploy/local/.env down -v --remove-orphans || true

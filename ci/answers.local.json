@@ -1,0 +1,69 @@
+{
+  "profile": "local",
+  "identity": {
+    "storeName": {
+      "default": "CI Demo Store"
+    },
+    "brandName": "atlas",
+    "description": {
+      "default": "The store the install smoke job installs"
+    },
+    "legalName": {
+      "default": "Atlas SAS"
+    },
+    "contactEmail": "hello@ci.example",
+    "contactPhone": "+33100000000",
+    "street": {
+      "default": "1 Rue de la Demo"
+    },
+    "locality": "Lyon",
+    "region": "ARA",
+    "postalCode": "69001",
+    "country": "FR",
+    "businessType": "OnlineStore"
+  },
+  "brand": {
+    "primary": "#1F4E79",
+    "secondary": "#F2B441",
+    "accent": "",
+    "fontKit": "latin-rounded",
+    "logoPath": ""
+  },
+  "localization": {
+    "supportedLocales": [
+      "fr",
+      "en"
+    ],
+    "defaultLocale": "fr",
+    "timezone": "Europe/Paris"
+  },
+  "money": {
+    "currencyCode": "EUR",
+    "symbol": "€",
+    "symbolPosition": "after",
+    "decimalSeparator": ",",
+    "thousandsSeparator": " ",
+    "displayPrecision": 2,
+    "vatPercent": 20,
+    "taxDisplay": "TTC",
+    "shippingFlatRate": 7
+  },
+  "mail": {
+    "devRedirectTo": "ci@ci.example"
+  },
+  "turnstile": {
+    "enabled": false
+  },
+  "payments": {
+    "cod": true,
+    "manual": false,
+    "stripe": false
+  },
+  "owner": {
+    "email": "owner@ci.example",
+    "firstName": "Ada",
+    "lastName": "Atlas",
+    "password": "Ci_Install_Smoke_Password1"
+  },
+  "demoCatalogue": true
+}

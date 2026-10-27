@@ -1,0 +1,20 @@
+{
+  "name": "admin-services-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/admin-services-e2e/src",
+  "tags": ["scope:admin", "type:e2e"],
+  "implicitDependencies": ["api", "admin-services"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/{projectRoot}"],
+      "options": {
+        "config": "{projectRoot}/playwright.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

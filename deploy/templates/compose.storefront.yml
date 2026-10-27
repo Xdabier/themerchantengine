@@ -1,0 +1,73 @@
+# Storefront stack, rendered by the install stepper (plan E4.5). Do not edit
+# the rendered copy by hand: run setup again and it is rewritten.
+#
+#   docker compose -f deploy/storefront/docker-compose.yml --env-file {{ENV_FILE}} up -d
+#
+# Services:
+#   storefront  internal        Analog SSR (Nitro), built from apps/storefront/Dockerfile
+#   redis       internal        Sidecar for the revalidate webhook dedup (constitution §3.6)
+#   nginx       0.0.0.0:80,443  Edge reverse proxy; terminates TLS for {{STOREFRONT_HOST}}
+#   certbot     on demand       Issues and renews the Let's Encrypt certificate (webroot)
+
+name: {{PROJECT_NAME}}
+
+services:
+  storefront:
+    build:
+      context: ../..
+      dockerfile: apps/storefront/Dockerfile
+      args:
+        # Public; inlined by Vite at build time. Changing it is a rebuild.
+        VITE_TURNSTILE_SITE_KEY: "{{TURNSTILE_SITE_KEY}}"
+    image: {{PROJECT_NAME}}/storefront:{{IMAGE_TAG}}
+    container_name: {{PROJECT_NAME}}-storefront
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    env_file:
+      - {{ENV_FILE}}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: {{PROJECT_NAME}}-storefront-redis
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: {{PROJECT_NAME}}-edge
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      - storefront
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ../shared/nginx-base.conf:/etc/nginx/conf.d/00-base.conf:ro
+      # The IndexNow key file, when one was entered: served at /<key>.txt.
+      - ./indexnow:/etc/nginx/indexnow:ro
+      - certbot-webroot:/var/www/certbot:ro
+      - certbot-certs:/etc/letsencrypt:ro
+
+  certbot:
+    image: certbot/certbot:v3.3.0
+    container_name: {{PROJECT_NAME}}-certbot
+    profiles: ["tools"]
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - certbot-webroot:/var/www/certbot
+      - certbot-certs:/etc/letsencrypt
+
+volumes:
+  certbot-webroot:
+  certbot-certs:

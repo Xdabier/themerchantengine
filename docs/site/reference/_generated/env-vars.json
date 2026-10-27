@@ -1,0 +1,914 @@
+{
+  "x-generated-by": "npm run docs:generate",
+  "files": [
+    {
+      "file": ".env.example",
+      "vars": [
+        {
+          "name": "PORT",
+          "example": "53000",
+          "comment": "",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "NODE_ENV",
+          "example": "development",
+          "comment": "development and test are the only labels that unlock a development behaviour; every other label, and none, reads as production.",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "API_GLOBAL_PREFIX",
+          "example": "api",
+          "comment": "Path prefix for every API route. The admin dev proxy forwards /api unchanged and the storefront one prefixes /v1 with /api, so dev uses `api` too; the e2e harnesses set their own.",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "DATABASE_URL",
+          "example": "postgresql://postgres:postgres@localhost:55432/merchants_engine_dev",
+          "comment": "",
+          "section": "Database",
+          "optional": false
+        },
+        {
+          "name": "DATABASE_TEST_URL",
+          "example": "postgresql://postgres:postgres@localhost:55433/merchants_engine_test",
+          "comment": "",
+          "section": "Database",
+          "optional": false
+        },
+        {
+          "name": "REDIS_HOST",
+          "example": "localhost",
+          "comment": "",
+          "section": "Redis",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PORT",
+          "example": "56379",
+          "comment": "",
+          "section": "Redis",
+          "optional": false
+        },
+        {
+          "name": "REDIS_TEST_HOST",
+          "example": "localhost",
+          "comment": "",
+          "section": "Redis",
+          "optional": false
+        },
+        {
+          "name": "REDIS_TEST_PORT",
+          "example": "56380",
+          "comment": "",
+          "section": "Redis",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "example": "",
+          "comment": "Set both for a managed Redis; TLS is opt-in with `true`.",
+          "section": "Redis",
+          "optional": true
+        },
+        {
+          "name": "REDIS_TLS",
+          "example": "true",
+          "comment": "",
+          "section": "Redis",
+          "optional": true
+        },
+        {
+          "name": "BETTER_AUTH_SECRET",
+          "example": "change-in-production-min-32-bytes-abcde",
+          "comment": "Better Auth owns auth and sessions. BETTER_AUTH_SECRET is high-entropy, >= 32 bytes; rotate it when a person who knew it leaves.",
+          "section": "Redis",
+          "optional": false
+        },
+        {
+          "name": "BETTER_AUTH_URL",
+          "example": "http://localhost:53000",
+          "comment": "The API's own externally-reachable base URL (used to build email links).",
+          "section": "Redis",
+          "optional": false
+        },
+        {
+          "name": "AUTH_COOKIE_DOMAIN",
+          "example": ".shop.example",
+          "comment": "Cross-subdomain session cookie, production only. Leading-dot root domain so the session is shared across the admin / storefront / api subdomains. The stepper leaves it unset: every install proxies /api on the admin host.",
+          "section": "Redis",
+          "optional": true
+        },
+        {
+          "name": "AUTH_SKIP_EMAIL_VERIFICATION",
+          "example": "1",
+          "comment": "`1` lets a new account sign in before it verifies its email. Local and e2e use only. Never set it in production: the API does not refuse it there.",
+          "section": "Redis",
+          "optional": true
+        },
+        {
+          "name": "LOG_LEVEL",
+          "example": "debug",
+          "comment": "",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "SENTRY_DSN",
+          "example": "",
+          "comment": "Error reporting. Unset, Sentry stays off.",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "SENTRY_TRACES_SAMPLE_RATE",
+          "example": "0.1",
+          "comment": "",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "CORS_ORIGIN",
+          "example": "http://localhost:53200,http://localhost:53211,http://localhost:53300,http://localhost:53311",
+          "comment": "CORS - admin dev (53200), admin e2e (53211), storefront dev (53300), storefront e2e (53311).",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_PUBLIC_BASE_URL",
+          "example": "http://localhost:53300",
+          "comment": "Public origins. In dev these are the local servers; the stepper writes the deployed origins, and the API refuses to boot in production without them.",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "ADMIN_PUBLIC_BASE_URL",
+          "example": "http://localhost:53200",
+          "comment": "",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "API_PUBLIC_BASE_URL",
+          "example": "http://localhost:53000",
+          "comment": "",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_URL",
+          "example": "http://localhost:53300/api/_internal/revalidate",
+          "comment": "Storefront revalidation - backend-to-backend signal that triggers SSR cache invalidation on product / category / CMS write events. Both values must match the storefront's. The secret is a high-entropy string ≥ 32 bytes. Never log it.",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_SECRET",
+          "example": "change-in-production-min-32-bytes-12345",
+          "comment": "",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_URL_BASE",
+          "example": "http://localhost:53300",
+          "comment": "Legacy fallback for the storefront origin in search-engine pings; read only when STOREFRONT_PUBLIC_BASE_URL is unset.",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "STOREFRONT_API_URL",
+          "example": "http://localhost:53000/api",
+          "comment": "Storefront server. The base URL its SSR calls reach the API on.",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_MIN_FACET_COVERAGE",
+          "example": "6",
+          "comment": "Storefront facets. A facet shows once at least this many products carry it, and only while distinct values divided by covered products stays at or under the spread.",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "STOREFRONT_MAX_FACET_SPREAD",
+          "example": "0.35",
+          "comment": "",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "ENABLE_THROTTLE",
+          "example": "1",
+          "comment": "Rate limiting. Off under NODE_ENV=test unless ENABLE_THROTTLE is set. Setting DISABLE_THROTTLE to 1 turns it off outside production only.",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "DISABLE_THROTTLE",
+          "example": "1",
+          "comment": "",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "UNSUBSCRIBE_TOKEN_SECRET",
+          "example": "change-in-production-min-32-bytes-abcdef",
+          "comment": "Unsubscribe links in outbound mail are signed with this.",
+          "section": "Logging",
+          "optional": false
+        },
+        {
+          "name": "UPLOADS_ROOT",
+          "example": "uploads",
+          "comment": "Public-served uploads root, relative to the working directory.",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "MAX_FILE_SIZE",
+          "example": "10485760",
+          "comment": "",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "ALLOWED_FILE_TYPES",
+          "example": "jpg,jpeg,png,gif,pdf,doc,docx",
+          "comment": "",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "STORAGE_DRIVER",
+          "example": "local",
+          "comment": "Asset storage - choose driver per environment.   local - writes to ./uploads (dev fallback, no S3 needed)   s3    - any S3-compatible bucket (set the S3_* vars below)",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "S3_ENDPOINT",
+          "example": "https://s3.<region>.example",
+          "comment": "",
+          "section": "File Upload",
+          "optional": true
+        },
+        {
+          "name": "S3_REGION",
+          "example": "",
+          "comment": "",
+          "section": "File Upload",
+          "optional": true
+        },
+        {
+          "name": "S3_BUCKET",
+          "example": "",
+          "comment": "",
+          "section": "File Upload",
+          "optional": true
+        },
+        {
+          "name": "S3_ACCESS_KEY",
+          "example": "",
+          "comment": "",
+          "section": "File Upload",
+          "optional": true
+        },
+        {
+          "name": "S3_SECRET_KEY",
+          "example": "",
+          "comment": "",
+          "section": "File Upload",
+          "optional": true
+        },
+        {
+          "name": "S3_PUBLIC_URL",
+          "example": "",
+          "comment": "",
+          "section": "File Upload",
+          "optional": true
+        },
+        {
+          "name": "PRIVATE_UPLOADS_DIR",
+          "example": "./uploads-private",
+          "comment": "Asset variant pipeline. Local driver - where uploaded originals are written. Must be OUTSIDE the public-served `uploads/` root. Defaults to `./uploads-private/`.",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "SIGNED_URL_SECRET",
+          "example": "change-in-production-min-32-bytes-67890",
+          "comment": "Secret used by `LocalStorageDriver.signUrl()` to mint HMAC-signed admin access URLs for private originals. High-entropy ≥ 32 bytes.",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "RETAIN_ORIGINALS",
+          "example": "true",
+          "comment": "Original-deletion gate: true keeps originals for re-processing (dev), false deletes them once every variant is verified (the production default).",
+          "section": "File Upload",
+          "optional": false
+        },
+        {
+          "name": "STRIPE_API_KEY",
+          "example": "",
+          "comment": "",
+          "section": "Payments",
+          "optional": true
+        },
+        {
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "example": "",
+          "comment": "",
+          "section": "Payments",
+          "optional": true
+        },
+        {
+          "name": "MAIL_TRANSPORT",
+          "example": "console",
+          "comment": "Transport selection - `console` (default, no network) lets local dev + jest + e2e run without a Resend account. `resend` calls the real API.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "RESEND_API_KEY",
+          "example": "",
+          "comment": "Sending-only API key (re_…). REQUIRED when MAIL_TRANSPORT=resend.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "RESEND_FROM_EMAIL",
+          "example": "noreply@example.test",
+          "comment": "Envelope-from address. Must be on a Resend-verified domain.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "RESEND_FROM_NAME",
+          "example": "My Store",
+          "comment": "Display name combined with RESEND_FROM_EMAIL to build the From: header.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "RESEND_REPLY_TO",
+          "example": "contact@example.test",
+          "comment": "Default Reply-To header. Per-job overrides take precedence.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "CONTACT_FORM_RECIPIENT",
+          "example": "contact@example.test",
+          "comment": "Where the storefront contact form is delivered.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "RESEND_WEBHOOK_SECRET",
+          "example": "",
+          "comment": "Svix signing secret (whsec_…) for inbound webhooks at /api/v1/webhooks/resend. REQUIRED when MAIL_TRANSPORT=resend.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "MAIL_DEV_REDIRECT_TO",
+          "example": "",
+          "comment": "Development override - when set, every email is redirected here. Honoured under NODE_ENV=development and test only; a production boot refuses it.",
+          "section": "Email",
+          "optional": false
+        },
+        {
+          "name": "TURNSTILE_SECRET",
+          "example": "",
+          "comment": "Leave unset in dev and e2e: the widget stays inert and sign-up stays open.",
+          "section": "Sign-up bot protection - Cloudflare Turnstile",
+          "optional": true
+        },
+        {
+          "name": "INDEXNOW_KEY",
+          "example": "",
+          "comment": "IndexNow key: 8 to 128 lower-case hex characters. The storefront serves the matching key file; the stepper writes it.",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "INDEXNOW_HOST",
+          "example": "",
+          "comment": "Optional. Defaults to the storefront host.",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "GSC_SUBMISSION_ENABLED",
+          "example": "false",
+          "comment": "Google Search Console API (opt-in):",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "GSC_SITE_URL",
+          "example": "",
+          "comment": "`sc-domain:<domain>` for a domain property, or `https://<domain>/` for a URL-prefix property.",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "GOOGLE_APPLICATION_CREDENTIALS",
+          "example": "",
+          "comment": "Absolute path to the service-account JSON key. Never commit the file.",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "BING_API_KEY",
+          "example": "",
+          "comment": "Bing Webmaster API (opt-in):",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "BING_SITE_URL",
+          "example": "",
+          "comment": "The verified site URL; falls back to STOREFRONT_PUBLIC_BASE_URL.",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "INVOICE_LOGO_PATH",
+          "example": "",
+          "comment": "Optional PNG drawn in the invoice header; without it the header carries the store name. The stepper writes it from the uploaded logo.",
+          "section": "Invoice",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "file": ".env.production.example",
+      "vars": [
+        {
+          "name": "NODE_ENV",
+          "example": "production",
+          "comment": "",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "PORT",
+          "example": "53000",
+          "comment": "",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "API_GLOBAL_PREFIX",
+          "example": "api",
+          "comment": "",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "LOG_LEVEL",
+          "example": "info",
+          "comment": "",
+          "section": "Server",
+          "optional": false
+        },
+        {
+          "name": "DB_PASSWORD",
+          "example": "<generated, 64 hex>",
+          "comment": "",
+          "section": "Database and cache (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "DATABASE_URL",
+          "example": "postgresql://merchants_app:<generated>@postgres:5432/merchants_engine?schema=public",
+          "comment": "",
+          "section": "Database and cache (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "REDIS_HOST",
+          "example": "redis",
+          "comment": "",
+          "section": "Database and cache (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PORT",
+          "example": "6379",
+          "comment": "",
+          "section": "Database and cache (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "example": "<generated, 64 hex>",
+          "comment": "",
+          "section": "Database and cache (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "BETTER_AUTH_SECRET",
+          "example": "<generated, 64 hex>",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "BETTER_AUTH_URL",
+          "example": "https://api.shop.example",
+          "comment": "The public API origin, used in every callback link inside an email.",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "CORS_ORIGIN",
+          "example": "https://shop.example,https://admin.shop.example",
+          "comment": "Also Better Auth trustedOrigins. The admin reaches the API through its own origin.",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_PUBLIC_BASE_URL",
+          "example": "https://shop.example",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "ADMIN_PUBLIC_BASE_URL",
+          "example": "https://admin.shop.example",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "API_PUBLIC_BASE_URL",
+          "example": "https://api.shop.example",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_URL",
+          "example": "https://shop.example/api/_internal/revalidate",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_SECRET",
+          "example": "<generated, 64 hex; the storefront box needs the same value>",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "UNSUBSCRIBE_TOKEN_SECRET",
+          "example": "<generated, 64 hex>",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "TURNSTILE_SECRET",
+          "example": "<entered and verified against siteverify>",
+          "comment": "",
+          "section": "Auth and origins",
+          "optional": false
+        },
+        {
+          "name": "MAX_FILE_SIZE",
+          "example": "10485760",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "ALLOWED_FILE_TYPES",
+          "example": "jpg,jpeg,png,gif,pdf,doc,docx",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "STORAGE_DRIVER",
+          "example": "s3",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "S3_ENDPOINT",
+          "example": "https://s3.<region>.example",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "S3_REGION",
+          "example": "<region>",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "S3_BUCKET",
+          "example": "<bucket, hyphens, no dots>",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "S3_ACCESS_KEY",
+          "example": "<entered and verified by a put, get and delete>",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "S3_SECRET_KEY",
+          "example": "<entered>",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "S3_PUBLIC_URL",
+          "example": "https://<bucket>.s3.<region>.example",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "SIGNED_URL_SECRET",
+          "example": "<generated, 64 hex>",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "RETAIN_ORIGINALS",
+          "example": "false",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "INVOICE_LOGO_PATH",
+          "example": "/app/config/invoice-logo.png",
+          "comment": "",
+          "section": "Uploads and asset storage",
+          "optional": false
+        },
+        {
+          "name": "MAIL_TRANSPORT",
+          "example": "resend",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "RESEND_API_KEY",
+          "example": "<entered and verified by a domain lookup and a test message>",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "RESEND_WEBHOOK_SECRET",
+          "example": "<entered>",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "RESEND_FROM_EMAIL",
+          "example": "noreply@shop.example",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "RESEND_FROM_NAME",
+          "example": "My Store",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "RESEND_REPLY_TO",
+          "example": "hello@shop.example",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "CONTACT_FORM_RECIPIENT",
+          "example": "hello@shop.example",
+          "comment": "",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "MAIL_DEV_REDIRECT_TO",
+          "example": "",
+          "comment": "Honoured under NODE_ENV=development only; a production boot refuses a non-empty value.",
+          "section": "Mail",
+          "optional": false
+        },
+        {
+          "name": "INDEXNOW_KEY",
+          "example": "",
+          "comment": "",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "BING_API_KEY",
+          "example": "",
+          "comment": "",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "BING_SITE_URL",
+          "example": "",
+          "comment": "",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "GSC_SUBMISSION_ENABLED",
+          "example": "false",
+          "comment": "",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "GSC_SITE_URL",
+          "example": "",
+          "comment": "",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "GOOGLE_APPLICATION_CREDENTIALS",
+          "example": "",
+          "comment": "",
+          "section": "Search-engine submission",
+          "optional": false
+        },
+        {
+          "name": "STRIPE_API_KEY",
+          "example": "",
+          "comment": "",
+          "section": "Payments",
+          "optional": false
+        },
+        {
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "example": "",
+          "comment": "",
+          "section": "Payments",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "file": "apps/storefront/.env.example",
+      "vars": [
+        {
+          "name": "STOREFRONT_API_URL",
+          "example": "http://localhost:53000/api",
+          "comment": "API base URL the storefront fetches from. Browser-side proxy rewrites /v1/* to ${STOREFRONT_API_URL}/v1/* (see vite.config.ts).",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_PUBLIC_BASE_URL",
+          "example": "http://localhost:53300",
+          "comment": "Public base URL the storefront uses for canonical, og:url, hreflang alternates, and JSON-LD URL fields. Production: the deployed origin.",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_SECRET",
+          "example": "change-in-production-min-32-bytes-12345",
+          "comment": "Shared secret matched by the API webhook listener. Compared timing-safely on the inbound /api/_internal/revalidate request. Must equal the value of STOREFRONT_REVALIDATE_SECRET on the API side. Rotate it together with the API side.",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "REDIS_HOST",
+          "example": "localhost",
+          "comment": "Redis client for the inbound /api/_internal/revalidate webhook dedup (the same dedup the API applies to inbound webhooks). The storefront SSR process MUST resolve to a Redis instance in production (the boot guard in apps/storefront/src/server/lib/dedup-store.ts throws when NODE_ENV=production and REDIS_HOST is unset). In local dev these defaults match the dev Redis container on port 56379 per the reserved port table. Leave blank to opt into the in-memory fallback (acceptable for vitest + local single-process work; never for production).",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PORT",
+          "example": "56379",
+          "comment": "",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "example": "",
+          "comment": "",
+          "section": "",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "file": "apps/storefront/.env.production.example",
+      "vars": [
+        {
+          "name": "NODE_ENV",
+          "example": "production",
+          "comment": "",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "PORT",
+          "example": "54300",
+          "comment": "",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "HOST",
+          "example": "0.0.0.0",
+          "comment": "",
+          "section": "",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_API_URL",
+          "example": "https://api.shop.example/api",
+          "comment": "On one box the storefront reaches the engine over the compose network (http://api:53000/api); on its own box it goes out over the public API origin.",
+          "section": "Engine",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_PUBLIC_BASE_URL",
+          "example": "https://shop.example",
+          "comment": "Public origin used for canonical, og:url, hreflang, JSON-LD URL fields.",
+          "section": "Engine",
+          "optional": false
+        },
+        {
+          "name": "STOREFRONT_REVALIDATE_SECRET",
+          "example": "<the engine's value>",
+          "comment": "Must equal the engine's STOREFRONT_REVALIDATE_SECRET; a storefront-only box is asked for it and the engine box prints it at the end of its install.",
+          "section": "Engine",
+          "optional": false
+        },
+        {
+          "name": "VITE_TURNSTILE_SITE_KEY",
+          "example": "<entered>",
+          "comment": "Public; read at build time and passed by the stepper as a build argument.",
+          "section": "Engine",
+          "optional": false
+        },
+        {
+          "name": "REDIS_HOST",
+          "example": "redis",
+          "comment": "",
+          "section": "Revalidate dedup store (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PORT",
+          "example": "6379",
+          "comment": "",
+          "section": "Revalidate dedup store (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "example": "<generated, 64 hex>",
+          "comment": "",
+          "section": "Revalidate dedup store (compose service names)",
+          "optional": false
+        },
+        {
+          "name": "API_URL",
+          "example": "https://api.shop.example/api",
+          "comment": "",
+          "section": "Public API origin, for links the page builds itself",
+          "optional": false
+        }
+      ]
+    }
+  ]
+}

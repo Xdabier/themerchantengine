@@ -1,0 +1,13 @@
+{
+  "title": "Getting started",
+  "pages": [
+    "what-you-get",
+    "requirements",
+    "install-on-a-server",
+    "install-locally",
+    "first-hour",
+    "go-live-checklist",
+    "non-interactive-and-ci",
+    "troubleshooting"
+  ]
+}

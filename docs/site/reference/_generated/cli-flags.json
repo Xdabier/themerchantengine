@@ -1,0 +1,489 @@
+{
+  "x-generated-by": "npm run docs:generate",
+  "usage": "themerchantengine setup\n\nUsage: node tools/setup/dist/index.js [options]\n\nOptions:\n  --profile <engine|storefront|both|local>  What this box runs. Asked when omitted.\n  --local                                   Shorthand for --profile local.\n  --answers <file.json>                     Non-interactive run from an answers document.\n  --dry-run                                 Print every file and command; write and run nothing.\n  --state <file>                            Resumable state file (default .setup-state.json).\n  --root <dir>                              Repository root (default: the current directory).\n  --reset                                   Ignore the state file and start over.\n  --help                                    This text.\n  --version                                 The engine version.\n",
+  "flags": [
+    {
+      "flag": "--profile",
+      "argument": "<engine|storefront|both|local>",
+      "description": "What this box runs. Asked when omitted."
+    },
+    {
+      "flag": "--local",
+      "argument": null,
+      "description": "Shorthand for --profile local."
+    },
+    {
+      "flag": "--answers",
+      "argument": "<file.json>",
+      "description": "Non-interactive run from an answers document."
+    },
+    {
+      "flag": "--dry-run",
+      "argument": null,
+      "description": "Print every file and command; write and run nothing."
+    },
+    {
+      "flag": "--state",
+      "argument": "<file>",
+      "description": "Resumable state file (default .setup-state.json)."
+    },
+    {
+      "flag": "--root",
+      "argument": "<dir>",
+      "description": "Repository root (default: the current directory)."
+    },
+    {
+      "flag": "--reset",
+      "argument": null,
+      "description": "Ignore the state file and start over."
+    },
+    {
+      "flag": "--help",
+      "argument": null,
+      "description": "This text."
+    },
+    {
+      "flag": "--version",
+      "argument": null,
+      "description": "The engine version."
+    }
+  ],
+  "profiles": [
+    "engine",
+    "storefront",
+    "both",
+    "local"
+  ],
+  "defaultStateFile": ".setup-state.json",
+  "answersSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "profile": {
+        "type": "string",
+        "enum": [
+          "engine",
+          "storefront",
+          "both",
+          "local"
+        ]
+      },
+      "identity": {
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "brandName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "legalName": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "contactEmail": {
+            "type": "string"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "street": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "locality": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "postalCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "country": {
+            "type": "string"
+          },
+          "areaServed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "businessType": {
+            "type": "string",
+            "enum": [
+              "OnlineStore",
+              "LocalBusiness",
+              "Hybrid"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "domains": {
+        "type": "object",
+        "properties": {
+          "storefront": {
+            "type": "string"
+          },
+          "admin": {
+            "type": "string"
+          },
+          "api": {
+            "type": "string"
+          },
+          "certbotEmail": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "brand": {
+        "type": "object",
+        "properties": {
+          "primary": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "secondary": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "accent": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fontKit": {
+            "type": "string",
+            "enum": [
+              "latin-rounded",
+              "arabic-latin"
+            ]
+          },
+          "logoPath": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "localization": {
+        "type": "object",
+        "properties": {
+          "supportedLocales": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fr",
+                "en",
+                "ar"
+              ]
+            }
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "fr",
+              "en",
+              "ar"
+            ]
+          },
+          "rtlLocales": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fr",
+                "en",
+                "ar"
+              ]
+            }
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "money": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "symbolPosition": {
+            "type": "string",
+            "enum": [
+              "before",
+              "after"
+            ]
+          },
+          "decimalSeparator": {
+            "type": "string"
+          },
+          "thousandsSeparator": {
+            "type": "string"
+          },
+          "displayPrecision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "taxDisplay": {
+            "type": "string",
+            "enum": [
+              "HT",
+              "TTC",
+              "none"
+            ]
+          },
+          "vatRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "vatPercent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "shippingFlatRate": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "storage": {
+        "type": "object",
+        "properties": {
+          "driver": {
+            "type": "string",
+            "enum": [
+              "s3",
+              "local"
+            ]
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "publicUrl": {
+            "type": "string"
+          },
+          "accessKey": {
+            "type": "string"
+          },
+          "secretKey": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "mail": {
+        "type": "object",
+        "properties": {
+          "transport": {
+            "type": "string",
+            "enum": [
+              "resend",
+              "console"
+            ]
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "webhookSecret": {
+            "type": "string"
+          },
+          "fromEmail": {
+            "type": "string"
+          },
+          "fromName": {
+            "type": "string"
+          },
+          "replyTo": {
+            "type": "string"
+          },
+          "contactFormRecipient": {
+            "type": "string"
+          },
+          "devRedirectTo": {
+            "type": "string"
+          },
+          "testRecipient": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "turnstile": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "siteKey": {
+            "type": "string"
+          },
+          "secretKey": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "seo": {
+        "type": "object",
+        "properties": {
+          "indexNowKey": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": ""
+              },
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{8,128}$"
+              }
+            ]
+          },
+          "bingApiKey": {
+            "type": "string"
+          },
+          "gscServiceAccountFile": {
+            "type": "string"
+          },
+          "gscSiteUrl": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "payments": {
+        "type": "object",
+        "properties": {
+          "cod": {
+            "type": "boolean"
+          },
+          "stripe": {
+            "type": "boolean"
+          },
+          "stripeApiKey": {
+            "type": "string"
+          },
+          "stripeWebhookSecret": {
+            "type": "string"
+          },
+          "manual": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "owner": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "demoCatalogue": {
+        "type": "boolean"
+      },
+      "engine": {
+        "type": "object",
+        "properties": {
+          "revalidateSecret": {
+            "type": "string"
+          },
+          "apiUrl": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  }
+}

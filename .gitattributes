@@ -1,0 +1,52 @@
+# Deploy scripts and systemd units execute on the Linux prod boxes. A CRLF
+# checkout breaks the shebang with `bad interpreter: /usr/bin/env bash^M`, so
+# pin them to LF regardless of the committer's core.autocrlf setting.
+deploy/**/*.sh              text eol=lf
+deploy/shared/systemd/**    text eol=lf
+scripts/ci/*.sh             text eol=lf
+setup.sh                    text eol=lf
+
+# What `git archive` leaves out of the release tarball (scripts/release.mjs).
+# The tree also carries the project's own planning record, its security
+# audits, its agent configuration and instructions, the path of a retired
+# test private key (so a key put back by hand stays out), the gitleaks
+# fingerprint list (it names files and lines of past findings), its research
+# and marketing notes, a third-party PDF, and the specs that read the agent
+# configuration or the client token table, none of which is part of the
+# product.
+# scripts/__tests__/release.spec.ts pins this list against the real archive.
+# The PDF name has spaces, hence the glob. A pattern without a slash matches
+# at any depth, so root directories are anchored with a leading `/`.
+/specs/                                 export-ignore
+/.claude/                               export-ignore
+/.session-runner/                       export-ignore
+docs/audit/                             export-ignore
+docs/security-audit-report.md           export-ignore
+docs/security-research.md               export-ignore
+docs/admin-manual-qa-findings.md        export-ignore
+docs/storefront-manual-qa-findings*.md  export-ignore
+docs/badii-studio-brand-guidelines.md   export-ignore
+scripts/verify-no-client-refs.tokens.json export-ignore
+scripts/__tests__/verify-no-client-refs.spec.ts export-ignore
+scripts/__tests__/active-phase.spec.ts  export-ignore
+scripts/__tests__/commit-guard.spec.ts  export-ignore
+scripts/__tests__/pre-commit.spec.ts    export-ignore
+scripts/__tests__/run-phases.spec.ts    export-ignore
+tools/guards/src/config-protection.spec.ts export-ignore
+tools/guards/src/coverage-thresholds.spec.ts export-ignore
+tools/guards/src/git-hooks.spec.ts      export-ignore
+tools/guards/src/nx-affected.spec.ts    export-ignore
+tools/guards/src/skills-metadata.spec.ts export-ignore
+tools/setup/src/bundle.spec.ts          export-ignore
+tools/setup/src/render/template.spec.ts export-ignore
+test/fixtures/license/private.pem       export-ignore
+/agent_docs/                            export-ignore
+/CLAUDE.md                              export-ignore
+/SCAFFOLD_SUMMARY.md                    export-ignore
+/.gitleaksignore                        export-ignore
+docs/marketing/                         export-ignore
+docs/The*Anatomy*.pdf                   export-ignore
+docs/CMS-ERP-Ecommerce-Research-EXPANDED.md export-ignore
+docs/LLM-Driven-Development-Research-Report.md export-ignore
+docs/organic-acquisition-research-2026.md export-ignore
+docs/storefront-research.md             export-ignore

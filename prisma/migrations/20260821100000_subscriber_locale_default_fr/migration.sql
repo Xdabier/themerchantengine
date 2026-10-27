@@ -1,0 +1,42 @@
+-- Locale spine.
+--
+-- `Subscriber.locale` stamped `ar` on every new newsletter signup that arrived
+-- without an explicit locale. The target storefront has no Arabic locale, so
+-- the column default moves to the new store default `fr`.
+--
+-- SAFETY
+-- - Metadata-only. `ALTER COLUMN ... SET DEFAULT` rewrites the catalogue entry,
+--   not the heap, so it takes an ACCESS EXCLUSIVE lock for a few milliseconds
+--   and touches no rows. Safe on a live table.
+-- - It backfills NOTHING. Every Subscriber row written before this migration
+--   keeps whatever locale it was stamped with, `ar` included. That is
+--   deliberate: those rows record what the subscriber actually chose under the
+--   previous client, and rewriting them would forge consent history on the one
+--   table whose job is to prove opt-in provenance.
+-- - The target database is greenfield, so on that
+--   deployment there are no such rows and this is a no-op beyond the default.
+--   **On a REUSED database the leftover `ar` rows do not degrade gracefully.**
+--   `mail/listeners/locale.util.ts` `resolveLocale` maps `ar` to `ar`, and
+--   `campaigns/campaign.service.ts` then builds `shopUrl` as `${base}/${locale}`,
+--   which yields `https://<store>/ar` on a storefront that routes only `fr`
+--   and `en`. Such a database needs a locale remap before its first campaign
+--   send. The unsubscribe leg is safe, because the paired controller change
+--   coerces anything that is not `en` to `fr`.
+-- - The paired code change is `apps/api/src/modules/campaigns/newsletter.controller.ts`,
+--   which passed a literal `'ar'` rather than letting the column default apply.
+--   Without both, half of new subscribers keep landing on the retired locale.
+--
+-- HOW THIS ACTUALLY REACHES A DATABASE
+--   Not through `prisma migrate deploy`. This repository deploys with
+--   `prisma db push --accept-data-loss` reading `prisma/schema.prisma`
+--   (the CI migrate-db job), so the schema
+--   line is what applies the change and this file is the written record of
+--   intent plus a manual rollback statement. `_prisma_migrations` on the dev
+--   database also carries a row in Prisma's failed state, so `migrate deploy`
+--   or `migrate status` would abort with P3009 until someone runs
+--   `migrate resolve`. Do not reach for either command here.
+--
+-- ROLLBACK
+--   ALTER TABLE "Subscriber" ALTER COLUMN "locale" SET DEFAULT 'ar';
+
+ALTER TABLE "Subscriber" ALTER COLUMN "locale" SET DEFAULT 'fr';

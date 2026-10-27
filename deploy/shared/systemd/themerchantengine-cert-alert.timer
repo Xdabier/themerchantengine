@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily TLS certificate expiry sweep
+
+[Timer]
+# Morning sweep, well after the 03:17 renewal window has had its chance.
+OnCalendar=*-*-* 08:00:00
+RandomizedDelaySec=30m
+Persistent=true
+Unit=themerchantengine-cert-alert.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    // The webpack build emits CommonJS — NOT the `module: preserve` (ESM)
+    // inherited from tsconfig.app.json. The NestJS app has benign circular
+    // imports (e.g. assets <-> storefront-config, documented in
+    // test/jest.e2e.config.ts) that Node's CommonJS loader resolves via
+    // partial exports; webpack's ESM live-binding export getters turn the
+    // same cycles into a `Cannot access 'X' before initialization` TDZ crash
+    // on boot. CommonJS emit keeps the proven Node module semantics.
+    // (BA2.9b — better-auth-migration.)
+    "module": "commonjs",
+    "moduleResolution": "node"
+  },
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/**/*.e2e-spec.ts",
+    "src/**/*.d.ts",
+    "scripts/**/*.spec.ts",
+    "../../libs/**/*.spec.ts",
+    "../../libs/**/*.d.ts",
+    "jest.config.ts",
+    "jest.e2e.config.ts"
+  ]
+}

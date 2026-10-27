@@ -1,0 +1,18 @@
+[Unit]
+Description=Renew Let's Encrypt certificates and reload edge nginx
+Documentation=file://{{REPO_ROOT}}/deploy/README.md
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory={{REPO_ROOT}}
+Environment=HOME=/root
+Environment=ENV_FILE={{ENV_FILE}}
+# Invoked through bash on purpose: a `git checkout` can reset the script's
+# mode back to 0644, and an ExecStart that depends on the execute bit would
+# start failing silently.
+ExecStart=/bin/bash {{REPO_ROOT}}/deploy/shared/certbot-renew.sh
+# Image pull plus the ACME challenges, with headroom for a slow registry.
+TimeoutStartSec=900

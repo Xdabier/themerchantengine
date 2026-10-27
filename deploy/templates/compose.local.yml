@@ -1,0 +1,121 @@
+# Local profile, rendered by the install stepper (plan E4.6): the whole engine
+# on one machine, no TLS, on the reserved ports from CLAUDE.md. Do not edit the
+# rendered copy by hand: run setup again and it is rewritten.
+#
+#   docker compose -f deploy/local/docker-compose.yml --env-file {{ENV_FILE}} up -d
+#
+#   API         http://localhost:53000   (container port 53000)
+#   Admin       http://localhost:53200   (edge nginx: the admin, with /api proxied to the API)
+#   Storefront  http://localhost:53300   (edge nginx: the storefront, with /v1 proxied to the API)
+#
+# Postgres and Redis stay internal; the dev containers on 55432 and 56379 are
+# a different project and untouched.
+
+name: {{PROJECT_NAME}}
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: {{PROJECT_NAME}}-postgres
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: merchants_engine
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d merchants_engine"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: {{PROJECT_NAME}}-redis
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    image: {{PROJECT_NAME}}/api:{{IMAGE_TAG}}
+    container_name: {{PROJECT_NAME}}-api
+    restart: unless-stopped
+    # The host user, so the API can write the uploads folders below.
+    user: "{{API_USER}}"
+    security_opt: ["no-new-privileges:true"]
+    env_file:
+      - {{ENV_FILE}}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:53000:53000"
+    volumes:
+      - ./config:/app/config:ro
+      # Local disk storage: uploaded assets land here and are served by the API.
+      - ./uploads:/app/uploads
+      - ./uploads-private:/app/uploads-private
+
+  admin:
+    build:
+      context: ../..
+      dockerfile: apps/admin/Dockerfile
+    image: {{PROJECT_NAME}}/admin:{{IMAGE_TAG}}
+    container_name: {{PROJECT_NAME}}-admin
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+
+  storefront:
+    build:
+      context: ../..
+      dockerfile: apps/storefront/Dockerfile
+      args:
+        VITE_TURNSTILE_SITE_KEY: "{{TURNSTILE_SITE_KEY}}"
+    image: {{PROJECT_NAME}}/storefront:{{IMAGE_TAG}}
+    container_name: {{PROJECT_NAME}}-storefront
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    env_file:
+      - {{STOREFRONT_ENV_FILE}}
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  # One edge for both doors, as on a server: the admin on 53200 with /api
+  # proxied, the storefront on 53300 with /v1 proxied. The storefront
+  # container publishes no port of its own, so the browser's same-origin
+  # API calls have the edge to land on.
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: {{PROJECT_NAME}}-edge
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      - api
+      - admin
+      - storefront
+    ports:
+      - "127.0.0.1:53200:53200"
+      - "127.0.0.1:53300:53300"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+
+volumes:
+  pg-data:
+  redis-data:

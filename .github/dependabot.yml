@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*', '@angular-eslint/*', '@schematics/angular']
+      nx:
+        patterns: ['nx', '@nx/*']
+      nestjs:
+        patterns: ['@nestjs/*']
+      analog:
+        patterns: ['@analogjs/*']
+      prisma:
+        patterns: ['prisma', '@prisma/*']
+
+  - package-ecosystem: docker
+    directories:
+      - /apps/api
+      - /apps/admin
+      - /apps/storefront
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
