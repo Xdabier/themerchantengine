@@ -147,10 +147,14 @@ try {
   // Root ownership, so the operator's user name does not ship in the header.
   const gnuTar = execFileSync('tar', ['--version'], { encoding: 'utf8' }).includes('GNU tar');
   const owner = gnuTar ? ['--owner=0', '--group=0'] : ['--uid', '0', '--gid', '0'];
-  execFileSync('tar', ['-rf', 'head.tar', '--numeric-owner', ...owner, 'tools/setup/dist/index.js'], {
-    cwd: staging,
-    stdio: 'inherit',
-  });
+  execFileSync(
+    'tar',
+    ['-rf', 'head.tar', '--numeric-owner', ...owner, 'tools/setup/dist/index.js'],
+    {
+      cwd: staging,
+      stdio: 'inherit',
+    },
+  );
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(tarball, zlib.gzipSync(fs.readFileSync(path.join(staging, 'head.tar'))));
 } finally {

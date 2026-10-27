@@ -52,6 +52,9 @@ function scratchRepo(version = '9.9.9'): string {
   git('config', 'user.email', 'spec@example.test');
   git('config', 'user.name', 'spec');
   git('config', 'commit.gpgsign', 'false');
+  // On disk too: with core.fileMode on, an index-only bit leaves the tree dirty.
+  fs.chmodSync(path.join(dir, 'setup.sh'), 0o755);
+  fs.chmodSync(path.join(dir, 'deploy/run-hook'), 0o755);
   git('add', '-A');
   git('update-index', '--chmod=+x', 'setup.sh', 'deploy/run-hook');
   git('commit', '-q', '-m', 'initial');
@@ -181,7 +184,10 @@ describe('npm run release', () => {
       encoding: 'utf8',
     }).split('\n');
     const mode = (file: string) =>
-      verbose.find((l) => l.trim().endsWith(file))?.trim().split(/\s+/)[0];
+      verbose
+        .find((l) => l.trim().endsWith(file))
+        ?.trim()
+        .split(/\s+/)[0];
     expect(mode('setup.sh')).toMatch(/^-rwx/);
     expect(mode('deploy/run-hook')).toMatch(/^-rwx/);
     expect(mode('setup.ps1')).toMatch(/^-rw-/);
