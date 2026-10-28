@@ -53,7 +53,7 @@ import { AuthService } from '@admin-services';
               id="forgot-email"
               type="email"
               formControlName="email"
-              placeholder="you@badii.studio"
+              placeholder="you@example.com"
               [invalid]="!!emailError()"
               [autocomplete]="'email'"
             ></app-input>

@@ -9,6 +9,7 @@ import { AuthService, type AuthFailure } from '@admin-services';
 import { isStaff } from '@admin-types';
 import { map } from 'rxjs';
 import { AuthStore } from '../../core/stores/auth.store';
+import { DEMO_LOGIN } from '../../core/tokens';
 
 type Mode = 'password' | 'magic-link';
 
@@ -39,6 +40,29 @@ type Mode = 'password' | 'magic-link';
       <p class="mt-4 text-ink-muted tracking-widest uppercase text-xs">
         {{ mode() === 'magic-link' ? 'Sign in · magic link' : 'Sign in · admin' }}
       </p>
+
+      @if (demoLogin; as demo) {
+        <section
+          class="mt-6 border border-line text-ink p-3 tabular text-xs flex flex-col gap-2"
+          data-testid="login-demo"
+          aria-label="Demo account"
+        >
+          <p class="uppercase tracking-widest">
+            Public demo. Data resets every night at 03:00 UTC.
+          </p>
+          <p>Email: {{ demo.email }}</p>
+          <p>Password: {{ demo.password }}</p>
+          <app-button
+            type="button"
+            variant="ghost"
+            size="sm"
+            (clicked)="useDemoLogin()"
+            testId="login-demo-fill"
+          >
+            Use demo account
+          </app-button>
+        </section>
+      }
 
       @if (reason() === 'session-expired') {
         <p
@@ -94,7 +118,7 @@ type Mode = 'password' | 'magic-link';
             id="login-email"
             type="email"
             formControlName="email"
-            placeholder="admin@badii.studio"
+            placeholder="admin@example.com"
             [invalid]="!!emailError()"
             [autocomplete]="'username'"
           ></app-input>
@@ -161,6 +185,7 @@ export class LoginPage {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  readonly demoLogin = inject(DEMO_LOGIN);
 
   readonly reason = toSignal(this.route.queryParams.pipe(map((q) => q['reason'] ?? null)), {
     initialValue: null,
@@ -207,6 +232,12 @@ export class LoginPage {
     if (!c.touched || c.valid) return null;
     if (c.hasError('required')) return 'Password is required.';
     return null;
+  }
+
+  useDemoLogin(): void {
+    if (!this.demoLogin) return;
+    if (this.mode() !== 'password') this.toggleMode();
+    this.form.setValue(this.demoLogin);
   }
 
   toggleMode(): void {

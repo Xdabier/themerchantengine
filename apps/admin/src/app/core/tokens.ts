@@ -19,6 +19,17 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
  * session whose user row carries no locale of its own. The two must move
  * together or changing the other one is inert.
  */
+export interface DemoLogin {
+  email: string;
+  password: string;
+}
+
+/** Public demo credentials shown on the login page. Null outside the `demo` build. */
+export const DEMO_LOGIN = new InjectionToken<DemoLogin | null>('DEMO_LOGIN', {
+  providedIn: 'root',
+  factory: () => environment.demoLogin,
+});
+
 export const BOOTSTRAP_LOCALE = new InjectionToken<string>('BOOTSTRAP_LOCALE', {
   providedIn: 'root',
   factory: () => 'fr',

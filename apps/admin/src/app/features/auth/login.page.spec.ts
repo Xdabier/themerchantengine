@@ -5,7 +5,7 @@ import type { AdminSessionUser } from '@admin-types';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { BehaviorSubject } from 'rxjs';
 import { AuthStore } from '../../core/stores/auth.store';
-import { BOOTSTRAP_LOCALE } from '../../core/tokens';
+import { BOOTSTRAP_LOCALE, DEMO_LOGIN, type DemoLogin } from '../../core/tokens';
 import { LoginPage } from './login.page';
 
 expect.extend(toHaveNoViolations);
@@ -47,7 +47,7 @@ describe('LoginPage', () => {
   const submitButton = () =>
     fixture.nativeElement.querySelector('[data-testid="login-submit"] button') as HTMLButtonElement;
 
-  function setup(params: Record<string, string> = {}): void {
+  function setup(params: Record<string, string> = {}, demoLogin: DemoLogin | null = null): void {
     auth = {
       signIn: jest.fn(() => Promise.resolve({ status: 'authenticated' })),
       getSession: jest.fn(() => Promise.resolve(adminUser)),
@@ -58,6 +58,7 @@ describe('LoginPage', () => {
       providers: [
         provideRouter([{ path: '**', children: [] }]),
         { provide: BOOTSTRAP_LOCALE, useValue: 'fr' },
+        { provide: DEMO_LOGIN, useValue: demoLogin },
         { provide: AuthService, useValue: auth },
         {
           provide: ActivatedRoute,
@@ -364,5 +365,41 @@ describe('LoginPage', () => {
     fixture.detectChanges();
     const results = await axe(fixture.nativeElement as Element);
     expect(results).toHaveNoViolations();
+  });
+
+  describe('demo login', () => {
+    const demo: DemoLogin = { email: 'demo@example.test', password: 'demo-pass' };
+    const banner = () =>
+      fixture.nativeElement.querySelector('[data-testid="login-demo"]') as HTMLElement | null;
+
+    it('hides the demo banner on a normal build', () => {
+      setup();
+      expect(banner()).toBeNull();
+    });
+
+    it('shows the demo credentials and the nightly reset notice', () => {
+      setup({}, demo);
+      const text = banner()?.textContent ?? '';
+      expect(text).toContain(demo.email);
+      expect(text).toContain(demo.password);
+      expect(text).toContain('resets every night');
+    });
+
+    it('fills the form and enables submit from the demo button', () => {
+      setup({}, demo);
+      const fill = fixture.nativeElement.querySelector(
+        'button[data-testid="login-demo-fill"]',
+      ) as HTMLButtonElement;
+      fill.click();
+      fixture.detectChanges();
+      expect(page.form.getRawValue()).toEqual(demo);
+      expect(submitButton().disabled).toBe(false);
+    });
+
+    it('has no axe violations with the demo banner', async () => {
+      setup({}, demo);
+      const results = await axe(fixture.nativeElement as Element);
+      expect(results).toHaveNoViolations();
+    });
   });
 });

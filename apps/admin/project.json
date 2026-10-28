@@ -56,6 +56,15 @@
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
+        },
+        "demo": {
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "apps/admin/src/environments/environment.ts",
+              "with": "apps/admin/src/environments/environment.demo.ts"
+            }
+          ]
         }
       },
       "defaultConfiguration": "production"
