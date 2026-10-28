@@ -43,6 +43,7 @@ describe('deploy shell files', () => {
   it('exist in the set the installer and the manual name', () => {
     const names = scripts.map((f) => posix(path.relative(DEPLOY, f))).sort();
     expect(names).toEqual([
+      'demo-render/entrypoint.sh',
       'scripts/prune-images.sh',
       'scripts/rollback.sh',
       'shared/cert-expiry-alert.sh',
