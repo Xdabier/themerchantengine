@@ -13,7 +13,7 @@
   <a href="https://themerchantengine.com/docs">Docs</a> ·
   <a href="docs/site/getting-started/install-locally.md">Try it locally</a> ·
   <a href="https://github.com/Xdabier/themerchantengine/discussions">Discussions</a> ·
-  <a href="https://badii.studio">Have it built and run for you</a>
+  <a href="https://badii.studio/themerchantengine">Have it built and run for you</a>
 </p>
 
 <p align="center">
@@ -155,7 +155,7 @@ Read [Install on a server](docs/site/getting-started/install-on-a-server.md) fir
 
 ## Need it built or run for you?
 
-The engine is free to use on your own. If you would rather not run it yourself, [Badii Studio](https://badii.studio), the team behind it, installs, customizes, hosts and maintains stores built on it. Write to badii@badii.studio.
+The engine is free to use on your own. If you would rather not run it yourself, hire Badii Boutar, who builds the engine and works as [Badii Studio](https://badii.studio/themerchantengine). He installs, customizes, hosts and maintains stores built on it. Write to badii@badii.studio.
 
 ## License
 
