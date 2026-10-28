@@ -1,0 +1,2 @@
+# The browser API client uses a relative /v1 base, same as the nginx edge.
+/v1/*  https://themerchantengine-demo-api.onrender.com/api/v1/:splat  200

@@ -1,0 +1,3 @@
+# The admin calls /api on its own origin, so auth cookies stay first-party.
+/api/*  https://themerchantengine-demo-api.onrender.com/api/:splat  200
+/*      /index.html  200
