@@ -10,7 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://demo.themerchantengine.com">Live demo</a> ·
+  <a href="https://demo.themerchantengine.com">Storefront demo</a> ·
+  <a href="https://demo-admin.themerchantengine.com">Admin demo</a> ·
   <a href="https://themerchantengine.com/docs">Docs</a> ·
   <a href="docs/site/getting-started/install-locally.md">Try it locally</a> ·
   <a href="https://github.com/Xdabier/themerchantengine/discussions">Discussions</a> ·
