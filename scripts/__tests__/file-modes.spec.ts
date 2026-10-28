@@ -9,6 +9,7 @@ import * as path from 'node:path';
 const REPO = path.resolve(__dirname, '..', '..');
 
 const EXECUTABLES = [
+  'deploy/demo-render/entrypoint.sh',
   'deploy/scripts/rollback.sh',
   'deploy/shared/cert-expiry-alert.sh',
   'deploy/shared/certbot-renew.sh',
