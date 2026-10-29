@@ -60,7 +60,11 @@ export function exposeEngineFingerprint(
   win: object,
   app: EngineApp,
 ): void {
-  if (!doc.querySelector(`meta[name="${ENGINE_FINGERPRINT_META_NAME}"][content^="${ENGINE_FINGERPRINT_NAME}"]`)) {
+  if (
+    !doc.querySelector(
+      `meta[name="${ENGINE_FINGERPRINT_META_NAME}"][content^="${ENGINE_FINGERPRINT_NAME}"]`,
+    )
+  ) {
     return;
   }
   Object.defineProperty(win, ENGINE_FINGERPRINT_GLOBAL, {

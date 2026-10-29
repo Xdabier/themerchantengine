@@ -28,7 +28,10 @@ const MARKED_HTML = `<!doctype html><html lang="en" data-tme-app="storefront"><h
 <meta name="generator" content="${ENGINE_FINGERPRINT_NAME}"></head><body></body></html>`;
 const PLAIN_HTML = '<!doctype html><html lang="en"><head></head><body></body></html>';
 
-async function serve(headers: Record<string, string>, html: string): Promise<{ url: string; close: () => Promise<void> }> {
+async function serve(
+  headers: Record<string, string>,
+  html: string,
+): Promise<{ url: string; close: () => Promise<void> }> {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { 'content-type': 'text/html', ...headers });
     res.end(html);
@@ -82,7 +85,10 @@ describe('fingerprint:check', () => {
     expect(name).toBe(ENGINE_FINGERPRINT_NAME);
     expect(major).toBe(`${ENGINE_FINGERPRINT_NAME} ${ENGINE_VERSION.split('.')[0]}`);
 
-    for (const pattern of [fingerprint.meta!['generator']!, fingerprint.headers!['X-Powered-By']!]) {
+    for (const pattern of [
+      fingerprint.meta!['generator']!,
+      fingerprint.headers!['X-Powered-By']!,
+    ]) {
       expect(patternRegex(pattern).exec(name!)).not.toBeNull();
       expect(patternRegex(pattern).exec(major!)?.[1]).toBe(ENGINE_VERSION.split('.')[0]);
       expect(patternRegex(pattern).test('Express')).toBe(false);

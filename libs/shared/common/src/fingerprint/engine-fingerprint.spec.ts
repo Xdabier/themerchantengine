@@ -24,10 +24,13 @@ describe('engineFingerprintValue', () => {
     expect(engineFingerprintValue({ TME_FINGERPRINT_VERSION: mode })).toBe(ENGINE_FINGERPRINT_NAME);
   });
 
-  it.each([['off'], ['OFF'], [' false '], ['0'], ['no']])('is null for TME_FINGERPRINT=%s', (flag) => {
-    expect(engineFingerprintValue({ TME_FINGERPRINT: flag })).toBeNull();
-    expect(isEngineFingerprintEnabled({ TME_FINGERPRINT: flag })).toBe(false);
-  });
+  it.each([['off'], ['OFF'], [' false '], ['0'], ['no']])(
+    'is null for TME_FINGERPRINT=%s',
+    (flag) => {
+      expect(engineFingerprintValue({ TME_FINGERPRINT: flag })).toBeNull();
+      expect(isEngineFingerprintEnabled({ TME_FINGERPRINT: flag })).toBe(false);
+    },
+  );
 
   it.each([['on'], ['true'], [''], [undefined]])('stays on for TME_FINGERPRINT=%s', (flag) => {
     expect(isEngineFingerprintEnabled({ TME_FINGERPRINT: flag })).toBe(true);
@@ -45,7 +48,9 @@ describe('ENGINE_VERSION', () => {
 describe('exposeEngineFingerprint', () => {
   const docWith = (hasMeta: boolean) => ({
     querySelector: (selector: string) =>
-      hasMeta && selector.includes('generator') && selector.includes(ENGINE_FINGERPRINT_NAME) ? {} : null,
+      hasMeta && selector.includes('generator') && selector.includes(ENGINE_FINGERPRINT_NAME)
+        ? {}
+        : null,
   });
 
   it('sets the global when the generator meta is present', () => {

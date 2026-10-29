@@ -95,7 +95,10 @@ export function checkFingerprint(page: FetchedPage, fingerprint: Fingerprint): C
     results.push(matchValue(`meta ${name}`, pattern, metaContent(page.html, name)));
   }
   if (fingerprint.dom) {
-    results.push({ rule: `dom ${fingerprint.dom}`, matched: domMatches(page.html, fingerprint.dom) });
+    results.push({
+      rule: `dom ${fingerprint.dom}`,
+      matched: domMatches(page.html, fingerprint.dom),
+    });
   }
   for (const name of Object.keys(fingerprint.js ?? {})) {
     results.push({ rule: `js ${name}`, matched: false, note: 'needs a browser, not checked' });
@@ -128,7 +131,11 @@ if (require.main === module) {
       const results = checkFingerprint(page, loadFingerprint());
       for (const result of results) {
         const mark = result.matched ? 'match' : 'miss ';
-        const extra = result.version ? ` (version ${result.version})` : result.note ? ` (${result.note})` : '';
+        const extra = result.version
+          ? ` (version ${result.version})`
+          : result.note
+            ? ` (${result.note})`
+            : '';
         console.log(`${mark}  ${result.rule}${extra}`);
       }
       const detected = isDetected(results);

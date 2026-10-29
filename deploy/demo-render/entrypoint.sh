@@ -45,7 +45,7 @@ DEMO_ADMIN_PASSWORD="${DEMO_ADMIN_PASSWORD:-demo-admin-2026}"
 redis-server --daemonize yes --bind 127.0.0.1 --port 6379 --save "" --appendonly no --dir /tmp
 
 reseed() (
-  # Lowest CPU priority, so the placeholder answers the Render health check in time.
+  # Lowest CPU priority, so the port keeper answers the Render health check in time.
   renice -n 19 -p $BASHPID >/dev/null
   # 512 MB RAM: one node process at a time (no npx chains), a capped heap, and a lean sharp.
   export NODE_OPTIONS=--max-old-space-size=256 MALLOC_ARENA_MAX=2 VIPS_CONCURRENCY=1 UV_THREADPOOL_SIZE=1
@@ -73,28 +73,28 @@ seconds_until_reset() {
   echo $((next - now))
 }
 
-# Render needs the port open while the reseed runs. /health stays green, the rest answers 503.
-placeholder() {
-  node -e "require('http').createServer((q,s)=>{const ok=q.url==='/health';s.writeHead(ok?200:503,{'content-type':'text/plain','retry-after':'120'});s.end(ok?'ok':'Demo data is resetting, back in a few minutes.')}).listen(process.env.PORT)" &
-  PLACEHOLDER_PID=$!
-}
+# Render restarts the container, and so reseeds again, when the port is closed for a moment.
+# The port keeper holds it from boot on, and the API listens on an internal port behind it.
+export API_INTERNAL_PORT=$((PORT + 1))
+(
+  while true; do
+    node --max-old-space-size=32 /usr/local/bin/port-keeper.js
+    echo "[demo] port keeper exited $?, restart"
+    sleep 1
+  done
+) &
 
 while true; do
-  placeholder
   until reseed; do
     echo "[demo] reseed failed, retry in 60s"
     sleep 60
   done
-  kill "$PLACEHOLDER_PID" && wait "$PLACEHOLDER_PID" 2>/dev/null
   # Restart a crashed API without wiping, until the nightly reset is due.
   while true; do
-    timeout "$(seconds_until_reset)" node dist/apps/api/main.js
+    PORT="$API_INTERNAL_PORT" timeout "$(seconds_until_reset)" node dist/apps/api/main.js
     code=$?
     [ "$code" -eq 124 ] && break
     echo "[demo] api exited $code, restart in 30s"
-    # Keep the port open, or Render restarts the container and the reseed runs again.
-    placeholder
     sleep 30
-    kill "$PLACEHOLDER_PID" && wait "$PLACEHOLDER_PID" 2>/dev/null
   done
 done
