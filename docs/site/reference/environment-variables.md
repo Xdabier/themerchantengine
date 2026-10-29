@@ -2,7 +2,7 @@
 title: "Environment variables"
 description: "Every environment variable the API and the storefront read, with the comment that explains it, from the example files in the repository."
 primaryQuery: "self hosted ecommerce environment variables reference"
-updated: 2026-10-27
+updated: 2026-10-29
 schema: TechArticle
 ---
 
@@ -54,6 +54,8 @@ Every variable the engine reads, from the four example files in the repository. 
 - `STOREFRONT_MAX_FACET_SPREAD`. Optional. Example: `0.35`.
 - `ENABLE_THROTTLE`. Optional. Rate limiting. Off under NODE_ENV=test unless ENABLE_THROTTLE is set. Setting DISABLE_THROTTLE to 1 turns it off outside production only. Example: `1`.
 - `DISABLE_THROTTLE`. Optional. Example: `1`.
+- `TME_FINGERPRINT`. Optional. Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent. Example: `off`.
+- `TME_FINGERPRINT_VERSION`. Optional. Example: `major`.
 - `UNSUBSCRIBE_TOKEN_SECRET`. Unsubscribe links in outbound mail are signed with this. Example: `change-in-production-min-32-bytes-abcdef`.
 
 ### File Upload
@@ -115,6 +117,8 @@ Every variable the engine reads, from the four example files in the repository. 
 - `PORT`. Example: `53000`.
 - `API_GLOBAL_PREFIX`. Example: `api`.
 - `LOG_LEVEL`. Example: `info`.
+- `TME_FINGERPRINT`. Optional. Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent. Example: `off`.
+- `TME_FINGERPRINT_VERSION`. Optional. Example: `major`.
 
 ### Database and cache (compose service names)
 
@@ -185,6 +189,8 @@ Every variable the engine reads, from the four example files in the repository. 
 - `REDIS_HOST`. Redis client for the inbound /api/_internal/revalidate webhook dedup (the same dedup the API applies to inbound webhooks). The storefront SSR process MUST resolve to a Redis instance in production (the boot guard in apps/storefront/src/server/lib/dedup-store.ts throws when NODE_ENV=production and REDIS_HOST is unset). In local dev these defaults match the dev Redis container on port 56379 per the reserved port table. Leave blank to opt into the in-memory fallback (acceptable for vitest + local single-process work; never for production). Example: `localhost`.
 - `REDIS_PORT`. Example: `56379`.
 - `REDIS_PASSWORD`.
+- `TME_FINGERPRINT`. Optional. Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent. Example: `off`.
+- `TME_FINGERPRINT_VERSION`. Optional. Example: `major`.
 
 ## apps/storefront/.env.production.example
 
@@ -208,3 +214,8 @@ Every variable the engine reads, from the four example files in the repository. 
 ### Public API origin, for links the page builds itself
 
 - `API_URL`. Example: `https://api.shop.example/api`.
+
+### Technology detectors
+
+- `TME_FINGERPRINT`. Optional. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent. Example: `off`.
+- `TME_FINGERPRINT_VERSION`. Optional. Example: `major`.

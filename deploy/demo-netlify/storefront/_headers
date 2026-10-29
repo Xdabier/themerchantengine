@@ -1,5 +1,6 @@
 /*
   X-Robots-Tag: noindex, nofollow
+  X-Powered-By: themerchantengine
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

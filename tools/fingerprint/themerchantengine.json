@@ -1,0 +1,20 @@
+{
+  "themerchantengine": {
+    "cats": [6],
+    "description": "themerchantengine is an open-source, self-hosted e-commerce engine with an Angular admin and an Analog storefront.",
+    "website": "https://themerchantengine.com",
+    "icon": "themerchantengine.svg",
+    "oss": true,
+    "implies": ["Angular", "Node.js"],
+    "meta": {
+      "generator": "^themerchantengine(?: ([\\d.]+))?\\;version:\\1"
+    },
+    "headers": {
+      "X-Powered-By": "^themerchantengine(?: ([\\d.]+))?\\;version:\\1"
+    },
+    "js": {
+      "themerchantengine": ""
+    },
+    "dom": "html[data-tme-app]"
+  }
+}

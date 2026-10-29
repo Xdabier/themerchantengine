@@ -11,6 +11,7 @@ import { toNodeHandler } from 'better-auth/node';
 import { AppModule } from './app.module';
 import { StoreLocaleRegistry } from './modules/settings/store-locale.registry';
 import { applyCacheControlHardening } from './bootstrap/cache-control-hardening';
+import { applyEngineFingerprint } from './bootstrap/engine-fingerprint';
 import { assertFtsIntegrity } from './bootstrap/fts-integrity';
 import { serveLocalUploads } from './bootstrap/local-uploads';
 import { buildOpenApiDocument } from './openapi/openapi';
@@ -46,6 +47,9 @@ async function bootstrap() {
   // lifecycle and overwrites the default. See
   // `apps/api/src/bootstrap/cache-control-hardening.ts` for the contract.
   applyCacheControlHardening(app);
+
+  // `X-Powered-By: themerchantengine` instead of Express (DR-36).
+  applyEngineFingerprint(app);
 
   // The local storage driver writes public files under ./uploads and hands
   // out URLs on this API; this is what answers them. The S3 driver mounts

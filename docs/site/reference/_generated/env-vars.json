@@ -215,6 +215,20 @@
           "optional": true
         },
         {
+          "name": "TME_FINGERPRINT",
+          "example": "off",
+          "comment": "Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent.",
+          "section": "Logging",
+          "optional": true
+        },
+        {
+          "name": "TME_FINGERPRINT_VERSION",
+          "example": "major",
+          "comment": "",
+          "section": "Logging",
+          "optional": true
+        },
+        {
           "name": "UNSUBSCRIBE_TOKEN_SECRET",
           "example": "change-in-production-min-32-bytes-abcdef",
           "comment": "Unsubscribe links in outbound mail are signed with this.",
@@ -477,6 +491,20 @@
           "comment": "",
           "section": "Server",
           "optional": false
+        },
+        {
+          "name": "TME_FINGERPRINT",
+          "example": "off",
+          "comment": "Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent.",
+          "section": "Server",
+          "optional": true
+        },
+        {
+          "name": "TME_FINGERPRINT_VERSION",
+          "example": "major",
+          "comment": "",
+          "section": "Server",
+          "optional": true
         },
         {
           "name": "DB_PASSWORD",
@@ -825,6 +853,20 @@
           "comment": "",
           "section": "",
           "optional": false
+        },
+        {
+          "name": "TME_FINGERPRINT",
+          "example": "off",
+          "comment": "Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent.",
+          "section": "",
+          "optional": true
+        },
+        {
+          "name": "TME_FINGERPRINT_VERSION",
+          "example": "major",
+          "comment": "",
+          "section": "",
+          "optional": true
         }
       ]
     },
@@ -907,6 +949,20 @@
           "comment": "",
           "section": "Public API origin, for links the page builds itself",
           "optional": false
+        },
+        {
+          "name": "TME_FINGERPRINT",
+          "example": "off",
+          "comment": "The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent.",
+          "section": "Technology detectors",
+          "optional": true
+        },
+        {
+          "name": "TME_FINGERPRINT_VERSION",
+          "example": "major",
+          "comment": "",
+          "section": "Technology detectors",
+          "optional": true
         }
       ]
     }

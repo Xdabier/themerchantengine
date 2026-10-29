@@ -6,6 +6,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-0jZtBDRUKyl40SajunZMOa6XHtHLV8MVQmGmCG6wJKo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self';
   X-Robots-Tag: noindex, nofollow
+  X-Powered-By: themerchantengine
   Cache-Control: no-cache, no-store, must-revalidate
 
 # Only hashed files are immutable. main.js and styles.css keep the no-cache rule above.

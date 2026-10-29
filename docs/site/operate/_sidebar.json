@@ -7,6 +7,7 @@
     "backups-and-restore",
     "tls-and-renewal",
     "timers-and-logs",
-    "store-settings"
+    "store-settings",
+    "technology-detection"
   ]
 }

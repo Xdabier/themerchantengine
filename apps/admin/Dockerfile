@@ -44,6 +44,9 @@ FROM nginx:1.27-alpine AS runtime
 RUN rm -rf /etc/nginx/conf.d/default.conf /usr/share/nginx/html/*
 COPY apps/admin/nginx.conf /etc/nginx/nginx.conf
 COPY apps/admin/security-headers.conf /etc/nginx/security-headers.conf
+# Runs before nginx starts and drops the engine markers when TME_FINGERPRINT
+# is off (DR-36).
+COPY --chmod=755 apps/admin/docker/40-engine-fingerprint.sh /docker-entrypoint.d/40-engine-fingerprint.sh
 COPY --from=build /app/dist/apps/admin/browser /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \

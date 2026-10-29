@@ -322,6 +322,21 @@ class Smoke {
       `GET ${path} did not come from an Analog SSR render (no ng-server-context="ssr-analog")`,
     );
 
+    // DR-36: crawlers that run no JS name the engine from these three, so each
+    // one has to be in the raw response, not added after hydration.
+    check(
+      /<meta name="generator" content="themerchantengine[^"]*"/.test(html),
+      `GET ${path} carries no generator meta for themerchantengine`,
+    );
+    check(
+      /<html[^>]* data-tme-app="storefront"/.test(html),
+      `GET ${path} carries no data-tme-app="storefront" on <html>`,
+    );
+    check(
+      /^themerchantengine/.test(res.headers.get('x-powered-by') ?? ''),
+      `GET ${path} answered X-Powered-By ${res.headers.get('x-powered-by')}, expected themerchantengine`,
+    );
+
     // The third rendered state. Both grids soft-fail to an error panel rather
     // than to an empty page, and an error panel has no slugs and no count: the
     // same shape a dropped query produces. Naming it as a fixture problem is the

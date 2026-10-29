@@ -56,6 +56,9 @@ const NITRO_ALIASES = {
   '@common/brand': fileURLToPath(
     new URL('../../libs/shared/common/src/brand/index.ts', import.meta.url),
   ),
+  '@common/fingerprint': fileURLToPath(
+    new URL('../../libs/shared/common/src/fingerprint/index.ts', import.meta.url),
+  ),
 };
 
 // Analog (Angular meta-framework) + Vite + Vitest configuration for the

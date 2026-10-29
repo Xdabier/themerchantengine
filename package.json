@@ -79,7 +79,8 @@
     "docs:generate": "nx build api && ts-node --transpile-only scripts/docs-generate.ts",
     "docs:generate:check": "nx build api && ts-node --transpile-only scripts/docs-generate.ts --check",
     "docs:walkthrough": "ts-node --transpile-only scripts/storefront-walkthrough.ts",
-    "docs:staleness": "ts-node --transpile-only scripts/docs-staleness.ts"
+    "docs:staleness": "ts-node --transpile-only scripts/docs-staleness.ts",
+    "fingerprint:check": "ts-node --transpile-only scripts/fingerprint-check.ts"
   },
   "overrides": {
     "multer": "^2.2.0"

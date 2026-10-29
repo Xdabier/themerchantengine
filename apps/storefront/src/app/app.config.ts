@@ -21,6 +21,7 @@ import { LocaleAwareTitleStrategy } from './title-strategy';
 import { TrailingSlashUrlSerializer } from './trailing-slash-url-serializer';
 import { AuthStateService } from './services/auth-state.service';
 import { BrandTokensService } from './services/brand-tokens.service';
+import { EngineFingerprintService } from './services/engine-fingerprint.service';
 import { StoreConfigService } from './services/store-config.service';
 import { LocaleService } from './locale.service';
 import { StorefrontErrorHandler } from './error-handler';
@@ -60,6 +61,7 @@ export const appConfig: ApplicationConfig = {
       // one, and `inject()` after it throws NG0203.
       const storeConfig = inject(StoreConfigService);
       const brandTokens = inject(BrandTokensService);
+      inject(EngineFingerprintService).apply();
       // The token block is rendered from the config, so never before it lands.
       return storeConfig.load().then(() => brandTokens.apply());
     }),

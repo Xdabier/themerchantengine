@@ -78,6 +78,9 @@ services:
     container_name: {{PROJECT_NAME}}-admin
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
+    environment:
+      # off, false, 0 or no removes the engine markers.
+      TME_FINGERPRINT: ${TME_FINGERPRINT:-}
 
   storefront:
     build:

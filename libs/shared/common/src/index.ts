@@ -4,6 +4,7 @@ export * from './constants';
 export * from './decorators';
 export * from './env';
 export * from './filters';
+export * from './fingerprint';
 export * from './guards';
 export * from './interceptors';
 export * from './interfaces';

@@ -2,6 +2,7 @@
 # checkout breaks the shebang with `bad interpreter: /usr/bin/env bash^M`, so
 # pin them to LF regardless of the committer's core.autocrlf setting.
 deploy/**/*.sh              text eol=lf
+apps/*/docker/*.sh          text eol=lf
 deploy/shared/systemd/**    text eol=lf
 scripts/ci/*.sh             text eol=lf
 setup.sh                    text eol=lf

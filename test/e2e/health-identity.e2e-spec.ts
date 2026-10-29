@@ -43,6 +43,12 @@ describe('GET /v1/health/identity', () => {
     expect(res.headers['etag']).toBeUndefined();
   });
 
+  it('names the engine in X-Powered-By, never Express (DR-36)', async () => {
+    const res = await api().get('/v1/health/identity').expect(200);
+
+    expect(res.headers['x-powered-by']).toBe('themerchantengine');
+  });
+
   it('discloses no connection string, host, or credentials (\u00a73.7)', async () => {
     const res = await api().get('/v1/health/identity').expect(200);
 
