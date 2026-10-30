@@ -18,3 +18,4 @@ Closes #
 - [ ] A changeset is added when store operators will notice the change (`npm run changeset`)
 - [ ] `.env.example` and the docs are updated when a setting is added or renamed
 - [ ] No secrets, tokens or customer data in the diff
+- [ ] I used an AI tool for part of this change (allowed, just say so)

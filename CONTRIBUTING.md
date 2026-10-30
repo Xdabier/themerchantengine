@@ -6,8 +6,16 @@ By taking part you agree to follow the [code of conduct](CODE_OF_CONDUCT.md). To
 
 ## Before you start
 
-- Open an issue first for anything larger than a small fix, so we can agree on the approach before you write code.
+- Open an issue first for anything larger than a small fix, so the approach is agreed before you write code.
 - Keep one goal per pull request. A refactor and a feature go in separate pull requests.
+- The [roadmap](ROADMAP.md) lists what is planned and which issues are open for contributors.
+
+## Taking an issue
+
+- Comment on the issue to claim it. The maintainer assigns it to you, usually the same day.
+- One open claim per person at a time.
+- A claim with no pull request or update after 7 days goes back to open. Ask for more time if you need it.
+- If you used an AI tool, say so in the pull request. It is allowed. A pull request that does not match its issue is closed.
 
 ## Local setup
 
