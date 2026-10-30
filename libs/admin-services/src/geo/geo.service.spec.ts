@@ -1,6 +1,7 @@
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { ZodError } from 'zod';
 import { ADMIN_API_BASE_URL } from '../shared';
 import { GeoService } from './geo.service';
 
@@ -84,7 +85,7 @@ describe('GeoService', () => {
     service.acceptFaqSuggestions(productId, { faqs: [] }).subscribe({
       next: () => done.fail('expected validation error'),
       error: (err) => {
-        expect(err).toBeTruthy();
+        expect(err).toBeInstanceOf(ZodError);
         http.expectNone(`/api/v1/admin/geo/products/${productId}/faqs/accept`);
         done();
       },
