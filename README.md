@@ -160,6 +160,7 @@ Read [Install on a server](docs/site/getting-started/install-on-a-server.md) fir
 ## Contributing, security and community
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) explains how to propose a change. Run `npm run gate` before you open a pull request; the public tree installs no git hooks.
+- [ROADMAP.md](ROADMAP.md) lists what is planned next and which issues are open for contributors.
 - [SECURITY.md](SECURITY.md) explains how to report a vulnerability privately. Please do not open a public issue for one.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) applies to every space of the project.
 - Questions and ideas go to [Discussions](https://github.com/Xdabier/themerchantengine/discussions). Feedback, good or bad, goes to the [feedback discussion](https://github.com/Xdabier/themerchantengine/discussions/25). Bugs go to [Issues](https://github.com/Xdabier/themerchantengine/issues). If you tried to install it, the "I tried to install it" template takes two minutes.
