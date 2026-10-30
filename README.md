@@ -6,7 +6,11 @@
 </p>
 
 <p align="center">
-  Open-source e-commerce: a NestJS backend, an Angular admin and an Analog storefront, installed by one stepper.
+  The Merchant Engine, open-source self-hosted ecommerce: a NestJS API, an Angular admin and an SSR storefront. French, English and Arabic (RTL), cash on delivery, one-command install. MIT.
+</p>
+
+<p align="center">
+  If this is useful, a star helps others find it. Tell me what is missing in the <a href="https://github.com/Xdabier/themerchantengine/discussions/25">feedback discussion</a>.
 </p>
 
 <p align="center">
@@ -27,6 +31,10 @@
   <a href="https://github.com/Xdabier/themerchantengine/issues"><img src="https://img.shields.io/github/issues/Xdabier/themerchantengine" alt="Issues"></a>
   <a href="https://www.opensourcealternatives.to"><img src="https://www.opensourcealternatives.to/badge-osa.svg" alt="As seen on Open Source Alternatives" height="20"></a>
   <img src="https://img.shields.io/badge/node-22-339933.svg" alt="Node 22">
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/checkout.gif" alt="A cash on delivery order on the storefront demo, from the home page to the order confirmation" width="720">
 </p>
 
 ## Why
@@ -54,7 +62,7 @@
 - **Catalogue:** products, variants, categories, inventory, reviews and full-text search. See [What you get](docs/site/getting-started/what-you-get.md).
 - **Orders:** cart, checkout, orders, returns, invoices, gift cards and promotions. See [Checkout and orders](docs/site/build-a-storefront/05-checkout-and-orders.md).
 - **Content:** CMS pages, home sections, SEO and translatable fields in every locale you enable. See [Content and sections](docs/site/build-a-storefront/07-content-and-sections.md).
-- **Payments:** Stripe (`STRIPE_API_KEY`), cash on delivery and manual payment. See [Environment variables](docs/site/reference/environment-variables.md).
+- **Payments:** cash on delivery, manual bank transfer and gift cards. A Stripe example provider (`STRIPE_API_KEY`) shows the card seam but is not offered at checkout yet. See [What you get](docs/site/getting-started/what-you-get.md).
 - **Mail:** Resend (`RESEND_API_KEY`), plus a console transport that logs mail in development. See [Environment variables](docs/site/reference/environment-variables.md).
 - **Storage:** local disk or any S3-compatible bucket (`S3_BUCKET`). See [Install on a server](docs/site/getting-started/install-on-a-server.md).
 - **Shipping:** zones and methods with the rates you enter in the admin, and a carrier list for tracking links. See [Store settings](docs/site/operate/store-settings.md).
@@ -64,6 +72,7 @@
 
 Planned, not built yet:
 
+- A card payment provider offered at checkout.
 - More mail adapters, such as SMTP.
 - Live shipping adapters that fetch carrier rates and labels.
 
@@ -153,7 +162,7 @@ Read [Install on a server](docs/site/getting-started/install-on-a-server.md) fir
 - [CONTRIBUTING.md](CONTRIBUTING.md) explains how to propose a change. Run `npm run gate` before you open a pull request; the public tree installs no git hooks.
 - [SECURITY.md](SECURITY.md) explains how to report a vulnerability privately. Please do not open a public issue for one.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) applies to every space of the project.
-- Questions and ideas go to [Discussions](https://github.com/Xdabier/themerchantengine/discussions). Bugs go to [Issues](https://github.com/Xdabier/themerchantengine/issues).
+- Questions and ideas go to [Discussions](https://github.com/Xdabier/themerchantengine/discussions). Feedback, good or bad, goes to the [feedback discussion](https://github.com/Xdabier/themerchantengine/discussions/25). Bugs go to [Issues](https://github.com/Xdabier/themerchantengine/issues). If you tried to install it, the "I tried to install it" template takes two minutes.
 - Every release is listed in the [CHANGELOG](CHANGELOG.md).
 
 ## Need it built or run for you?
