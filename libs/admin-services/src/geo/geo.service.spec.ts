@@ -1,6 +1,7 @@
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { ZodError } from 'zod';
 import { ADMIN_API_BASE_URL } from '../shared';
 import { GeoService } from './geo.service';
 
@@ -80,9 +81,15 @@ describe('GeoService', () => {
     });
   });
 
-  it('acceptFaqSuggestions() rejects empty faqs array', () => {
-    expect(() => service.acceptFaqSuggestions(productId, { faqs: [] }).subscribe()).toThrow();
-    http.expectNone(`/api/v1/admin/geo/products/${productId}/faqs/accept`);
+  it('acceptFaqSuggestions() delivers invalid-input validation errors through the Observable', (done) => {
+    service.acceptFaqSuggestions(productId, { faqs: [] }).subscribe({
+      next: () => done.fail('expected validation error'),
+      error: (err) => {
+        expect(err).toBeInstanceOf(ZodError);
+        http.expectNone(`/api/v1/admin/geo/products/${productId}/faqs/accept`);
+        done();
+      },
+    });
   });
 
   it('getAiReadiness() rejects signals outside the [0,1] range via Zod', (done) => {
