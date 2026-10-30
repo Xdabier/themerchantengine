@@ -85,14 +85,32 @@ describe('CurrenciesService', () => {
     });
   });
 
-  it('update() rejects empty enabled list', () => {
-    expect(() => service.update({ enabled: [] }).subscribe()).toThrow();
-    http.expectNone('/api/v1/admin/currencies');
+  it('update() rejects empty enabled list through the stream', () => {
+    return new Promise<void>((resolve, reject) => {
+      expect(() => service.update({ enabled: [] })).not.toThrow();
+      service.update({ enabled: [] }).subscribe({
+        next: () => reject(new Error('expected the empty enabled list to error')),
+        error: (err) => {
+          expect(err).toBeDefined();
+          resolve();
+        },
+      });
+      http.expectNone('/api/v1/admin/currencies');
+    });
   });
 
-  it('update() rejects default outside enabled list', () => {
-    expect(() => service.update({ enabled: ['EUR'], defaultCode: 'USD' }).subscribe()).toThrow();
-    http.expectNone('/api/v1/admin/currencies');
+  it('update() rejects default outside enabled list through the stream', () => {
+    return new Promise<void>((resolve, reject) => {
+      expect(() => service.update({ enabled: ['EUR'], defaultCode: 'USD' })).not.toThrow();
+      service.update({ enabled: ['EUR'], defaultCode: 'USD' }).subscribe({
+        next: () => reject(new Error('expected the default outside the enabled list to error')),
+        error: (err) => {
+          expect(err).toBeDefined();
+          resolve();
+        },
+      });
+      http.expectNone('/api/v1/admin/currencies');
+    });
   });
 
   it('update() PATCHes a valid payload', (done) => {

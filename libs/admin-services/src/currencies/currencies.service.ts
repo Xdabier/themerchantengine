@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
 import { ADMIN_API_ROUTES, adminRoute } from '@admin-routes';
 import { ADMIN_API_BASE_URL, envelope } from '../shared';
 import {
@@ -37,7 +37,14 @@ export class CurrenciesService {
   }
 
   update(input: UpdateCurrenciesRequest): Observable<CurrenciesResponse> {
-    const body = updateCurrenciesRequestSchema.parse(input);
+    // The screen submits under a `busy` flag whose only reset is the subscribe below's error callback, so a
+    // validation failure has to arrive through the stream rather than escape as a synchronous throw.
+    let body: UpdateCurrenciesRequest;
+    try {
+      body = updateCurrenciesRequestSchema.parse(input);
+    } catch (err) {
+      return throwError(() => err);
+    }
     return this.http
       .patch<unknown>(`${this.apiBase}/${adminRoute(ADMIN_API_ROUTES.currencies.base)}`, body, {
         withCredentials: true,
