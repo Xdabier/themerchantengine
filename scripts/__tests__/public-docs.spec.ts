@@ -215,6 +215,7 @@ const README_ASSETS = [
   'docs/assets/readme/admin-product-edit.png',
   'docs/assets/readme/storefront-home.png',
   'docs/assets/readme/storefront-product.png',
+  'docs/assets/readme/checkout.gif',
 ];
 
 describe('README', () => {
@@ -249,14 +250,13 @@ describe('README', () => {
     expect(lines).toBeLessThanOrEqual(200);
   });
 
-  it('shows the logo in both themes, the screenshots and an architecture diagram, no GIF', () => {
+  it('shows the logo in both themes, the screenshots, the checkout GIF and an architecture diagram', () => {
     expect(readme).toMatch(/<picture>[\s\S]*prefers-color-scheme: dark[\s\S]*<\/picture>/);
     for (const asset of README_ASSETS) {
       expect(readme, asset).toContain(asset);
       expect(fs.existsSync(path.join(REPO, asset)), asset).toBe(true);
     }
     expect(readme).toContain('```mermaid');
-    expect(readme).not.toMatch(/\.gif\b/i);
   });
 
   it('generates the Prisma client before the from-source seed runs', () => {
