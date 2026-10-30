@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
 import { ADMIN_API_ROUTES, adminRoute, fillRoute } from '@admin-routes';
 import { ADMIN_API_BASE_URL, envelope } from '../shared';
 import {
@@ -50,7 +50,12 @@ export class GeoService {
     productId: string,
     input: AcceptFaqsRequest,
   ): Observable<AcceptFaqsResponse> {
-    const body = acceptFaqsRequestSchema.parse(input);
+    let body: AcceptFaqsRequest;
+    try {
+      body = acceptFaqsRequestSchema.parse(input);
+    } catch (err) {
+      return throwError(() => err);
+    }
     return this.http
       .post<unknown>(
         `${this.apiBase}/${adminRoute(GEO.base, fillRoute(GEO.faqAccept, { productId }))}`,

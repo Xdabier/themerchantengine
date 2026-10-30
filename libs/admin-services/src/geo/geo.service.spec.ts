@@ -80,9 +80,15 @@ describe('GeoService', () => {
     });
   });
 
-  it('acceptFaqSuggestions() rejects empty faqs array', () => {
-    expect(() => service.acceptFaqSuggestions(productId, { faqs: [] }).subscribe()).toThrow();
-    http.expectNone(`/api/v1/admin/geo/products/${productId}/faqs/accept`);
+  it('acceptFaqSuggestions() delivers invalid-input validation errors through the Observable', (done) => {
+    service.acceptFaqSuggestions(productId, { faqs: [] }).subscribe({
+      next: () => done.fail('expected validation error'),
+      error: (err) => {
+        expect(err).toBeTruthy();
+        http.expectNone(`/api/v1/admin/geo/products/${productId}/faqs/accept`);
+        done();
+      },
+    });
   });
 
   it('getAiReadiness() rejects signals outside the [0,1] range via Zod', (done) => {
