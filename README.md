@@ -29,8 +29,11 @@
   <a href="https://github.com/Xdabier/themerchantengine/commits"><img src="https://img.shields.io/github/last-commit/Xdabier/themerchantengine" alt="Last commit"></a>
   <a href="https://github.com/Xdabier/themerchantengine/stargazers"><img src="https://img.shields.io/github/stars/Xdabier/themerchantengine" alt="Stars"></a>
   <a href="https://github.com/Xdabier/themerchantengine/issues"><img src="https://img.shields.io/github/issues/Xdabier/themerchantengine" alt="Issues"></a>
-  <a href="https://www.opensourcealternatives.to"><img src="https://www.opensourcealternatives.to/badge-osa.svg" alt="As seen on Open Source Alternatives" height="20"></a>
-  <img src="https://img.shields.io/badge/node-22-339933.svg" alt="Node 22">
+  <a href="https://www.opensourcealternatives.to"><img src="https://www.opensourcealternatives.to/badge-osa.svg" alt="As seen on Open Source Alternatives" height="20"></a>  <img src="https://img.shields.io/badge/node-22-339933.svg" alt="Node 22">
+</p>
+
+<p align="center">
+  <a href="https://www.producthunt.com/products/the-merchant-engine"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1297939&theme=light" alt="The Merchant Engine on Product Hunt" width="250" height="54"></a>
 </p>
 
 <p align="center">
