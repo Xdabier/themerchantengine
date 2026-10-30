@@ -1,6 +1,7 @@
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { ZodError } from 'zod';
 import { ADMIN_API_BASE_URL } from '../shared';
 import { CurrenciesService } from './currencies.service';
 
@@ -86,31 +87,21 @@ describe('CurrenciesService', () => {
   });
 
   it('update() rejects empty enabled list through the stream', () => {
-    return new Promise<void>((resolve, reject) => {
-      expect(() => service.update({ enabled: [] })).not.toThrow();
-      service.update({ enabled: [] }).subscribe({
-        next: () => reject(new Error('expected the empty enabled list to error')),
-        error: (err) => {
-          expect(err).toBeDefined();
-          resolve();
-        },
-      });
-      http.expectNone('/api/v1/admin/currencies');
-    });
+    const next = jest.fn();
+    const error = jest.fn();
+    service.update({ enabled: [] }).subscribe({ next, error });
+    expect(next).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(expect.any(ZodError));
+    http.expectNone('/api/v1/admin/currencies');
   });
 
   it('update() rejects default outside enabled list through the stream', () => {
-    return new Promise<void>((resolve, reject) => {
-      expect(() => service.update({ enabled: ['EUR'], defaultCode: 'USD' })).not.toThrow();
-      service.update({ enabled: ['EUR'], defaultCode: 'USD' }).subscribe({
-        next: () => reject(new Error('expected the default outside the enabled list to error')),
-        error: (err) => {
-          expect(err).toBeDefined();
-          resolve();
-        },
-      });
-      http.expectNone('/api/v1/admin/currencies');
-    });
+    const next = jest.fn();
+    const error = jest.fn();
+    service.update({ enabled: ['EUR'], defaultCode: 'USD' }).subscribe({ next, error });
+    expect(next).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(expect.any(ZodError));
+    http.expectNone('/api/v1/admin/currencies');
   });
 
   it('update() PATCHes a valid payload', (done) => {

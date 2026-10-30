@@ -37,8 +37,6 @@ export class CurrenciesService {
   }
 
   update(input: UpdateCurrenciesRequest): Observable<CurrenciesResponse> {
-    // The screen submits under a `busy` flag whose only reset is the subscribe below's error callback, so a
-    // validation failure has to arrive through the stream rather than escape as a synchronous throw.
     let body: UpdateCurrenciesRequest;
     try {
       body = updateCurrenciesRequestSchema.parse(input);
