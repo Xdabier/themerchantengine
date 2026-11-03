@@ -12,7 +12,7 @@
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/storefront/client",
-        "configFile": "vite.config.ts"
+        "configFile": "apps/storefront/vite.config.ts"
       },
       "configurations": {
         "development": {
