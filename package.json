@@ -232,6 +232,7 @@
     "tslib": "^2.3.0",
     "typescript": "~5.9.2",
     "vite": "^7.3.2",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.2.4",
     "webpack": "^5.105.4",
     "webpack-node-externals": "^3.0.0",
