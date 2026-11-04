@@ -7,10 +7,10 @@
   "tags": ["scope:admin", "type:e2e"],
   "targets": {
     "e2e": {
-      "executor": "@nx/playwright:playwright",
+      "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/dist/.playwright/{projectRoot}"],
       "options": {
-        "config": "{projectRoot}/playwright.config.ts"
+        "command": "playwright test -c apps/admin-e2e/playwright.config.ts"
       },
       "dependsOn": [
         {
