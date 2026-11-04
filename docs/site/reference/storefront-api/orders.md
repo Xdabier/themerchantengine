@@ -18,7 +18,7 @@ Parameters:
 
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, optional).
-- `status` in query (`"CANCELLED"`, `"PENDING"`, `"PROCESSING"`, `"CONFIRMED"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
+- `status` in query (`"CANCELLED"`, `"PENDING"`, `"CONFIRMED"`, `"PROCESSING"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
 
 Responses:
 

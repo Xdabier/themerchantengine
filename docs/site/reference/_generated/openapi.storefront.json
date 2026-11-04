@@ -759,8 +759,8 @@
               "enum": [
                 "CANCELLED",
                 "PENDING",
-                "PROCESSING",
                 "CONFIRMED",
+                "PROCESSING",
                 "SHIPPED",
                 "DELIVERED",
                 "COMPLETED",

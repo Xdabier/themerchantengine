@@ -102,7 +102,7 @@ Responses:
 ### CreateWebhookDto
 
 - `url` (string, pattern `^https:\/\/`, required).
-- `events` (array of `"order.shipped"`, `"order.delivered"`, `"order.cancelled"`, `"order.confirmed"`, `"return.requested"`, `"return.approved"`, `"return.refunded"`, `"cart.abandoned"`, `"inventory.low_stock"`, `"inventory.out_of_stock"`, `"inventory.restocked"`, `"order.created"`, `"order.status_changed"`, `"product.created"`, `"product.updated"`, `"product.deleted"`, `"customer.created"`, `"customer.updated"`, `"review.submitted"`, `"payment.received"`, `"payment.refunded"`, required).
+- `events` (array of `"order.shipped"`, `"order.delivered"`, `"order.cancelled"`, `"order.confirmed"`, `"return.requested"`, `"return.approved"`, `"return.refunded"`, `"cart.abandoned"`, `"order.created"`, `"order.status_changed"`, `"inventory.low_stock"`, `"inventory.out_of_stock"`, `"inventory.restocked"`, `"product.created"`, `"product.updated"`, `"product.deleted"`, `"customer.created"`, `"customer.updated"`, `"review.submitted"`, `"payment.received"`, `"payment.refunded"`, required).
 - `secret` (string, optional).
 
 ### UpdateWebhookDto

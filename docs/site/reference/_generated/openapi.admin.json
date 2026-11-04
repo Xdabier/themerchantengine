@@ -3771,8 +3771,8 @@
               "enum": [
                 "CANCELLED",
                 "PENDING",
-                "PROCESSING",
                 "CONFIRMED",
+                "PROCESSING",
                 "SHIPPED",
                 "DELIVERED",
                 "COMPLETED",
@@ -3789,8 +3789,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "FAILED",
                 "CANCELLED",
+                "FAILED",
                 "PENDING",
                 "AUTHORIZED",
                 "CAPTURED",
@@ -3906,8 +3906,8 @@
               "enum": [
                 "CANCELLED",
                 "PENDING",
-                "PROCESSING",
                 "CONFIRMED",
+                "PROCESSING",
                 "SHIPPED",
                 "DELIVERED",
                 "COMPLETED",
@@ -3924,8 +3924,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "FAILED",
                 "CANCELLED",
+                "FAILED",
                 "PENDING",
                 "AUTHORIZED",
                 "CAPTURED",
@@ -5187,8 +5187,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "ACTIVE",
                 "DRAFT",
+                "ACTIVE",
                 "ARCHIVED"
               ]
             }
@@ -10022,8 +10022,8 @@
           "status": {
             "type": "string",
             "enum": [
-              "ACTIVE",
               "DRAFT",
+              "ACTIVE",
               "ARCHIVED"
             ]
           }
@@ -10548,8 +10548,8 @@
           "status": {
             "type": "string",
             "enum": [
-              "ACTIVE",
               "DRAFT",
+              "ACTIVE",
               "ARCHIVED"
             ]
           },
@@ -11284,11 +11284,11 @@
                 "return.approved",
                 "return.refunded",
                 "cart.abandoned",
+                "order.created",
+                "order.status_changed",
                 "inventory.low_stock",
                 "inventory.out_of_stock",
                 "inventory.restocked",
-                "order.created",
-                "order.status_changed",
                 "product.created",
                 "product.updated",
                 "product.deleted",
@@ -12307,8 +12307,8 @@
             "enum": [
               "CANCELLED",
               "PENDING",
-              "PROCESSING",
               "CONFIRMED",
+              "PROCESSING",
               "SHIPPED",
               "DELIVERED",
               "COMPLETED",

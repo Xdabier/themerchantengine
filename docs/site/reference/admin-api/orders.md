@@ -20,11 +20,11 @@ Parameters:
 - `dateTo` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, optional).
-- `paymentStatus` in query (`"FAILED"`, `"CANCELLED"`, `"PENDING"`, `"AUTHORIZED"`, `"CAPTURED"`, `"REFUNDED"`, `"PARTIALLY_REFUNDED"`, optional).
+- `paymentStatus` in query (`"CANCELLED"`, `"FAILED"`, `"PENDING"`, `"AUTHORIZED"`, `"CAPTURED"`, `"REFUNDED"`, `"PARTIALLY_REFUNDED"`, optional).
 - `search` in query (string, optional).
 - `sortBy` in query (string, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `status` in query (`"CANCELLED"`, `"PENDING"`, `"PROCESSING"`, `"CONFIRMED"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
+- `status` in query (`"CANCELLED"`, `"PENDING"`, `"CONFIRMED"`, `"PROCESSING"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
 - `userId` in query (string, optional).
 
 Responses:
@@ -246,11 +246,11 @@ Parameters:
 - `dateTo` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, optional).
-- `paymentStatus` in query (`"FAILED"`, `"CANCELLED"`, `"PENDING"`, `"AUTHORIZED"`, `"CAPTURED"`, `"REFUNDED"`, `"PARTIALLY_REFUNDED"`, optional).
+- `paymentStatus` in query (`"CANCELLED"`, `"FAILED"`, `"PENDING"`, `"AUTHORIZED"`, `"CAPTURED"`, `"REFUNDED"`, `"PARTIALLY_REFUNDED"`, optional).
 - `search` in query (string, optional).
 - `sortBy` in query (string, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `status` in query (`"CANCELLED"`, `"PENDING"`, `"PROCESSING"`, `"CONFIRMED"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
+- `status` in query (`"CANCELLED"`, `"PENDING"`, `"CONFIRMED"`, `"PROCESSING"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
 - `userId` in query (string, optional).
 
 Responses:
@@ -342,7 +342,7 @@ Responses:
 
 ### UpdateOrderStatusDto
 
-- `status` (`"CANCELLED"`, `"PENDING"`, `"PROCESSING"`, `"CONFIRMED"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, required).
+- `status` (`"CANCELLED"`, `"PENDING"`, `"CONFIRMED"`, `"PROCESSING"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, required).
 
 ### UpdateShipmentDto
 
