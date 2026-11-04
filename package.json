@@ -232,6 +232,7 @@
     "typescript": "~5.9.2",
     "vite": "^7.3.2",
     "vitest": "^3.2.4",
+    "webpack": "^5.105.4",
     "zone.js": "^0.15.1"
   },
   "prisma": {
