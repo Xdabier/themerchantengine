@@ -257,6 +257,9 @@ export default defineConfig(({ mode }) => ({
       nitro: {
         ignore: ['**/*.spec.ts'],
         alias: NITRO_ALIASES,
+        // Nitro's esbuild transform never reads a tsconfig. The shared libs use
+        // constructor parameter decorators, so it needs the flag spelled out.
+        esbuild: { options: { tsconfigRaw: { compilerOptions: { experimentalDecorators: true } } } },
       },
     }),
     nxViteTsPaths(),
