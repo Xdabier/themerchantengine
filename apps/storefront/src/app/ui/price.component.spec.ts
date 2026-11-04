@@ -141,7 +141,7 @@ describe('PriceComponent', () => {
     // agent_docs/storefront/brand-tokens.md forbids on a promotion.
     const styles = (PriceComponent as unknown as { ɵcmp: { styles: string[] } }).ɵcmp.styles.join(
       '\n',
-    );
+    ).replace(/%NS%/g, '');
     const badgeRule = styles.slice(styles.indexOf('.discount-badge'));
     expect(badgeRule).toContain('var(--brand-primary-dark)');
     expect(badgeRule).not.toContain('--brand-accent');
@@ -153,7 +153,7 @@ describe('PriceComponent', () => {
   it('carries tabular-nums, which agent_docs/storefront/brand-tokens.md makes mandatory', async () => {
     const styles = (PriceComponent as unknown as { ɵcmp: { styles: string[] } }).ɵcmp.styles.join(
       '\n',
-    );
+    ).replace(/%NS%/g, '');
     expect(styles).toContain('font-variant-numeric: tabular-nums');
   });
 
