@@ -20,9 +20,9 @@ Parameters:
 - `pageSize` in query (number, min 1, max 100, optional).
 - `productId` in query (string, optional).
 - `rating` in query (number, min 1, max 5, optional).
-- `sortBy` in query (`"createdAt"`, `"updatedAt"`, `"rating"`, `"helpfulCount"`, optional).
+- `sortBy` in query (`"createdAt"`, `"helpfulCount"`, `"rating"`, `"updatedAt"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `status` in query (`"PENDING"`, `"PUBLISHED"`, `"HIDDEN"`, optional).
+- `status` in query (`"HIDDEN"`, `"PENDING"`, `"PUBLISHED"`, optional).
 - `userId` in query (string, optional).
 
 Responses:
@@ -105,7 +105,7 @@ Responses:
 - `title` (string, max length 200, optional).
 - `body` (string, max length 5000, optional).
 - `assetIds` (array of string, uuid, optional).
-- `status` (`"PENDING"`, `"PUBLISHED"`, `"HIDDEN"`, optional).
+- `status` (`"HIDDEN"`, `"PENDING"`, `"PUBLISHED"`, optional).
 - `reason` (string, max length 1000, optional).
 
 ### ModerateReviewDto

@@ -89,7 +89,7 @@ Parameters:
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
 - `rating` in query (number, min 1, max 5, optional).
-- `sortBy` in query (`"createdAt"`, `"rating"`, `"helpfulCount"`, optional).
+- `sortBy` in query (`"createdAt"`, `"helpfulCount"`, `"rating"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
 
 Responses:

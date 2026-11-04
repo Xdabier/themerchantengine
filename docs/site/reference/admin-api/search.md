@@ -18,7 +18,7 @@ Parameters:
 
 - `limit` in query (number, min 1, max 20, optional).
 - `q` in query (string, min length 2, required).
-- `types` in query (array of `"product"`, `"order"`, `"customer"`, `"cms"`, optional).
+- `types` in query (array of `"cms"`, `"customer"`, `"order"`, `"product"`, optional).
 
 Responses:
 

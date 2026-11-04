@@ -64,7 +64,7 @@ Responses:
 ### CreatePageAdminDto
 
 - `slug` (string, pattern `^(?:\/[a-z0-9-]+)+$`, max length 200, required).
-- `type` (`"STATIC"`, `"POLICY"`, `"LANDING"`, required).
+- `type` (`"LANDING"`, `"POLICY"`, `"STATIC"`, required).
 - `title` ([TranslatableDto](#translatabledto), required).
 - `content` ([TranslatableDto](#translatabledto), required).
 - `isPublished` (boolean, optional).

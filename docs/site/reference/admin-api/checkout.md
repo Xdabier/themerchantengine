@@ -34,7 +34,7 @@ Responses:
 ### UpdateCheckoutSettingsDto
 
 - `guestCheckoutEnabled` (boolean, optional).
-- `requiredFields` (array of `"email"`, `"phone"`, `"shippingAddress"`, `"billingAddress"`, `"company"`, `"note"`, optional).
+- `requiredFields` (array of `"billingAddress"`, `"company"`, `"email"`, `"note"`, `"phone"`, `"shippingAddress"`, optional).
 - `termsOfServiceUrl` (string, uri, max length 500, nullable, optional).
 - `postPurchaseRedirectUrl` (string, uri, max length 500, nullable, optional).
 - `checkoutMessage` (string, max length 500, nullable, optional).

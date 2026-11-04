@@ -125,7 +125,7 @@ Responses:
 
 - `zoneId` (string, required).
 - `name` ([TranslatableDto](#translatabledto), required).
-- `type` (`"FLAT_RATE"`, `"WEIGHT_BASED"`, `"PRICE_BASED"`, `"CARRIER_CALCULATED"`, `"FREE"`, required).
+- `type` (`"CARRIER_CALCULATED"`, `"FLAT_RATE"`, `"FREE"`, `"PRICE_BASED"`, `"WEIGHT_BASED"`, required).
 - `price` (number, min 0, optional).
 - `weightRanges` (array of [WeightRangeDto](#weightrangedto), optional).
 - `priceRanges` (array of [PriceRangeDto](#pricerangedto), optional).

@@ -25,7 +25,7 @@ Parameters:
 - `priceMin` in query (number, min 0, optional).
 - `q` in query (string, max length 200, optional).
 - `rating` in query (number, min 1, max 5, optional).
-- `sortBy` in query (`"name"`, `"createdAt"`, `"price"`, `"rating"`, `"relevance"`, optional).
+- `sortBy` in query (`"createdAt"`, `"name"`, `"price"`, `"rating"`, `"relevance"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
 
 Responses:

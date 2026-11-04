@@ -87,10 +87,10 @@ Responses:
 - `brandName` (string, pattern `^[a-z0-9][a-z0-9-]{0,39}$`, optional).
 - `description` ([SettingsTranslatableDto](#settingstranslatabledto), optional).
 - `baseColors` ([BaseColorsDto](#basecolorsdto), optional).
-- `fontKit` (`"latin-rounded"`, `"arabic-latin"`, optional).
+- `fontKit` (`"arabic-latin"`, `"latin-rounded"`, optional).
 - `logoAssetId` (string, uuid, nullable, optional).
 - `faviconAssetId` (string, uuid, nullable, optional).
-- `symbolPosition` (`"before"`, `"after"`, optional).
+- `symbolPosition` (`"after"`, `"before"`, optional).
 - `decimalSeparator` (string, min length 1, max length 1, optional).
 - `thousandsSeparator` (string, min length 1, max length 1, optional).
 - `taxDisplay` (`"HT"`, `"TTC"`, `"none"`, optional).

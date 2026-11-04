@@ -18,7 +18,7 @@ Parameters:
 
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
-- `role` in query (`"SUPER_ADMIN"`, `"ADMIN"`, `"MANAGER"`, `"SUPPORT"`, optional).
+- `role` in query (`"ADMIN"`, `"MANAGER"`, `"SUPER_ADMIN"`, `"SUPPORT"`, optional).
 
 Responses:
 

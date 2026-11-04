@@ -19,7 +19,7 @@ Parameters:
 - `isActive` in query (boolean, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
-- `provider` in query (`"dhl"`, `"fedex"`, `"ups"`, `"aramex"`, `"manual"`, optional).
+- `provider` in query (`"aramex"`, `"dhl"`, `"fedex"`, `"manual"`, `"ups"`, optional).
 
 Responses:
 
@@ -90,7 +90,7 @@ Responses:
 
 - `code` (string, pattern `^[a-z0-9_]+$`, min length 2, max length 50, required).
 - `name` ([CarrierTranslatableDto](#carriertranslatabledto), required).
-- `provider` (`"dhl"`, `"fedex"`, `"ups"`, `"aramex"`, `"manual"`, required).
+- `provider` (`"aramex"`, `"dhl"`, `"fedex"`, `"manual"`, `"ups"`, required).
 - `services` (array of string, optional).
 - `zones` (array of string, pattern `^[A-Z]{2}$`, optional).
 - `isActive` (boolean, optional).

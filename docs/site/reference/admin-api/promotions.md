@@ -20,7 +20,7 @@ Parameters:
 - `isActive` in query (boolean, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
-- `type` in query (`"PERCENTAGE"`, `"FIXED_AMOUNT"`, `"FREE_SHIPPING"`, `"BUY_X_GET_Y"`, `"VOLUME_DISCOUNT"`, `"TIERED_PRICE"`, optional).
+- `type` in query (`"BUY_X_GET_Y"`, `"FIXED_AMOUNT"`, `"FREE_SHIPPING"`, `"PERCENTAGE"`, `"TIERED_PRICE"`, `"VOLUME_DISCOUNT"`, optional).
 
 Responses:
 
@@ -95,7 +95,7 @@ Responses:
 
 - `name` ([TranslatableDto](#translatabledto), required).
 - `description` ([TranslatableDto](#translatabledto), optional).
-- `type` (`"PERCENTAGE"`, `"FIXED_AMOUNT"`, `"FREE_SHIPPING"`, `"BUY_X_GET_Y"`, `"VOLUME_DISCOUNT"`, `"TIERED_PRICE"`, required).
+- `type` (`"BUY_X_GET_Y"`, `"FIXED_AMOUNT"`, `"FREE_SHIPPING"`, `"PERCENTAGE"`, `"TIERED_PRICE"`, `"VOLUME_DISCOUNT"`, required).
 - `applicationMethod` (`"AUTOMATIC"`, `"COUPON"`, required).
 - `couponCode` (string, optional).
 - `value` (number, min 0, required).

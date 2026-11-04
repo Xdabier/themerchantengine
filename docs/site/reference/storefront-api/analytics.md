@@ -24,7 +24,7 @@ Responses:
 
 ### IngestEventDto
 
-- `eventType` (`"search"`, `"page_view"`, `"product_view"`, `"add_to_cart"`, `"begin_checkout"`, `"add_shipping_info"`, `"add_payment_info"`, `"purchase"`, required).
+- `eventType` (`"add_payment_info"`, `"add_shipping_info"`, `"add_to_cart"`, `"begin_checkout"`, `"page_view"`, `"product_view"`, `"purchase"`, `"search"`, required).
 - `sessionId` (string, pattern `^[A-Za-z0-9_-]+$`, max length 128, optional).
 - `userId` (string, optional).
 - `productId` (string, optional).

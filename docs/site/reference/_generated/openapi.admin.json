@@ -267,9 +267,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "sessions",
                 "orders",
-                "revenue"
+                "revenue",
+                "sessions"
               ]
             }
           },
@@ -280,8 +280,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "hour",
                 "day",
+                "hour",
                 "week"
               ]
             }
@@ -344,10 +344,10 @@
             "schema": {
               "type": "string",
               "enum": [
-                "IMAGE",
-                "VIDEO",
+                "AUDIO",
                 "DOCUMENT",
-                "AUDIO"
+                "IMAGE",
+                "VIDEO"
               ]
             }
           },
@@ -549,12 +549,12 @@
             "schema": {
               "type": "string",
               "enum": [
-                "product",
                 "category",
+                "product",
                 "return",
                 "review",
-                "variant",
-                "section"
+                "section",
+                "variant"
               ]
             }
           },
@@ -1148,12 +1148,12 @@
             "schema": {
               "type": "string",
               "enum": [
+                "CANCELLED",
                 "DRAFT",
+                "FAILED",
                 "SCHEDULED",
                 "SENDING",
-                "SENT",
-                "CANCELLED",
-                "FAILED"
+                "SENT"
               ]
             }
           },
@@ -1506,11 +1506,11 @@
             "schema": {
               "type": "string",
               "enum": [
+                "aramex",
                 "dhl",
                 "fedex",
-                "ups",
-                "aramex",
-                "manual"
+                "manual",
+                "ups"
               ]
             }
           },
@@ -2081,12 +2081,12 @@
             "schema": {
               "type": "string",
               "enum": [
-                "NEW",
                 "ACTIVE",
-                "LOYAL",
                 "AT_RISK",
                 "CHURNED",
                 "HIGH_VALUE",
+                "LOYAL",
+                "NEW",
                 "VIP"
               ]
             }
@@ -2666,9 +2666,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "updatedAt",
                 "onHand",
-                "reserved"
+                "reserved",
+                "updatedAt"
               ]
             }
           },
@@ -3010,12 +3010,12 @@
             "schema": {
               "type": "string",
               "enum": [
-                "SALE",
-                "RETURN",
                 "ADJUSTMENT",
-                "TRANSFER",
                 "RESERVATION",
-                "RESERVATION_RELEASE"
+                "RESERVATION_RELEASE",
+                "RETURN",
+                "SALE",
+                "TRANSFER"
               ]
             }
           },
@@ -3042,9 +3042,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "type",
                 "createdAt",
-                "quantity"
+                "quantity",
+                "type"
               ]
             }
           },
@@ -3237,8 +3237,8 @@
               "type": "string",
               "enum": [
                 "email",
-                "sms",
-                "push"
+                "push",
+                "sms"
               ]
             }
           },
@@ -3249,15 +3249,15 @@
             "schema": {
               "type": "string",
               "enum": [
-                "queued",
-                "sent",
-                "delivered",
                 "bounced",
                 "complained",
+                "delivered",
+                "enqueue-failed",
                 "failed",
-                "suppressed",
+                "queued",
+                "sent",
                 "skipped",
-                "enqueue-failed"
+                "suppressed"
               ]
             }
           },
@@ -3388,8 +3388,8 @@
               "type": "string",
               "enum": [
                 "email",
-                "sms",
-                "push"
+                "push",
+                "sms"
               ]
             }
           },
@@ -3770,15 +3770,15 @@
               "type": "string",
               "enum": [
                 "CANCELLED",
-                "PENDING",
-                "CONFIRMED",
-                "PROCESSING",
-                "SHIPPED",
-                "DELIVERED",
                 "COMPLETED",
+                "CONFIRMED",
+                "DELIVERED",
                 "ON_HOLD",
+                "PENDING",
+                "PROCESSING",
+                "RETURNED",
                 "RETURN_REQUESTED",
-                "RETURNED"
+                "SHIPPED"
               ]
             }
           },
@@ -3789,13 +3789,13 @@
             "schema": {
               "type": "string",
               "enum": [
-                "CANCELLED",
-                "FAILED",
-                "PENDING",
                 "AUTHORIZED",
+                "CANCELLED",
                 "CAPTURED",
-                "REFUNDED",
-                "PARTIALLY_REFUNDED"
+                "FAILED",
+                "PARTIALLY_REFUNDED",
+                "PENDING",
+                "REFUNDED"
               ]
             }
           },
@@ -3905,15 +3905,15 @@
               "type": "string",
               "enum": [
                 "CANCELLED",
-                "PENDING",
-                "CONFIRMED",
-                "PROCESSING",
-                "SHIPPED",
-                "DELIVERED",
                 "COMPLETED",
+                "CONFIRMED",
+                "DELIVERED",
                 "ON_HOLD",
+                "PENDING",
+                "PROCESSING",
+                "RETURNED",
                 "RETURN_REQUESTED",
-                "RETURNED"
+                "SHIPPED"
               ]
             }
           },
@@ -3924,13 +3924,13 @@
             "schema": {
               "type": "string",
               "enum": [
-                "CANCELLED",
-                "FAILED",
-                "PENDING",
                 "AUTHORIZED",
+                "CANCELLED",
                 "CAPTURED",
-                "REFUNDED",
-                "PARTIALLY_REFUNDED"
+                "FAILED",
+                "PARTIALLY_REFUNDED",
+                "PENDING",
+                "REFUNDED"
               ]
             }
           },
@@ -4697,10 +4697,10 @@
               "type": "string",
               "enum": [
                 "cod",
+                "gift_card",
                 "manual",
-                "stripe",
                 "paypal",
-                "gift_card"
+                "stripe"
               ]
             }
           },
@@ -5187,9 +5187,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "DRAFT",
                 "ACTIVE",
-                "ARCHIVED"
+                "ARCHIVED",
+                "DRAFT"
               ]
             }
           },
@@ -6013,12 +6013,12 @@
             "schema": {
               "type": "string",
               "enum": [
-                "PERCENTAGE",
+                "BUY_X_GET_Y",
                 "FIXED_AMOUNT",
                 "FREE_SHIPPING",
-                "BUY_X_GET_Y",
-                "VOLUME_DISCOUNT",
-                "TIERED_PRICE"
+                "PERCENTAGE",
+                "TIERED_PRICE",
+                "VOLUME_DISCOUNT"
               ]
             }
           },
@@ -6255,9 +6255,9 @@
             "schema": {
               "type": "string",
               "enum": [
+                "HIDDEN",
                 "PENDING",
-                "PUBLISHED",
-                "HIDDEN"
+                "PUBLISHED"
               ]
             }
           },
@@ -6285,8 +6285,8 @@
               "type": "string",
               "enum": [
                 "createdAt",
-                "updatedAt",
-                "helpfulCount"
+                "helpfulCount",
+                "updatedAt"
               ]
             }
           },
@@ -6494,12 +6494,12 @@
             "schema": {
               "type": "string",
               "enum": [
-                "REQUESTED",
                 "APPROVED",
+                "CLOSED",
                 "ITEM_RECEIVED",
                 "REFUND_PROCESSED",
-                "CLOSED",
-                "REJECTED"
+                "REJECTED",
+                "REQUESTED"
               ]
             }
           },
@@ -6510,11 +6510,11 @@
             "schema": {
               "type": "string",
               "enum": [
-                "OTHER",
-                "WRONG_SIZE",
+                "CHANGED_MIND",
                 "DEFECTIVE",
                 "NOT_AS_DESCRIBED",
-                "CHANGED_MIND"
+                "OTHER",
+                "WRONG_SIZE"
               ]
             }
           },
@@ -6926,9 +6926,9 @@
             "schema": {
               "type": "string",
               "enum": [
+                "HIDDEN",
                 "PENDING",
-                "PUBLISHED",
-                "HIDDEN"
+                "PUBLISHED"
               ]
             }
           },
@@ -6966,9 +6966,9 @@
               "type": "string",
               "enum": [
                 "createdAt",
-                "updatedAt",
+                "helpfulCount",
                 "rating",
-                "helpfulCount"
+                "updatedAt"
               ]
             }
           },
@@ -7321,10 +7321,10 @@
               "items": {
                 "type": "string",
                 "enum": [
-                  "product",
-                  "order",
+                  "cms",
                   "customer",
-                  "cms"
+                  "order",
+                  "product"
                 ]
               }
             }
@@ -7740,8 +7740,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "7d",
                 "28d",
+                "7d",
                 "90d"
               ]
             }
@@ -7878,8 +7878,8 @@
               "type": "string",
               "enum": [
                 "createdAt",
-                "updatedAt",
-                "fromPath"
+                "fromPath",
+                "updatedAt"
               ]
             }
           },
@@ -8024,9 +8024,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "indexnow",
+                "bing",
                 "gsc",
-                "bing"
+                "indexnow"
               ]
             }
           },
@@ -8037,9 +8037,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "manual",
                 "auto-regen",
-                "cron"
+                "cron",
+                "manual"
               ]
             }
           },
@@ -8050,9 +8050,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "url",
                 "products",
-                "sitemap"
+                "sitemap",
+                "url"
               ]
             }
           },
@@ -8135,9 +8135,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "fr",
+                "ar",
                 "en",
-                "ar"
+                "fr"
               ]
             }
           },
@@ -8623,9 +8623,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "SUPER_ADMIN",
                 "ADMIN",
                 "MANAGER",
+                "SUPER_ADMIN",
                 "SUPPORT"
               ]
             }
@@ -9810,14 +9810,14 @@
           "reason": {
             "type": "string",
             "enum": [
-              "RECOUNT",
-              "DAMAGE",
-              "SHRINKAGE",
-              "RECEIVED",
-              "RETURN_RESTOCK",
-              "RETURN_DAMAGED",
               "CORRECTION",
-              "OTHER"
+              "DAMAGE",
+              "OTHER",
+              "RECEIVED",
+              "RECOUNT",
+              "RETURN_DAMAGED",
+              "RETURN_RESTOCK",
+              "SHRINKAGE"
             ]
           },
           "notes": {
@@ -9910,9 +9910,9 @@
           "status": {
             "type": "string",
             "enum": [
+              "HIDDEN",
               "PENDING",
-              "PUBLISHED",
-              "HIDDEN"
+              "PUBLISHED"
             ]
           },
           "reason": {
@@ -10022,9 +10022,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "DRAFT",
               "ACTIVE",
-              "ARCHIVED"
+              "ARCHIVED",
+              "DRAFT"
             ]
           }
         },
@@ -10165,13 +10165,13 @@
           "segment": {
             "type": "string",
             "enum": [
-              "ALL_CONFIRMED",
-              "NEW",
               "ACTIVE",
-              "LOYAL",
+              "ALL_CONFIRMED",
               "AT_RISK",
               "CHURNED",
-              "LAPSED"
+              "LAPSED",
+              "LOYAL",
+              "NEW"
             ]
           },
           "couponCode": {
@@ -10206,11 +10206,11 @@
           "provider": {
             "type": "string",
             "enum": [
+              "aramex",
               "dhl",
               "fedex",
-              "ups",
-              "aramex",
-              "manual"
+              "manual",
+              "ups"
             ]
           },
           "services": {
@@ -10395,8 +10395,8 @@
             "type": "string",
             "enum": [
               "email",
-              "sms",
-              "push"
+              "push",
+              "sms"
             ]
           },
           "event": {
@@ -10420,9 +10420,9 @@
           "category": {
             "type": "string",
             "enum": [
-              "TRANSACTIONAL",
               "LIFECYCLE",
-              "MARKETING"
+              "MARKETING",
+              "TRANSACTIONAL"
             ]
           }
         },
@@ -10444,9 +10444,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "STATIC",
+              "LANDING",
               "POLICY",
-              "LANDING"
+              "STATIC"
             ]
           },
           "title": {
@@ -10502,10 +10502,10 @@
             "type": "string",
             "enum": [
               "cod",
+              "gift_card",
               "manual",
-              "stripe",
               "paypal",
-              "gift_card"
+              "stripe"
             ]
           },
           "isActive": {
@@ -10548,9 +10548,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "DRAFT",
               "ACTIVE",
-              "ARCHIVED"
+              "ARCHIVED",
+              "DRAFT"
             ]
           },
           "productTypeId": {
@@ -10722,12 +10722,12 @@
           "type": {
             "type": "string",
             "enum": [
-              "PERCENTAGE",
+              "BUY_X_GET_Y",
               "FIXED_AMOUNT",
               "FREE_SHIPPING",
-              "BUY_X_GET_Y",
-              "VOLUME_DISCOUNT",
-              "TIERED_PRICE"
+              "PERCENTAGE",
+              "TIERED_PRICE",
+              "VOLUME_DISCOUNT"
             ]
           },
           "applicationMethod": {
@@ -10819,8 +10819,8 @@
           "type": {
             "type": "string",
             "enum": [
-              "MOVED_PERMANENTLY",
-              "FOUND"
+              "FOUND",
+              "MOVED_PERMANENTLY"
             ]
           }
         },
@@ -10847,131 +10847,131 @@
             "items": {
               "type": "string",
               "enum": [
-                "admin_users:view",
                 "admin_users:create",
-                "admin_users:update",
                 "admin_users:delete",
                 "admin_users:manage",
-                "analytics:view",
+                "admin_users:update",
+                "admin_users:view",
                 "analytics:create",
-                "analytics:update",
                 "analytics:delete",
                 "analytics:manage",
-                "assets:view",
+                "analytics:update",
+                "analytics:view",
                 "assets:create",
-                "assets:update",
                 "assets:delete",
                 "assets:manage",
-                "audit_log:view",
+                "assets:update",
+                "assets:view",
                 "audit_log:create",
-                "audit_log:update",
                 "audit_log:delete",
                 "audit_log:manage",
-                "campaigns:view",
+                "audit_log:update",
+                "audit_log:view",
                 "campaigns:create",
-                "campaigns:update",
                 "campaigns:delete",
                 "campaigns:manage",
-                "carriers:view",
+                "campaigns:update",
+                "campaigns:view",
                 "carriers:create",
-                "carriers:update",
                 "carriers:delete",
                 "carriers:manage",
-                "categories:view",
+                "carriers:update",
+                "carriers:view",
                 "categories:create",
-                "categories:update",
                 "categories:delete",
                 "categories:manage",
-                "checkout:view",
+                "categories:update",
+                "categories:view",
                 "checkout:create",
-                "checkout:update",
                 "checkout:delete",
                 "checkout:manage",
-                "cms:view",
+                "checkout:update",
+                "checkout:view",
                 "cms:create",
-                "cms:update",
                 "cms:delete",
                 "cms:manage",
-                "customers:view",
+                "cms:update",
+                "cms:view",
                 "customers:create",
-                "customers:update",
                 "customers:delete",
                 "customers:manage",
-                "geo:view",
+                "customers:update",
+                "customers:view",
                 "geo:create",
-                "geo:update",
                 "geo:delete",
                 "geo:manage",
-                "gift_cards:view",
+                "geo:update",
+                "geo:view",
                 "gift_cards:create",
-                "gift_cards:update",
                 "gift_cards:delete",
                 "gift_cards:manage",
-                "inventory:view",
+                "gift_cards:update",
+                "gift_cards:view",
                 "inventory:create",
-                "inventory:update",
                 "inventory:delete",
                 "inventory:manage",
-                "notifications:view",
+                "inventory:update",
+                "inventory:view",
                 "notifications:create",
-                "notifications:update",
                 "notifications:delete",
                 "notifications:manage",
-                "orders:view",
+                "notifications:update",
+                "notifications:view",
                 "orders:create",
-                "orders:update",
                 "orders:delete",
                 "orders:manage",
-                "payment_methods:view",
+                "orders:update",
+                "orders:view",
                 "payment_methods:create",
-                "payment_methods:update",
                 "payment_methods:delete",
                 "payment_methods:manage",
-                "products:view",
+                "payment_methods:update",
+                "payment_methods:view",
                 "products:create",
-                "products:update",
                 "products:delete",
                 "products:manage",
-                "promotions:view",
+                "products:update",
+                "products:view",
                 "promotions:create",
-                "promotions:update",
                 "promotions:delete",
                 "promotions:manage",
-                "returns:view",
+                "promotions:update",
+                "promotions:view",
                 "returns:create",
-                "returns:update",
                 "returns:delete",
                 "returns:manage",
-                "reviews:view",
+                "returns:update",
+                "returns:view",
                 "reviews:create",
-                "reviews:update",
                 "reviews:delete",
                 "reviews:manage",
-                "search:view",
+                "reviews:update",
+                "reviews:view",
                 "search:create",
-                "search:update",
                 "search:delete",
                 "search:manage",
-                "seo:view",
+                "search:update",
+                "search:view",
                 "seo:create",
-                "seo:update",
                 "seo:delete",
                 "seo:manage",
-                "settings:view",
+                "seo:update",
+                "seo:view",
                 "settings:create",
-                "settings:update",
                 "settings:delete",
                 "settings:manage",
-                "shipping:view",
+                "settings:update",
+                "settings:view",
                 "shipping:create",
-                "shipping:update",
                 "shipping:delete",
                 "shipping:manage",
-                "storefront_config:view",
+                "shipping:update",
+                "shipping:view",
                 "storefront_config:create",
-                "storefront_config:update",
                 "storefront_config:delete",
-                "storefront_config:manage"
+                "storefront_config:manage",
+                "storefront_config:update",
+                "storefront_config:view"
               ]
             }
           }
@@ -10992,10 +10992,10 @@
           "type": {
             "type": "string",
             "enum": [
-              "HERO",
-              "PROMOTIONAL_BANNER",
               "CATEGORY_SHOWCASE",
               "FEATURED_PRODUCTS",
+              "HERO",
+              "PROMOTIONAL_BANNER",
               "TRUST_SIGNALS"
             ]
           },
@@ -11057,11 +11057,11 @@
           "type": {
             "type": "string",
             "enum": [
-              "FLAT_RATE",
-              "WEIGHT_BASED",
-              "PRICE_BASED",
               "CARRIER_CALCULATED",
-              "FREE"
+              "FLAT_RATE",
+              "FREE",
+              "PRICE_BASED",
+              "WEIGHT_BASED"
             ]
           },
           "price": {
@@ -11276,27 +11276,27 @@
             "items": {
               "type": "string",
               "enum": [
-                "order.shipped",
-                "order.delivered",
-                "order.cancelled",
-                "order.confirmed",
-                "return.requested",
-                "return.approved",
-                "return.refunded",
                 "cart.abandoned",
-                "order.created",
-                "order.status_changed",
+                "customer.created",
+                "customer.updated",
                 "inventory.low_stock",
                 "inventory.out_of_stock",
                 "inventory.restocked",
-                "product.created",
-                "product.updated",
-                "product.deleted",
-                "customer.created",
-                "customer.updated",
-                "review.submitted",
+                "order.cancelled",
+                "order.confirmed",
+                "order.created",
+                "order.delivered",
+                "order.shipped",
+                "order.status_changed",
                 "payment.received",
-                "payment.refunded"
+                "payment.refunded",
+                "product.created",
+                "product.deleted",
+                "product.updated",
+                "return.approved",
+                "return.refunded",
+                "return.requested",
+                "review.submitted"
               ]
             }
           },
@@ -11602,9 +11602,9 @@
           "restockDecision": {
             "type": "string",
             "enum": [
-              "RESTOCK",
               "DAMAGED",
-              "DISPOSE"
+              "DISPOSE",
+              "RESTOCK"
             ]
           },
           "notes": {
@@ -11623,9 +11623,9 @@
           "refundMethod": {
             "type": "string",
             "enum": [
+              "EXCHANGE",
               "ORIGINAL_PAYMENT",
-              "STORE_CREDIT",
-              "EXCHANGE"
+              "STORE_CREDIT"
             ]
           },
           "notes": {
@@ -11743,9 +11743,9 @@
           "locale": {
             "type": "string",
             "enum": [
-              "fr",
+              "ar",
               "en",
-              "ar"
+              "fr"
             ]
           }
         }
@@ -11756,9 +11756,9 @@
           "locale": {
             "type": "string",
             "enum": [
-              "fr",
+              "ar",
               "en",
-              "ar"
+              "fr"
             ]
           },
           "variables": {
@@ -11830,9 +11830,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "indexnow",
+                "bing",
                 "gsc",
-                "bing"
+                "indexnow"
               ]
             }
           },
@@ -11951,13 +11951,13 @@
           "segment": {
             "type": "string",
             "enum": [
-              "ALL_CONFIRMED",
-              "NEW",
               "ACTIVE",
-              "LOYAL",
+              "ALL_CONFIRMED",
               "AT_RISK",
               "CHURNED",
-              "LAPSED"
+              "LAPSED",
+              "LOYAL",
+              "NEW"
             ]
           },
           "couponCode": {
@@ -12024,12 +12024,12 @@
             "items": {
               "type": "string",
               "enum": [
-                "email",
-                "phone",
-                "shippingAddress",
                 "billingAddress",
                 "company",
-                "note"
+                "email",
+                "note",
+                "phone",
+                "shippingAddress"
               ]
             }
           },
@@ -12086,74 +12086,74 @@
             "items": {
               "type": "string",
               "enum": [
-                "QA",
                 "AE",
-                "SA",
-                "KW",
-                "BH",
-                "OM",
-                "EG",
-                "JO",
-                "LB",
-                "MA",
-                "LY",
-                "TN",
-                "GB",
-                "DE",
-                "FR",
-                "IT",
-                "ES",
-                "NL",
-                "SE",
-                "US",
-                "CA",
-                "MX",
-                "BR",
-                "IN",
-                "PK",
-                "ID",
-                "MY",
-                "SG",
                 "AU",
+                "BH",
+                "BR",
+                "CA",
+                "DE",
+                "EG",
+                "ES",
+                "FR",
+                "GB",
+                "ID",
+                "IN",
+                "IT",
+                "JO",
                 "JP",
-                "KR"
+                "KR",
+                "KW",
+                "LB",
+                "LY",
+                "MA",
+                "MX",
+                "MY",
+                "NL",
+                "OM",
+                "PK",
+                "QA",
+                "SA",
+                "SE",
+                "SG",
+                "TN",
+                "US"
               ]
             }
           },
           "defaultCode": {
             "type": "string",
             "enum": [
-              "QA",
               "AE",
-              "SA",
-              "KW",
-              "BH",
-              "OM",
-              "EG",
-              "JO",
-              "LB",
-              "MA",
-              "LY",
-              "TN",
-              "GB",
-              "DE",
-              "FR",
-              "IT",
-              "ES",
-              "NL",
-              "SE",
-              "US",
-              "CA",
-              "MX",
-              "BR",
-              "IN",
-              "PK",
-              "ID",
-              "MY",
-              "SG",
               "AU",
+              "BH",
+              "BR",
+              "CA",
+              "DE",
+              "EG",
+              "ES",
+              "FR",
+              "GB",
+              "ID",
+              "IN",
+              "IT",
+              "JO",
               "JP",
-              "KR"
+              "KR",
+              "KW",
+              "LB",
+              "LY",
+              "MA",
+              "MX",
+              "MY",
+              "NL",
+              "OM",
+              "PK",
+              "QA",
+              "SA",
+              "SE",
+              "SG",
+              "TN",
+              "US"
             ]
           }
         },
@@ -12170,58 +12170,58 @@
             "items": {
               "type": "string",
               "enum": [
-                "TND",
-                "LYD",
-                "QAR",
                 "AED",
-                "SAR",
-                "KWD",
+                "AUD",
                 "BHD",
-                "OMR",
+                "BRL",
+                "CAD",
+                "CHF",
+                "CNY",
                 "EGP",
-                "JOD",
                 "EUR",
                 "GBP",
-                "CHF",
-                "SEK",
-                "USD",
-                "CAD",
-                "MXN",
-                "BRL",
-                "JPY",
-                "CNY",
                 "INR",
+                "JOD",
+                "JPY",
+                "KWD",
+                "LYD",
+                "MXN",
+                "OMR",
+                "QAR",
+                "SAR",
+                "SEK",
                 "SGD",
-                "AUD"
+                "TND",
+                "USD"
               ]
             }
           },
           "defaultCode": {
             "type": "string",
             "enum": [
-              "TND",
-              "LYD",
-              "QAR",
               "AED",
-              "SAR",
-              "KWD",
+              "AUD",
               "BHD",
-              "OMR",
+              "BRL",
+              "CAD",
+              "CHF",
+              "CNY",
               "EGP",
-              "JOD",
               "EUR",
               "GBP",
-              "CHF",
-              "SEK",
-              "USD",
-              "CAD",
-              "MXN",
-              "BRL",
-              "JPY",
-              "CNY",
               "INR",
+              "JOD",
+              "JPY",
+              "KWD",
+              "LYD",
+              "MXN",
+              "OMR",
+              "QAR",
+              "SAR",
+              "SEK",
               "SGD",
-              "AUD"
+              "TND",
+              "USD"
             ]
           }
         },
@@ -12292,9 +12292,9 @@
           "category": {
             "type": "string",
             "enum": [
-              "TRANSACTIONAL",
               "LIFECYCLE",
-              "MARKETING"
+              "MARKETING",
+              "TRANSACTIONAL"
             ]
           }
         }
@@ -12306,15 +12306,15 @@
             "type": "string",
             "enum": [
               "CANCELLED",
-              "PENDING",
-              "CONFIRMED",
-              "PROCESSING",
-              "SHIPPED",
-              "DELIVERED",
               "COMPLETED",
+              "CONFIRMED",
+              "DELIVERED",
               "ON_HOLD",
+              "PENDING",
+              "PROCESSING",
+              "RETURNED",
               "RETURN_REQUESTED",
-              "RETURNED"
+              "SHIPPED"
             ]
           }
         },
@@ -12421,131 +12421,131 @@
             "items": {
               "type": "string",
               "enum": [
-                "admin_users:view",
                 "admin_users:create",
-                "admin_users:update",
                 "admin_users:delete",
                 "admin_users:manage",
-                "analytics:view",
+                "admin_users:update",
+                "admin_users:view",
                 "analytics:create",
-                "analytics:update",
                 "analytics:delete",
                 "analytics:manage",
-                "assets:view",
+                "analytics:update",
+                "analytics:view",
                 "assets:create",
-                "assets:update",
                 "assets:delete",
                 "assets:manage",
-                "audit_log:view",
+                "assets:update",
+                "assets:view",
                 "audit_log:create",
-                "audit_log:update",
                 "audit_log:delete",
                 "audit_log:manage",
-                "campaigns:view",
+                "audit_log:update",
+                "audit_log:view",
                 "campaigns:create",
-                "campaigns:update",
                 "campaigns:delete",
                 "campaigns:manage",
-                "carriers:view",
+                "campaigns:update",
+                "campaigns:view",
                 "carriers:create",
-                "carriers:update",
                 "carriers:delete",
                 "carriers:manage",
-                "categories:view",
+                "carriers:update",
+                "carriers:view",
                 "categories:create",
-                "categories:update",
                 "categories:delete",
                 "categories:manage",
-                "checkout:view",
+                "categories:update",
+                "categories:view",
                 "checkout:create",
-                "checkout:update",
                 "checkout:delete",
                 "checkout:manage",
-                "cms:view",
+                "checkout:update",
+                "checkout:view",
                 "cms:create",
-                "cms:update",
                 "cms:delete",
                 "cms:manage",
-                "customers:view",
+                "cms:update",
+                "cms:view",
                 "customers:create",
-                "customers:update",
                 "customers:delete",
                 "customers:manage",
-                "geo:view",
+                "customers:update",
+                "customers:view",
                 "geo:create",
-                "geo:update",
                 "geo:delete",
                 "geo:manage",
-                "gift_cards:view",
+                "geo:update",
+                "geo:view",
                 "gift_cards:create",
-                "gift_cards:update",
                 "gift_cards:delete",
                 "gift_cards:manage",
-                "inventory:view",
+                "gift_cards:update",
+                "gift_cards:view",
                 "inventory:create",
-                "inventory:update",
                 "inventory:delete",
                 "inventory:manage",
-                "notifications:view",
+                "inventory:update",
+                "inventory:view",
                 "notifications:create",
-                "notifications:update",
                 "notifications:delete",
                 "notifications:manage",
-                "orders:view",
+                "notifications:update",
+                "notifications:view",
                 "orders:create",
-                "orders:update",
                 "orders:delete",
                 "orders:manage",
-                "payment_methods:view",
+                "orders:update",
+                "orders:view",
                 "payment_methods:create",
-                "payment_methods:update",
                 "payment_methods:delete",
                 "payment_methods:manage",
-                "products:view",
+                "payment_methods:update",
+                "payment_methods:view",
                 "products:create",
-                "products:update",
                 "products:delete",
                 "products:manage",
-                "promotions:view",
+                "products:update",
+                "products:view",
                 "promotions:create",
-                "promotions:update",
                 "promotions:delete",
                 "promotions:manage",
-                "returns:view",
+                "promotions:update",
+                "promotions:view",
                 "returns:create",
-                "returns:update",
                 "returns:delete",
                 "returns:manage",
-                "reviews:view",
+                "returns:update",
+                "returns:view",
                 "reviews:create",
-                "reviews:update",
                 "reviews:delete",
                 "reviews:manage",
-                "search:view",
+                "reviews:update",
+                "reviews:view",
                 "search:create",
-                "search:update",
                 "search:delete",
                 "search:manage",
-                "seo:view",
+                "search:update",
+                "search:view",
                 "seo:create",
-                "seo:update",
                 "seo:delete",
                 "seo:manage",
-                "settings:view",
+                "seo:update",
+                "seo:view",
                 "settings:create",
-                "settings:update",
                 "settings:delete",
                 "settings:manage",
-                "shipping:view",
+                "settings:update",
+                "settings:view",
                 "shipping:create",
-                "shipping:update",
                 "shipping:delete",
                 "shipping:manage",
-                "storefront_config:view",
+                "shipping:update",
+                "shipping:view",
                 "storefront_config:create",
-                "storefront_config:update",
                 "storefront_config:delete",
-                "storefront_config:manage"
+                "storefront_config:manage",
+                "storefront_config:update",
+                "storefront_config:view"
               ]
             }
           }
@@ -12609,8 +12609,8 @@
           "fontKit": {
             "type": "string",
             "enum": [
-              "latin-rounded",
-              "arabic-latin"
+              "arabic-latin",
+              "latin-rounded"
             ]
           },
           "logoAssetId": {
@@ -12626,8 +12626,8 @@
           "symbolPosition": {
             "type": "string",
             "enum": [
-              "before",
-              "after"
+              "after",
+              "before"
             ]
           },
           "decimalSeparator": {
@@ -12757,9 +12757,9 @@
           "status": {
             "type": "string",
             "enum": [
+              "DELIVERED",
               "PROCESSING",
-              "SHIPPED",
-              "DELIVERED"
+              "SHIPPED"
             ]
           }
         }

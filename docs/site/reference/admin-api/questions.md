@@ -20,9 +20,9 @@ Parameters:
 - `pageSize` in query (number, min 1, max 100, optional).
 - `productId` in query (string, optional).
 - `search` in query (string, optional).
-- `sortBy` in query (`"createdAt"`, `"updatedAt"`, `"helpfulCount"`, optional).
+- `sortBy` in query (`"createdAt"`, `"helpfulCount"`, `"updatedAt"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `status` in query (`"PENDING"`, `"PUBLISHED"`, `"HIDDEN"`, optional).
+- `status` in query (`"HIDDEN"`, `"PENDING"`, `"PUBLISHED"`, optional).
 
 Responses:
 

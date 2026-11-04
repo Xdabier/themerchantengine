@@ -16,7 +16,7 @@ Get Google Search Console analytics rollup
 
 Parameters:
 
-- `range` in query (`"7d"`, `"28d"`, `"90d"`, optional).
+- `range` in query (`"28d"`, `"7d"`, `"90d"`, optional).
 
 Responses:
 
@@ -64,7 +64,7 @@ Parameters:
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
 - `search` in query (string, optional).
-- `sortBy` in query (`"createdAt"`, `"updatedAt"`, `"fromPath"`, optional).
+- `sortBy` in query (`"createdAt"`, `"fromPath"`, `"updatedAt"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
 
 Responses:
@@ -100,15 +100,15 @@ List search engine submission history
 Parameters:
 
 - `accepted` in query (boolean, optional).
-- `engine` in query (`"indexnow"`, `"gsc"`, `"bing"`, optional).
+- `engine` in query (`"bing"`, `"gsc"`, `"indexnow"`, optional).
 - `from` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
 - `sortBy` in query (`"createdAt"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `targetType` in query (`"url"`, `"products"`, `"sitemap"`, optional).
+- `targetType` in query (`"products"`, `"sitemap"`, `"url"`, optional).
 - `to` in query (string, optional).
-- `trigger` in query (`"manual"`, `"auto-regen"`, `"cron"`, optional).
+- `trigger` in query (`"auto-regen"`, `"cron"`, `"manual"`, optional).
 
 Responses:
 
@@ -130,7 +130,7 @@ Get Google index state for one URL
 
 Parameters:
 
-- `locale` in query (`"fr"`, `"en"`, `"ar"`, optional).
+- `locale` in query (`"ar"`, `"en"`, `"fr"`, optional).
 - `productId` in query (string, optional).
 - `url` in query (string, uri, optional).
 
@@ -144,12 +144,12 @@ Responses:
 
 - `fromPath` (string, required).
 - `toPath` (string, required).
-- `type` (`"MOVED_PERMANENTLY"`, `"FOUND"`, optional).
+- `type` (`"FOUND"`, `"MOVED_PERMANENTLY"`, optional).
 
 ### SubmitSeoAdminDto
 
 - `url` (string, uri, optional).
 - `productIds` (array of string, optional).
 - `sitemap` (boolean, optional).
-- `engines` (array of `"indexnow"`, `"gsc"`, `"bing"`, optional).
+- `engines` (array of `"bing"`, `"gsc"`, `"indexnow"`, optional).
 - `dryRun` (boolean, optional).

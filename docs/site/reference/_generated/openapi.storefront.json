@@ -758,15 +758,15 @@
               "type": "string",
               "enum": [
                 "CANCELLED",
-                "PENDING",
-                "CONFIRMED",
-                "PROCESSING",
-                "SHIPPED",
-                "DELIVERED",
                 "COMPLETED",
+                "CONFIRMED",
+                "DELIVERED",
                 "ON_HOLD",
+                "PENDING",
+                "PROCESSING",
+                "RETURNED",
                 "RETURN_REQUESTED",
-                "RETURNED"
+                "SHIPPED"
               ]
             }
           }
@@ -1438,8 +1438,8 @@
               "type": "string",
               "enum": [
                 "createdAt",
-                "rating",
-                "helpfulCount"
+                "helpfulCount",
+                "rating"
               ]
             }
           },
@@ -1965,8 +1965,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "name",
                 "createdAt",
+                "name",
                 "price",
                 "rating",
                 "relevance"
@@ -3151,11 +3151,11 @@
           "reason": {
             "type": "string",
             "enum": [
-              "OTHER",
-              "WRONG_SIZE",
+              "CHANGED_MIND",
               "DEFECTIVE",
               "NOT_AS_DESCRIBED",
-              "CHANGED_MIND"
+              "OTHER",
+              "WRONG_SIZE"
             ]
           },
           "reasonDetail": {
@@ -3171,9 +3171,9 @@
           "refundMethod": {
             "type": "string",
             "enum": [
+              "EXCHANGE",
               "ORIGINAL_PAYMENT",
-              "STORE_CREDIT",
-              "EXCHANGE"
+              "STORE_CREDIT"
             ]
           }
         },
@@ -3239,14 +3239,14 @@
           "eventType": {
             "type": "string",
             "enum": [
-              "search",
-              "page_view",
-              "product_view",
+              "add_payment_info",
+              "add_shipping_info",
               "add_to_cart",
               "begin_checkout",
-              "add_shipping_info",
-              "add_payment_info",
-              "purchase"
+              "page_view",
+              "product_view",
+              "purchase",
+              "search"
             ]
           },
           "sessionId": {

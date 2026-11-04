@@ -21,7 +21,7 @@ Parameters:
 - `pageSize` in query (number, min 1, max 100, optional).
 - `status` in query (`"FAILED"`, `"PENDING"`, `"PROCESSING"`, `"READY"`, optional).
 - `to` in query (string, optional).
-- `type` in query (`"IMAGE"`, `"VIDEO"`, `"DOCUMENT"`, `"AUDIO"`, optional).
+- `type` in query (`"AUDIO"`, `"DOCUMENT"`, `"IMAGE"`, `"VIDEO"`, optional).
 
 Responses:
 
@@ -78,7 +78,7 @@ Parameters:
 - `id` in path (string, required).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 200, optional).
-- `type` in query (`"product"`, `"category"`, `"return"`, `"review"`, `"variant"`, `"section"`, optional).
+- `type` in query (`"category"`, `"product"`, `"return"`, `"review"`, `"section"`, `"variant"`, optional).
 
 Responses:
 

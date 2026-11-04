@@ -25,7 +25,7 @@ Parameters:
 - `search` in query (string, optional).
 - `sortBy` in query (string, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `status` in query (`"DRAFT"`, `"ACTIVE"`, `"ARCHIVED"`, optional).
+- `status` in query (`"ACTIVE"`, `"ARCHIVED"`, `"DRAFT"`, optional).
 
 Responses:
 
@@ -313,7 +313,7 @@ Responses:
 ### BulkUpdateStatusAdminDto
 
 - `productIds` (array of string, required).
-- `status` (`"DRAFT"`, `"ACTIVE"`, `"ARCHIVED"`, required).
+- `status` (`"ACTIVE"`, `"ARCHIVED"`, `"DRAFT"`, required).
 
 ### CreateProductAdminDto
 
@@ -321,7 +321,7 @@ Responses:
 - `slug` (string, pattern `^[a-z0-9]+(?:-[a-z0-9]+)*$`, optional).
 - `description` ([OptionalContentTranslatableDto](#optionalcontenttranslatabledto), optional).
 - `shortDescription` ([OptionalContentTranslatableDto](#optionalcontenttranslatabledto), optional).
-- `status` (`"DRAFT"`, `"ACTIVE"`, `"ARCHIVED"`, optional).
+- `status` (`"ACTIVE"`, `"ARCHIVED"`, `"DRAFT"`, optional).
 - `productTypeId` (string, optional).
 - `brand` (string, optional).
 - `tags` (array of string, optional).

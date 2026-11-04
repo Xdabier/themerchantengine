@@ -21,10 +21,10 @@ Parameters:
 - `dateTo` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, optional).
-- `reason` in query (`"OTHER"`, `"WRONG_SIZE"`, `"DEFECTIVE"`, `"NOT_AS_DESCRIBED"`, `"CHANGED_MIND"`, optional).
+- `reason` in query (`"CHANGED_MIND"`, `"DEFECTIVE"`, `"NOT_AS_DESCRIBED"`, `"OTHER"`, `"WRONG_SIZE"`, optional).
 - `sortBy` in query (string, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `status` in query (`"REQUESTED"`, `"APPROVED"`, `"ITEM_RECEIVED"`, `"REFUND_PROCESSED"`, `"CLOSED"`, `"REJECTED"`, optional).
+- `status` in query (`"APPROVED"`, `"CLOSED"`, `"ITEM_RECEIVED"`, `"REFUND_PROCESSED"`, `"REJECTED"`, `"REQUESTED"`, optional).
 
 Responses:
 
@@ -155,12 +155,12 @@ Responses:
 ### ReceiveReturnItemDto
 
 - `returnItemId` (string, required).
-- `restockDecision` (`"RESTOCK"`, `"DAMAGED"`, `"DISPOSE"`, required).
+- `restockDecision` (`"DAMAGED"`, `"DISPOSE"`, `"RESTOCK"`, required).
 - `notes` (string, max length 500, optional).
 
 ### RefundReturnDto
 
-- `refundMethod` (`"ORIGINAL_PAYMENT"`, `"STORE_CREDIT"`, `"EXCHANGE"`, required).
+- `refundMethod` (`"EXCHANGE"`, `"ORIGINAL_PAYMENT"`, `"STORE_CREDIT"`, required).
 - `notes` (string, max length 1000, optional).
 
 ### RejectReturnDto

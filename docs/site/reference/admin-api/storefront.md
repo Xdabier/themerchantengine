@@ -135,7 +135,7 @@ Responses:
 ### CreateSectionAdminDto
 
 - `pageSlug` (string, pattern `^[a-z0-9-/]+$`, max length 200, optional).
-- `type` (`"HERO"`, `"PROMOTIONAL_BANNER"`, `"CATEGORY_SHOWCASE"`, `"FEATURED_PRODUCTS"`, `"TRUST_SIGNALS"`, required).
+- `type` (`"CATEGORY_SHOWCASE"`, `"FEATURED_PRODUCTS"`, `"HERO"`, `"PROMOTIONAL_BANNER"`, `"TRUST_SIGNALS"`, required).
 - `title` ([TranslatableDto](#translatabledto), optional).
 - `config` (object, required).
 - `sortOrder` (number, min 0, optional).

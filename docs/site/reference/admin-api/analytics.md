@@ -108,8 +108,8 @@ Get bucketed time series for orders, revenue or sessions
 Parameters:
 
 - `from` in query (string, optional).
-- `granularity` in query (`"hour"`, `"day"`, `"week"`, optional).
-- `metric` in query (`"sessions"`, `"orders"`, `"revenue"`, required).
+- `granularity` in query (`"day"`, `"hour"`, `"week"`, optional).
+- `metric` in query (`"orders"`, `"revenue"`, `"sessions"`, required).
 - `to` in query (string, optional).
 
 Responses:

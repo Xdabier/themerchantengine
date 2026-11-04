@@ -33,5 +33,5 @@ Responses:
 
 ### UpdateEnabledCountriesDto
 
-- `enabled` (array of `"QA"`, `"AE"`, `"SA"`, `"KW"`, `"BH"`, `"OM"`, `"EG"`, `"JO"`, `"LB"`, `"MA"`, `"LY"`, `"TN"`, `"GB"`, `"DE"`, `"FR"`, `"IT"`, `"ES"`, `"NL"`, `"SE"`, `"US"`, `"CA"`, `"MX"`, `"BR"`, `"IN"`, `"PK"`, `"ID"`, `"MY"`, `"SG"`, `"AU"`, `"JP"`, `"KR"`, required).
-- `defaultCode` (`"QA"`, `"AE"`, `"SA"`, `"KW"`, `"BH"`, `"OM"`, `"EG"`, `"JO"`, `"LB"`, `"MA"`, `"LY"`, `"TN"`, `"GB"`, `"DE"`, `"FR"`, `"IT"`, `"ES"`, `"NL"`, `"SE"`, `"US"`, `"CA"`, `"MX"`, `"BR"`, `"IN"`, `"PK"`, `"ID"`, `"MY"`, `"SG"`, `"AU"`, `"JP"`, `"KR"`, optional).
+- `enabled` (array of `"AE"`, `"AU"`, `"BH"`, `"BR"`, `"CA"`, `"DE"`, `"EG"`, `"ES"`, `"FR"`, `"GB"`, `"ID"`, `"IN"`, `"IT"`, `"JO"`, `"JP"`, `"KR"`, `"KW"`, `"LB"`, `"LY"`, `"MA"`, `"MX"`, `"MY"`, `"NL"`, `"OM"`, `"PK"`, `"QA"`, `"SA"`, `"SE"`, `"SG"`, `"TN"`, `"US"`, required).
+- `defaultCode` (`"AE"`, `"AU"`, `"BH"`, `"BR"`, `"CA"`, `"DE"`, `"EG"`, `"ES"`, `"FR"`, `"GB"`, `"ID"`, `"IN"`, `"IT"`, `"JO"`, `"JP"`, `"KR"`, `"KW"`, `"LB"`, `"LY"`, `"MA"`, `"MX"`, `"MY"`, `"NL"`, `"OM"`, `"PK"`, `"QA"`, `"SA"`, `"SE"`, `"SG"`, `"TN"`, `"US"`, optional).

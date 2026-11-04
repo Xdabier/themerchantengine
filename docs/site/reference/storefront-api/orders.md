@@ -18,7 +18,7 @@ Parameters:
 
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, optional).
-- `status` in query (`"CANCELLED"`, `"PENDING"`, `"CONFIRMED"`, `"PROCESSING"`, `"SHIPPED"`, `"DELIVERED"`, `"COMPLETED"`, `"ON_HOLD"`, `"RETURN_REQUESTED"`, `"RETURNED"`, optional).
+- `status` in query (`"CANCELLED"`, `"COMPLETED"`, `"CONFIRMED"`, `"DELIVERED"`, `"ON_HOLD"`, `"PENDING"`, `"PROCESSING"`, `"RETURNED"`, `"RETURN_REQUESTED"`, `"SHIPPED"`, optional).
 
 Responses:
 
@@ -158,10 +158,10 @@ Responses:
 ### CreateReturnDto
 
 - `items` (array of [ReturnItemDto](#returnitemdto), required).
-- `reason` (`"OTHER"`, `"WRONG_SIZE"`, `"DEFECTIVE"`, `"NOT_AS_DESCRIBED"`, `"CHANGED_MIND"`, required).
+- `reason` (`"CHANGED_MIND"`, `"DEFECTIVE"`, `"NOT_AS_DESCRIBED"`, `"OTHER"`, `"WRONG_SIZE"`, required).
 - `reasonDetail` (string, max length 1000, optional).
 - `photoAssetIds` (array of string, optional).
-- `refundMethod` (`"ORIGINAL_PAYMENT"`, `"STORE_CREDIT"`, `"EXCHANGE"`, optional).
+- `refundMethod` (`"EXCHANGE"`, `"ORIGINAL_PAYMENT"`, `"STORE_CREDIT"`, optional).
 
 ### ReturnItemDto
 

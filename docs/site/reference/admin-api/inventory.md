@@ -19,7 +19,7 @@ Parameters:
 - `locationId` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
-- `sortBy` in query (`"updatedAt"`, `"onHand"`, `"reserved"`, optional).
+- `sortBy` in query (`"onHand"`, `"reserved"`, `"updatedAt"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
 - `stockStatus` in query (`"IN_STOCK"`, `"LOW_STOCK"`, `"OUT_OF_STOCK"`, optional).
 - `variantId` in query (string, optional).
@@ -132,9 +132,9 @@ Parameters:
 - `locationId` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, max 100, optional).
-- `sortBy` in query (`"type"`, `"createdAt"`, `"quantity"`, optional).
+- `sortBy` in query (`"createdAt"`, `"quantity"`, `"type"`, optional).
 - `sortOrder` in query (`"asc"`, `"desc"`, optional).
-- `type` in query (`"SALE"`, `"RETURN"`, `"ADJUSTMENT"`, `"TRANSFER"`, `"RESERVATION"`, `"RESERVATION_RELEASE"`, optional).
+- `type` in query (`"ADJUSTMENT"`, `"RESERVATION"`, `"RESERVATION_RELEASE"`, `"RETURN"`, `"SALE"`, `"TRANSFER"`, optional).
 - `variantId` in query (string, optional).
 
 Responses:
@@ -181,7 +181,7 @@ Responses:
 - `quantity` (number, optional).
 - `setTo` (number, min 0, optional).
 - `expectedOnHand` (number, min 0, optional).
-- `reason` (`"RECOUNT"`, `"DAMAGE"`, `"SHRINKAGE"`, `"RECEIVED"`, `"RETURN_RESTOCK"`, `"RETURN_DAMAGED"`, `"CORRECTION"`, `"OTHER"`, required).
+- `reason` (`"CORRECTION"`, `"DAMAGE"`, `"OTHER"`, `"RECEIVED"`, `"RECOUNT"`, `"RETURN_DAMAGED"`, `"RETURN_RESTOCK"`, `"SHRINKAGE"`, required).
 - `notes` (string, max length 500, optional).
 
 ### CreateInventoryLocationAdminDto
