@@ -6,10 +6,10 @@
   "tags": ["scope:storefront", "type:types"],
   "targets": {
     "test": {
-      "executor": "@nx/vitest:test",
+      "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "configFile": "libs/storefront-types/vite.config.ts"
+        "command": "vitest run -c libs/storefront-types/vite.config.ts"
       }
     },
     "lint": {
