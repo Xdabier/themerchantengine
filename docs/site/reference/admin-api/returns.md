@@ -2,7 +2,7 @@
 title: "Returns (admin API)"
 description: "The 8 admin routes of the returns module: parameters, request bodies, responses and schemas, generated from the OpenAPI document."
 primaryQuery: "admin api returns ecommerce"
-updated: 2026-09-09
+updated: 2026-11-04
 schema: TechArticle
 ---
 
@@ -21,7 +21,10 @@ Parameters:
 - `dateTo` in query (string, optional).
 - `page` in query (number, min 1, optional).
 - `pageSize` in query (number, min 1, optional).
+- `reason` in query (`"OTHER"`, `"WRONG_SIZE"`, `"DEFECTIVE"`, `"NOT_AS_DESCRIBED"`, `"CHANGED_MIND"`, optional).
 - `sortBy` in query (string, optional).
+- `sortOrder` in query (`"asc"`, `"desc"`, optional).
+- `status` in query (`"REQUESTED"`, `"APPROVED"`, `"ITEM_RECEIVED"`, `"REFUND_PROCESSED"`, `"CLOSED"`, `"REJECTED"`, optional).
 
 Responses:
 
@@ -152,12 +155,12 @@ Responses:
 ### ReceiveReturnItemDto
 
 - `returnItemId` (string, required).
-- `restockDecision` (object, required).
+- `restockDecision` (`"RESTOCK"`, `"DAMAGED"`, `"DISPOSE"`, required).
 - `notes` (string, max length 500, optional).
 
 ### RefundReturnDto
 
-- `refundMethod` (object, required).
+- `refundMethod` (`"ORIGINAL_PAYMENT"`, `"STORE_CREDIT"`, `"EXCHANGE"`, required).
 - `notes` (string, max length 1000, optional).
 
 ### RejectReturnDto

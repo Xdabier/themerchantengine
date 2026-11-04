@@ -2,7 +2,7 @@
 title: "Notifications (admin API)"
 description: "The 13 admin routes of the notifications module: parameters, request bodies, responses and schemas, generated from the OpenAPI document."
 primaryQuery: "admin api notifications ecommerce"
-updated: 2026-10-18
+updated: 2026-11-04
 schema: TechArticle
 ---
 
@@ -190,11 +190,11 @@ Responses:
 
 ### CreateNotificationTemplateDto
 
-- `code` (string, pattern `/^[a-z][a-z0-9_.]*$/`, min length 2, max length 100, required).
+- `code` (string, pattern `^[a-z][a-z0-9_.]*$`, min length 2, max length 100, required).
 - `subject` ([OptionalTranslatableBodyDto](#optionaltranslatablebodydto), optional).
 - `body` ([TranslatableBodyDto](#translatablebodydto), required).
 - `channel` (`"email"`, `"sms"`, `"push"`, required).
-- `event` (string, pattern `/^[a-z][a-z0-9_.]*$/`, required).
+- `event` (string, pattern `^[a-z][a-z0-9_.]*$`, required).
 - `variables` (array of string, optional).
 - `isEnabled` (boolean, optional).
 - `sendEnabled` (boolean, optional).

@@ -2,7 +2,7 @@
 title: "Seo (admin API)"
 description: "The 11 admin routes of the seo module: parameters, request bodies, responses and schemas, generated from the OpenAPI document."
 primaryQuery: "admin api seo ecommerce"
-updated: 2026-10-15
+updated: 2026-11-04
 schema: TechArticle
 ---
 
@@ -130,9 +130,9 @@ Get Google index state for one URL
 
 Parameters:
 
-- `locale` in query (string, optional).
+- `locale` in query (`"fr"`, `"en"`, `"ar"`, optional).
 - `productId` in query (string, optional).
-- `url` in query (string, optional).
+- `url` in query (string, uri, optional).
 
 Responses:
 
@@ -142,14 +142,14 @@ Responses:
 
 ### CreateRedirectAdminDto
 
-- `fromPath` (string, pattern `PATH_REGEX`, required).
-- `toPath` (string, pattern `PATH_REGEX`, required).
-- `type` (object, optional).
+- `fromPath` (string, required).
+- `toPath` (string, required).
+- `type` (`"MOVED_PERMANENTLY"`, `"FOUND"`, optional).
 
 ### SubmitSeoAdminDto
 
-- `url` (string, optional).
+- `url` (string, uri, optional).
 - `productIds` (array of string, optional).
 - `sitemap` (boolean, optional).
-- `engines` (`"indexnow"`, `"gsc"`, `"bing"`, optional).
+- `engines` (array of `"indexnow"`, `"gsc"`, `"bing"`, optional).
 - `dryRun` (boolean, optional).
