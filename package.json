@@ -236,7 +236,7 @@
     "vitest": "^3.2.4",
     "webpack": "^5.105.4",
     "webpack-node-externals": "^3.0.0",
-    "zone.js": "^0.15.1"
+    "zone.js": "^0.16.3"
   },
   "prisma": {
     "seed": "npx ts-node prisma/seed.ts"
