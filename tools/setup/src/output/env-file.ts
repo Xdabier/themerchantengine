@@ -59,6 +59,35 @@ export function serializeEnv(sections: readonly EnvSection[], header: string): s
   return `${lines.join('\n')}\n`;
 }
 
+export const KEPT_SECTION_TITLE = 'Kept from the previous file (setup does not manage these)';
+
+/**
+ * Carries over the keys an operator added to an earlier file by hand. A key
+ * setup manages is never carried, even when this run does not write it, so
+ * switching S3 off drops the old S3 keys. A kept value setup cannot quote
+ * safely is left out and named in `skipped`.
+ */
+export function keepUnmanagedKeys(
+  sections: readonly EnvSection[],
+  previous: Readonly<Record<string, string>>,
+  managed: ReadonlySet<string>,
+): { sections: EnvSection[]; skipped: string[] } {
+  const written = new Set(sections.flatMap((s) => s.entries.map((e) => e.key)));
+  const kept: EnvEntry[] = [];
+  const skipped: string[] = [];
+  for (const [key, value] of Object.entries(previous)) {
+    if (written.has(key) || managed.has(key)) continue;
+    if (KEY.test(key) && !REFUSED.test(value)) kept.push({ key, value });
+    else skipped.push(key);
+  }
+  return {
+    sections: kept.length
+      ? [...sections, { title: KEPT_SECTION_TITLE, entries: kept }]
+      : [...sections],
+    skipped,
+  };
+}
+
 /**
  * Reads a file this module wrote, or a hand-written one with unquoted or
  * single-quoted values. Escapes are honoured only inside double quotes, which
