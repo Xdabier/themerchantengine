@@ -127,6 +127,12 @@ export interface ReviewEligibility {
   reason: ReviewIneligibilityReason | null;
 }
 
+type ReviewsTx = Parameters<Parameters<PrismaService['$transaction']>[0]>[0];
+
+function isPrismaError(err: unknown, code: 'P2002' | 'P2025'): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === code;
+}
+
 // ── Service ──────────────────────────────────────────────────────────────────
 
 @Injectable()
@@ -259,7 +265,7 @@ export class ReviewsService {
         include: REVIEW_INCLUDE,
       });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      if (isPrismaError(err, 'P2002')) {
         throw new ReviewDuplicateException();
       }
       throw err;
@@ -866,6 +872,8 @@ export class ReviewsService {
   /**
    * Toggles a helpful vote for a review or question.
    * Atomically increments / decrements the materialized helpfulCount (§9.1 S4).
+   * A concurrent request from the same user (double click) loses the race on
+   * the unique vote row; it rolls back and reports the state the winner set.
    */
   private async toggleHelpfulVote(
     entityType: string,
@@ -878,40 +886,40 @@ export class ReviewsService {
     });
 
     if (existing) {
-      // Remove vote — decrement count atomically
-      await this.prisma.$transaction(async (tx) => {
-        await tx.helpfulVote.delete({ where: { id: existing.id } });
-        if (entityType === HELPFUL_ENTITY_TYPE.REVIEW) {
-          await tx.review.update({
-            where: { id: entityId },
-            data: { helpfulCount: { decrement: 1 } },
-          });
-        } else {
-          await tx.productQuestion.update({
-            where: { id: entityId },
-            data: { helpfulCount: { decrement: 1 } },
-          });
-        }
-      });
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          await tx.helpfulVote.delete({ where: { id: existing.id } });
+          await this.adjustHelpfulCount(tx, entityType, entityId, -1);
+        });
+      } catch (err) {
+        if (!isPrismaError(err, 'P2025')) throw err;
+      }
       return { helpful: false };
     }
 
-    // Add vote — increment count atomically
-    await this.prisma.$transaction(async (tx) => {
-      await tx.helpfulVote.create({ data: { userId, entityType, entityId } });
-      if (entityType === HELPFUL_ENTITY_TYPE.REVIEW) {
-        await tx.review.update({
-          where: { id: entityId },
-          data: { helpfulCount: { increment: 1 } },
-        });
-      } else {
-        await tx.productQuestion.update({
-          where: { id: entityId },
-          data: { helpfulCount: { increment: 1 } },
-        });
-      }
-    });
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.helpfulVote.create({ data: { userId, entityType, entityId } });
+        await this.adjustHelpfulCount(tx, entityType, entityId, 1);
+      });
+    } catch (err) {
+      if (!isPrismaError(err, 'P2002')) throw err;
+    }
     return { helpful: true };
+  }
+
+  private async adjustHelpfulCount(
+    tx: ReviewsTx,
+    entityType: string,
+    entityId: string,
+    delta: 1 | -1,
+  ): Promise<void> {
+    const data = { helpfulCount: { increment: delta } };
+    if (entityType === HELPFUL_ENTITY_TYPE.REVIEW) {
+      await tx.review.update({ where: { id: entityId }, data });
+    } else {
+      await tx.productQuestion.update({ where: { id: entityId }, data });
+    }
   }
 
   private async resolveProductBySlug(slug: string): Promise<{ id: string }> {

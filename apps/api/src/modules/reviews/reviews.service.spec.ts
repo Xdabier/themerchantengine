@@ -483,6 +483,57 @@ describe('ReviewsService', () => {
       expect(result).toEqual({ helpful: false });
     });
 
+    it('returns helpful=true when a concurrent request already added the vote', async () => {
+      prisma.review.findUnique.mockResolvedValue({ id: 'review-1' });
+      prisma.helpfulVote.findUnique.mockResolvedValue(null);
+      prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) =>
+        fn(prisma),
+      );
+      prisma.helpfulVote.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint', {
+          code: 'P2002',
+          clientVersion: '7.0.0',
+          meta: {},
+        }),
+      );
+
+      const result = await service.toggleHelpfulReview('review-1', 'user-1');
+      expect(result).toEqual({ helpful: true });
+      expect(prisma.review.update).not.toHaveBeenCalled();
+    });
+
+    it('returns helpful=false when a concurrent request already removed the vote', async () => {
+      prisma.review.findUnique.mockResolvedValue({ id: 'review-1' });
+      prisma.helpfulVote.findUnique.mockResolvedValue(makeHelpfulVote());
+      prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) =>
+        fn(prisma),
+      );
+      prisma.helpfulVote.delete.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Record not found', {
+          code: 'P2025',
+          clientVersion: '7.0.0',
+          meta: {},
+        }),
+      );
+
+      const result = await service.toggleHelpfulReview('review-1', 'user-1');
+      expect(result).toEqual({ helpful: false });
+      expect(prisma.review.update).not.toHaveBeenCalled();
+    });
+
+    it('still throws other database errors', async () => {
+      prisma.review.findUnique.mockResolvedValue({ id: 'review-1' });
+      prisma.helpfulVote.findUnique.mockResolvedValue(null);
+      prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) =>
+        fn(prisma),
+      );
+      prisma.helpfulVote.create.mockRejectedValue(new Error('connection lost'));
+
+      await expect(service.toggleHelpfulReview('review-1', 'user-1')).rejects.toThrow(
+        'connection lost',
+      );
+    });
+
     it('throws NotFoundException for unknown review', async () => {
       prisma.review.findUnique.mockResolvedValue(null);
       await expect(service.toggleHelpfulReview('bad-id', 'user-1')).rejects.toThrow(
@@ -1052,6 +1103,25 @@ describe('ReviewsService', () => {
 
       const result = await service.toggleHelpfulQuestion('question-1', 'user-1');
       expect(result).toEqual({ helpful: true });
+    });
+
+    it('returns helpful=true when a concurrent request already added the vote', async () => {
+      prisma.productQuestion.findUnique.mockResolvedValue({ id: 'question-1' });
+      prisma.helpfulVote.findUnique.mockResolvedValue(null);
+      prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) =>
+        fn(prisma),
+      );
+      prisma.helpfulVote.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint', {
+          code: 'P2002',
+          clientVersion: '7.0.0',
+          meta: {},
+        }),
+      );
+
+      const result = await service.toggleHelpfulQuestion('question-1', 'user-1');
+      expect(result).toEqual({ helpful: true });
+      expect(prisma.productQuestion.update).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException for unknown question', async () => {
