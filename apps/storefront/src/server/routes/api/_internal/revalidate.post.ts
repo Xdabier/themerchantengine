@@ -42,7 +42,12 @@ import {
  * structured envelope `{ paths, reason, eventId, deduped }`.
  */
 
-const REVALIDATE_REASONS = ['product.write', 'category.write', 'cms.write'] as const;
+const REVALIDATE_REASONS = [
+  'product.write',
+  'category.write',
+  'cms.write',
+  'config.write',
+] as const;
 
 const revalidateBodySchema = z
   .object({
