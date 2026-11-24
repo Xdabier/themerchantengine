@@ -2,13 +2,13 @@
 title: Change the theme
 description: "Where the storefront palette, font kit and logo come from at request time, what the admin owns, what a developer may still change in component styles, and how to test a change under the three scenario fixtures."
 primaryQuery: change storefront theme css custom properties analog angular
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-You want the storefront to look different. The first question is whether the change is a value or a rule. Every colour, both font families, the type scale, the logo and the favicon are values in the store config, which the admin edits and the API serves on `GET /v1/store/config`. The storefront turns that payload into CSS custom properties on every request, so a colour change needs no code and no deploy. A developer changes rules: how a component consumes those tokens, its layout, its spacing, and the derived colours built from the generated ones. This page shows where each half lives, using the header lockup and the trust strip as the worked examples.
+You want the storefront to look different. First decide whether your change is a value or a rule. Every colour, both font families, the type scale, the logo and the favicon are values in the store config, which the admin edits and the API serves on `GET /v1/store/config`. The storefront turns that payload into CSS custom properties on every request, so a colour change needs no code and no deploy. A developer changes rules: how a component consumes those tokens, its layout, its spacing, and the derived colours built from the generated ones. Each half lives in a different place. The header lockup and the trust strip show both halves.
 
 ## Files you touch
 
@@ -70,7 +70,7 @@ The injected block overrides the fallback in `apps/storefront/src/styles/brand.c
 
 ### 2. Decide who owns the change
 
-The admin owns everything in the store config: `brand.baseColors` (`primary`, optional `secondary` and `accent`), `brand.fontKit` (`latin-rounded` or `arabic-latin`), the logo and favicon assets, the locale set and `rtlLocales`, and the money format. Those are edited on the admin brand and settings screens; see [Store settings](../../../operate/store-settings.md). The generator in `libs/shared/common/src/brand/palette.ts` derives the other nineteen tokens and rejects a palette it cannot make pass AA, naming the failing pair. Do not hand-tune a generated colour in CSS.
+The admin owns everything in the store config: `brand.baseColors` (`primary`, optional `secondary` and `accent`), `brand.fontKit` (`latin-rounded` or `arabic-latin`), the logo and favicon assets, the locale set and `rtlLocales`, and the money format. Those are edited on the admin brand and settings screens; see [Store settings](../../../operate/store-settings.md). The generator in `libs/shared/common/src/brand/palette.ts` derives the other tokens from those base colours and rejects a palette it cannot make pass WCAG AA, naming the failing pair. Do not hand-tune a generated colour in CSS.
 
 A developer owns the consumers. `apps/storefront/src/app/sections/home/trust-strip.component.ts` is the shape to copy: every colour is a `var(--brand-*)`, every size a token, every property logical:
 
@@ -123,7 +123,7 @@ protected readonly lockupSrc = computed(() => this.storeConfig.logoUrl() ?? DEFA
 
 ## Tests to run
 
-`npx nx test storefront` is the whole storefront Vitest suite and takes ten minutes or more. For this recipe the short equivalent is the second command below, run from `apps/storefront`: it runs only the two brand specs through the same `apps/storefront/vite.config.ts` and finishes in under a minute.
+`npx nx test storefront` is the whole storefront Vitest suite and is slow. For this recipe, the second command below runs only the two brand specs, from `apps/storefront`, through `apps/storefront/vite.config.ts`.
 
 ```bash
 npx nx test common
@@ -142,10 +142,10 @@ STORE_CONFIG_FIXTURE=maghreb-ltr npx nx e2e storefront-e2e --grep=price-tax-ment
 
 ## Gotchas
 
-- The three fixtures in `test/fixtures/store-configs/` are the only reference values. `gulf-rtl` is the RTL gate (Arabic default, `arabic-latin` kit, symbol before the number). `maghreb-ltr` is the three-decimal money gate and the longer-copy gate (French default). `demo` is what the visual-regression baselines were recorded under, so run `visual-regression.journey.spec.ts` under `demo` or expect diffs.
+- The three fixtures in `test/fixtures/store-configs/` are the only reference values. `gulf-rtl` is the RTL gate (Arabic default, `arabic-latin` kit, symbol before the number). `maghreb-ltr` is the three-decimal money gate and the longer-copy gate (French default). `demo` is the default fixture when `STORE_CONFIG_FIXTURE` is unset.
 - `brand.generatedPalette` is not in the fixture files. It is derived from `baseColors` when the config is written, and unit specs get it through `apps/storefront/src/test-support/store-config-fixtures.ts`, which calls the generator.
 - `brand-tokens.spec.ts` also fails on a token that is consumed but declared nowhere. Declare a new token in `brand.css` before using it in a component.
 - The injected block is one inline `<style>`. `apps/storefront/src/server/middleware/security-headers.ts` sends `style-src 'self' 'unsafe-inline'`, so no nonce is involved; do not tighten that directive without moving the block.
 - The server config read is cached per process for sixty seconds in `apps/storefront/src/server/store-config.ts`, and the API caches the same payload. An admin save shows up on the storefront within about a minute, not instantly. `store-config.journey.spec.ts` polls for up to seventy-five seconds for this reason.
 - `theme-color` is rewritten by `applyThemeColor()` from `--brand-primary` on the server pass only. The static value in `apps/storefront/index.html` is what an unconfigured store shows.
-- A config that enables `ar` must select a kit whose scripts include Arabic. The config schema enforces it; the storefront does not swap faces per locale.
+- A config that enables `ar` should pick the `arabic-latin` kit. In `libs/shared/common/src/locale/locale-registry.ts`, that kit covers the `latin` and `arabic` scripts; `latin-rounded` covers only `latin`.

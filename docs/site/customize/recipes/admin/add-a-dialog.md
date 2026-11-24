@@ -2,7 +2,7 @@
 title: Add a dialog
 description: "Open a modal in the Angular admin on the CDK dialog primitive: pass data in, get a typed result out, keep the focus trap and Escape behaviour CDK provides, and style it inside the brand rules."
 primaryQuery: add a dialog angular cdk admin dashboard
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -218,7 +218,7 @@ npx nx e2e admin-e2e --grep dialog
 - Forget `backdropClass: 'cdk-overlay-backdrop-brand'` and the backdrop renders fully transparent; the page behind does not dim and the e2e chrome spec fails. That is the defect the spec was written for.
 - A `panelClass` that is a string of Tailwind utilities does nothing: Tailwind does not see class names inside a `.ts` string passed to CDK at runtime, so the pane keeps its auto width and Playwright reports it hidden. Put a real rule in `styles.css`, as `side-panel-right` is.
 - Pass `ariaLabelledBy` with an id the dialog's heading really carries. The confirm helper generates the pair itself; a custom dialog hardcodes the id in both places.
-- `openConfirmDialog` returns `false` for Escape and for a backdrop click, not only for Cancel. Do not read `false` as "the operator pressed Cancel".
+- `openConfirmDialog` returns `false` for Escape, for a backdrop click and for Cancel. Do not read `false` as "the operator pressed Cancel".
 - A dialog with a form is subject to the same rule as any form: no `computed()` over a form getter. See [Add a form field](./add-a-form-field.md).
 - The scrim is Void Black in light mode too. Do not switch it to a light colour to "match the theme".
 - `ref.closed` emits once. Subscribe before the operator can close the dialog; opening and subscribing in the same synchronous block, as the attribute opener does, is enough.

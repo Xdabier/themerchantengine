@@ -2,11 +2,11 @@
 title: Repository layout
 description: "The Nx workspace: every app and library with its port, its purpose and how it builds, the path a request travels from the edge nginx to Prisma and back, and which app imports which library."
 primaryQuery: nestjs prisma ecommerce repository layout
-updated: 2026-10-27
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-The engine is one Nx workspace (`nx.json`, Nx 22) holding three applications, three e2e projects and eight libraries. One `package.json` at the root carries every dependency; there are no per-app package files. Node 22 (`.nvmrc`), NestJS 10, Prisma 7, Angular 21, Analog 2. This page is the map. [Development environment](./development-environment.md) says how to run it and [Conventions](./conventions.md) says the rules a change follows.
+The engine is one Nx workspace (`nx.json`, Nx 22) holding three applications, three e2e projects and eight libraries. One `package.json` at the root carries every dependency; there are no per-app package files. Node 22 (`.nvmrc`), NestJS 10, Prisma 7, Angular 21, Analog 2. [Development environment](./development-environment.md) says how to run it and [Conventions](./conventions.md) says the rules a change follows.
 
 ## The applications
 
@@ -54,7 +54,7 @@ How it builds:
 
 - The source is `apps/admin/src/app/`: `core/` (stores, guards, HTTP interceptors, the session bootstrap), `features/` (one lazy-loaded route group per module), `shared/` (layouts and navigation).
 - Tailwind 4 with `apps/admin/tailwind.config.js`; the brand tokens live in `apps/admin/src/styles.css`.
-- Signals hold local UI state, Reactive Forms hold every form, and `@angular/cdk` supplies the dialog, overlay, listbox and a11y primitives. TanStack Query caches server state only; there is no NgRx.
+- Signals hold local UI state, Reactive Forms hold every form, and `@angular/cdk` supplies the dialog, overlay, listbox and a11y primitives. Screens get data from services and write it into signals. TanStack Query is in `package.json`, but no admin code imports it. There is no NgRx.
 - Every API response and form is parsed by a Zod schema from `libs/admin-types/`, called by the matching service in `libs/admin-services/`. Component tests run jest-axe; the Playwright journeys run axe.
 - The app's API base is the relative `/api` (`apps/admin/src/environments/environment.ts`), in dev and in production alike.
 - `npx nx serve admin` runs the dev server on 53200 with `apps/admin/proxy.conf.json`, which forwards `/api` to `http://localhost:53000` without rewriting the path.

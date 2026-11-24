@@ -2,11 +2,11 @@
 title: Config, locale and money
 description: "GET /v1/store/config, field by field: identity, brand tokens as CSS custom properties, locales and direction, the money format with a three-decimal currency, tax display, domains, the sixty-second public cache, and what GET /v1/storefront/config adds."
 primaryQuery: storefront config api brand tokens locales rtl money format cache
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-`GET /v1/store/config` is the first request a storefront makes and the only one it needs before it can paint a page: the store's name, its palette and fonts, which locales it speaks and which way they read, how a price is written, and which domains are canonical. Rendering from this payload rather than from constants in your code is obligation one of [the contract](./index.md#the-ten-obligations): one build of your storefront serves any store the engine is configured as. This page walks the payload block by block, shows a price formatted from it in ten lines, and covers the cache and the older `GET /v1/storefront/config` the shipped app also reads.
+`GET /v1/store/config` is the first request a storefront makes and the only one it needs before it can paint a page: the store's name, its palette and fonts, which locales it speaks and which way they read, how a price is written, and which domains are canonical. Rendering from this payload rather than from constants in your code is obligation one of [the contract](./index.md#the-ten-obligations): one build of your storefront serves any store the engine is configured as. The shipped app also reads a second, narrower route, `GET /v1/storefront/config`, which is covered at the end.
 
 ## The request
 

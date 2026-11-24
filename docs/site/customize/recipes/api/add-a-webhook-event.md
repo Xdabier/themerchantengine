@@ -3,13 +3,13 @@ title: Add a webhook event
 description: "Add an outbound webhook event type: the catalogue, the internal event a module emits, the listener bridge, the BullMQ dispatcher with its globally unique eventId, the signed delivery and its retry log, the admin subscription screen, and the URL validations."
 primaryQuery: add an outbound webhook event nestjs bullmq ecommerce
 primaryQueryNote: none
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-An external system needs to know when something happens in the store: a warehouse on `order.confirmed`, an accounting tool on a refund, your own service on a new event you are adding. A subscription is an HTTPS URL, a list of event types and an HMAC secret; each event becomes one delivery per subscription, signed, retried on a fixed schedule and logged. This page adds an event type from the catalogue to the subscriber's inbox. You end with a type operators can subscribe to in the admin, deliveries they can read back, and a signature the receiver can verify.
+An external system needs to know when something happens in the store: a warehouse on `order.confirmed`, an accounting tool on a refund, your own service on a new event you are adding. A subscription is an HTTPS URL, a list of event types and an HMAC secret; each event becomes one delivery per subscription, signed, retried on a fixed schedule and logged. You add an event type from the catalogue to the subscriber's inbox. At the end, operators can subscribe to the type in the admin, and the receiver can verify its signature.
 
 ## Files you touch
 
@@ -56,7 +56,7 @@ export const WEBHOOK_EVENT_TYPES = [
 
 That is the full list at `apps/api/src/modules/webhooks/webhooks.constants.ts:56-78`, 21 types. `CreateWebhookDto` validates `events` with `@IsEnum(WEBHOOK_EVENT_TYPES, { each: true })`, so a subscription can only name a catalogue type.
 
-`apps/api/src/modules/webhooks/webhooks.service.spec.ts` pins the catalogue twice: an explicit `expected` array starting at line 375 and, at lines 396-398, `it('contains all 21 spec event types')` with `toHaveLength(21)`. Add the new type to the array and bump the count in the same change.
+`apps/api/src/modules/webhooks/webhooks.service.spec.ts` pins the catalogue twice: an explicit `expected` array starting at line 373 and, at lines 397-398, `it('contains all 21 spec event types')` with `toHaveLength(21)`. Add the new type to the array and bump the count in the same change.
 
 ### 2. Emit the internal event from its module
 
@@ -235,7 +235,7 @@ npm run test:e2e
 ## Gotchas
 
 - The admin enum is a hand-maintained copy. A type added to the API and not to `webhooks.schemas.ts` cannot be ticked in the admin, and a subscription that already carries it fails the admin's read schema.
-- `payment.received` and `payment.refunded` are in the catalogue and the listener, and no module emits them. Subscribing to them delivers nothing until a payment provider exists.
+- `payment.received` and `payment.refunded` are in the catalogue and the listener, and no module emits them. Subscribing to them delivers nothing today. Stripe ships as a provider in 1.0.1, but no code emits either event yet.
 - The secret is returned once, on create. List and get responses omit it, and the DTO omits it from PATCH, so a lost secret means a new subscription.
 - `POST /v1/admin/webhooks/:id/test` requires an `X-Idempotency-Key` and sends the first subscribed type with `{ test: true }`. Without the header it is a 400 `IDEMPOTENCY_KEY_REQUIRED`.
 - Wire names and internal names differ where noted in the listener (`return.created` becomes `return.requested`, `review.created` becomes `review.submitted`). Subscribers register the wire name.

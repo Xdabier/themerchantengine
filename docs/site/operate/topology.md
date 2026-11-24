@@ -2,11 +2,11 @@
 title: Topology
 description: What an installed store looks like on the box. The containers per profile, the volumes, the rendered stack directory, the environment files, the timers, and the compose command every operation on this track starts from.
 primaryQuery: ecommerce docker compose production
-updated: 2026-09-08
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-This track is the day-two manual for a store installed with `./setup.sh`. Everything on it assumes the installer printed its closing line; the install itself is [Install on a server](../getting-started/install-on-a-server.md). This page is the map: what runs where, what the installer wrote, and the one shell variable the other pages use.
+This page maps a store installed with `./setup.sh`: what runs where, what the installer wrote, and the one shell variable the other pages use. It assumes the installer printed its closing line; the install itself is [Install on a server](../getting-started/install-on-a-server.md).
 
 Everything under `deploy/` that is tracked in git is a template or a shared script. Everything the installer writes lands under `deploy/engine/`, `deploy/storefront/` or `deploy/local/` and is ignored by git; a re-run of setup rewrites it, so do not hand-edit a rendered file expecting the edit to last.
 
@@ -19,7 +19,7 @@ The compose project is named `themerchantengine` on every profile.
 - **One box for both** (`--profile both`): the union of the two behind one edge. Rendered under `deploy/engine/`, both environment files.
 - **Local** (`--profile local`, or `setup.ps1` on Windows): the whole engine on `localhost` without TLS on ports 53000 (API), 53200 (admin) and 53300 (storefront). Rendered under `deploy/local/` with its own `.env` and `.env.storefront`.
 
-Container names are `themerchantengine-postgres`, `-redis`, `-api`, `-admin`, `-storefront`, `-edge` and `-certbot`. Images are built on the box from the checkout and tagged `themerchantengine/<service>:installed`; there is no registry. Named volumes are `themerchantengine_pg-data`, `_redis-data`, `_certbot-webroot` and `_certbot-certs`. Every container runs with `restart: unless-stopped`, so a reboot brings the stack back without you.
+Container names are `themerchantengine-postgres`, `-redis`, `-api`, `-admin`, `-storefront`, `-edge` and `-certbot`. A storefront box adds `themerchantengine-storefront-redis`. Images are built on the box from the checkout and tagged `themerchantengine/<service>:installed`; there is no registry. Named volumes are `themerchantengine_pg-data`, `_redis-data`, `_certbot-webroot` and `_certbot-certs`. Every container runs with `restart: unless-stopped`, so a reboot brings the stack back without you.
 
 ## The rendered stack directory
 
@@ -65,4 +65,6 @@ systemctl list-timers 'themerchantengine-*' --all
 
 ## Request flow
 
-A browser request to `https://<apex>/` reaches the edge, which proxies to the storefront container. The storefront renders on the server against the API (`https://api.<apex>/api/v1/...`) and the browser's own calls to `/v1/...` on the storefront origin are proxied by the edge to the same API, so the customer never talks to a second origin. The admin at `https://admin.<apex>/` is a static bundle served by its container, with `/api` on that host proxied to the API. The edge forwards a client's `X-Request-Id` when one was sent and mints one otherwise; the API logs the same id on every line, so one id follows a request from the edge into the API and back out in the edge's JSON access log.
+A browser request to `https://<apex>/` reaches the edge, which proxies to the storefront container. The storefront renders on the server against the API (`https://api.<apex>/api/v1/...`). The browser's own calls to `/v1/...` on the storefront origin go through the edge to the same API, so the customer never talks to a second origin. The admin at `https://admin.<apex>/` is a static bundle served by its container, with `/api` on that host proxied to the API.
+
+The edge forwards a client's `X-Request-Id` when one was sent and mints one otherwise. The API logs that id on every line, so one id follows a request from the edge into the API and back out in the edge's JSON access log.

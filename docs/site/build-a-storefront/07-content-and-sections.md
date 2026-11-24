@@ -2,11 +2,11 @@
 title: Content and sections
 description: "GET /v1/pages and GET /v1/pages/{slug} for the operator's rich-text pages, GET /v1/storefront/sections/{pageSlug} for the home page blocks with every section type and its fields, the deprecated home-banners route, and what a storefront renders as HTML, what it must escape, and how it stays correct when a type or a field is missing."
 primaryQuery: cms pages home sections api storefront render rich text json
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-Two routes give a storefront the content an operator writes in the admin rather than in code: `GET /v1/pages` for the pages (about, delivery, terms, any slug the operator adds) and `GET /v1/storefront/sections/{pageSlug}` for the ordered blocks of a landing page such as the home page. Both are public, both resolve every `Translatable` field to the locale in `Accept-Language`, and both are the reason a storefront can be rebuilt by an operator without a deploy. Rendering them serves obligation two of [the contract](./index.md#the-ten-obligations) (send `Accept-Language` on every call) and obligation ten (expose a revalidation route, because these two payloads are what changes when the operator saves). This page runs each route against the `demo` fixture under both locales, lists every section type with the fields a renderer needs, and states the defensive rules the shipped storefront applies when a row carries a type it does not know or a field it expected.
+Two routes give a storefront the content an operator writes in the admin rather than in code: `GET /v1/pages` for the pages (about, delivery, terms, any slug the operator adds) and `GET /v1/storefront/sections/{pageSlug}` for the ordered blocks of a landing page such as the home page. Both are public, both resolve every `Translatable` field to the locale in `Accept-Language`, and both are the reason a storefront can be rebuilt by an operator without a deploy. Rendering them serves obligation two of [the contract](./index.md#the-ten-obligations), which is sending `Accept-Language` on every call. Obligation ten, the revalidation route, matters here because these two payloads are what changes when the operator saves. This page runs each route against the `demo` fixture under both locales, lists every section type with the fields a renderer needs, and states the defensive rules the shipped storefront applies when a row carries a type it does not know or a field it expected.
 
 The store config itself (`GET /v1/store/config`, and the narrower `GET /v1/storefront/config` with the logo, social links and pixels) is covered on [Config, locale and money](./01-config-locale-money.md#get-v1storefrontconfig); this page only links it.
 
@@ -78,7 +78,7 @@ Fields a storefront renders:
 
 ### One page
 
-`GET /v1/pages/l5-content-demo` under `Accept-Language: en`. This page was created for the run through the admin API with a body that contained a `<script>` element, an `<img onerror>` and a paragraph with `style` and `onclick` attributes, so the response shows what survives the server-side sanitiser:
+`GET /v1/pages/l5-content-demo` under `Accept-Language: en`. The page's body holds a `<script>` element, an `<img onerror>` and a paragraph with `style` and `onclick` attributes. The response shows what survives the server-side sanitiser:
 
 ```json
 {"data":{"id":"cmtuazors001p9sqsg491nb23","title":"Delivery and returns","slug":"/l5-content-demo","content":"<h2>Delivery</h2><p>Orders ship within <strong>two working days</strong>.</p><ul><li>Tracking is emailed on dispatch.</li></ul><p><a href=\"/en/pages/contact\">Contact us</a> with any question.</p><p>Styled</p>","type":"STATIC","isPublished":true,"metaTitle":null,"metaDescription":null,"sortOrder":50,"showInNavigation":false,"template":null,"createdAt":"2026-09-09T16:19:04.360Z","updatedAt":"2026-09-09T16:19:04.360Z","deletedAt":null}}
@@ -209,6 +209,6 @@ These four routes are public and identical for every visitor, so cache their out
 - Next.js: fetch sections in a server component with `fetch(url, { next: { tags: ['sections:home'] } })` and call `revalidateTag('sections:home')` from the revalidation route handler; a page generated statically at build time keeps the sections it was built with until that call, a page rendered per request re-reads them and still benefits from the tag cache. Render `content` with `dangerouslySetInnerHTML`.
 - Nuxt: `routeRules: { '/**': { swr: 600 } }` (or `isr`) caches the rendered page; the revalidation route purges the Nitro cache for the paths it receives. Render `content` with `v-html`.
 - SvelteKit: a `+page.server.ts` `load` that fetches sections and a `Cache-Control: public, s-maxage=600` on the response; a prerendered page (`export const prerender = true`) is only rebuilt by a deploy, so leave the home page server-rendered when operators edit it. Render `content` with `{@html page.content}`.
-- The difference to decide up front: static generation bakes an admin-edited page at build time, so the operator's save shows only after the revalidation call (or a rebuild); server rendering reads the API on every request, so the save shows within the ten-minute API cache, and the edge cache you put in front of it is what needs the purge.
+- The difference to decide up front: static generation bakes an admin-edited page at build time, so the operator's save shows only after the revalidation call (or a rebuild); server rendering reads the API on every request, so the save shows on the next request. The API caches section rows for ten minutes but drops that cache on every write. An edge cache in front of the storefront, if you run one, needs its own purge.
 
 The long form of cookie forwarding, the idempotency key on a retried action and the `304` rule is on [Framework notes](./framework-notes.md).

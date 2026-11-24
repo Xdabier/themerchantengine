@@ -2,7 +2,7 @@
 title: Seed a model
 description: "The three seed paths in prisma/seed.ts, what each one plants, how SEED_SCOPE keeps demo data off a production database, where the installer runs them, and how to add rows for a new model to the right one."
 primaryQuery: prisma seed script production safe demo data ecommerce
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -22,7 +22,14 @@ You added a model, and a fresh database needs rows in it: a default row the API 
 
 ### 1. Pick the path
 
-`prisma/seed.ts` reads the store config first, from one of four sources in this order: a scenario fixture named by `STORE_CONFIG_FIXTURE`, the `STORE_CONFIG_FILE` the installer writes, the `StoreSetting` rows of a store that has been configured, or, on an empty database with none of those, a neutral built-in config (the seed prints `Store config: neutral (empty database)`, which is what a fresh developer box gets). Then it branches:
+`prisma/seed.ts` reads the store config first. It takes the first source it finds, in this order:
+
+- a scenario fixture named by `STORE_CONFIG_FIXTURE`
+- the `STORE_CONFIG_FILE` the installer writes
+- the `StoreSetting` rows of a store that has been configured
+- on an empty database with none of those, a neutral built-in config
+
+A fresh developer box gets the neutral config, and the seed prints `Store config: neutral (empty database)`. Then it branches:
 
 - `SEED_SCOPE=notifications-rbac` is the production-safe path. It syncs permissions onto the roles that already exist, upserts the notification templates, seeds the domestic shipping zone, the tax zones, the guest-checkout flag and the cash-on-delivery payment method from the runtime config, flushes the money cache, and returns. No products, no users. The cache flush goes to the Redis that `REDIS_HOST` and `REDIS_PORT` name (`localhost:56379` when unset), whatever database the seed itself wrote to.
 - Everything after that return is the destructive demo seed: four roles, seven users with passwords that are in this repository, ten products, four orders, three reviews, one gift card, and a cleanup that hard-deletes every order, review, user and gift card it did not plant. It runs unasked only on `merchants_engine_test`; any other database name needs `SEED_DEV_OK=1`, including the local `merchants_engine_dev` from `.env.example`.

@@ -2,11 +2,11 @@
 title: The first hour
 description: What to do once the installer printed its closing line. Sign in as the owner, walk the settings screens, create the first category and product in two locales, place a cash-on-delivery test order, read the order email, download the invoice.
 primaryQuery: first product order self hosted ecommerce admin
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
-The installer left you a live, empty store and an owner login. This page is the hour that follows: the settings that are yours to edit now, the first product, the first order, and the two documents the store produces for it. On a local install every URL below is `http://localhost:53200` for the admin and `http://localhost:53300` for the storefront.
+The installer left you a live, empty store and an owner login. Next comes the settings that are yours to edit, the first product, the first order, and the two documents the store produces for it. On a local install every URL below is `http://localhost:53200` for the admin and `http://localhost:53300` for the storefront.
 
 ## Sign in as the owner
 

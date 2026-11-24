@@ -2,13 +2,13 @@
 title: Change SEO and GEO output
 description: "Where the storefront's JSON-LD, canonical and hreflang come from, how sitemaps, robots.txt and the llms.txt files are proxied from the API through Nitro server routes, and the IndexNow ping the API sends when a product becomes visible."
 primaryQuery: change json-ld sitemap robots llms.txt indexnow ecommerce storefront
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-You want to change what crawlers and AI agents read: a new JSON-LD field, a different canonical shape, another crawler in `robots.txt`, a section in `llms.txt`, or a search engine ping on a different event. Two processes produce this output. The storefront (Angular under Nitro) writes the per-page head and JSON-LD at render time. The API builds the site-wide text surfaces, caches them in Redis, and pushes URL changes to IndexNow. The storefront's job for those surfaces is to proxy them from the API so they answer on the public origin. This page names each builder and its guard.
+You want to change what crawlers and AI agents read: a new JSON-LD field, a different canonical shape, another crawler in `robots.txt`, a section in `llms.txt`, or a search engine ping on a different event. Two processes produce this output. The storefront (Angular under Nitro) writes the per-page head and JSON-LD at render time. The API builds the site-wide text surfaces, caches them in Redis, and pushes URL changes to IndexNow. The storefront's job for those surfaces is to proxy them from the API so they answer on the public origin. Each builder below has a spec that guards it, and the list shows which one.
 
 ## Files you touch
 
@@ -25,7 +25,7 @@ You want to change what crawlers and AI agents read: a new JSON-LD field, a diff
 
 ### 1. Change a JSON-LD payload in its builder, then its schema
 
-Each builder in `apps/storefront/src/lib/seo.ts` assembles a typed object and returns `schema.parse(payload)`, so a field the schema does not know is a thrown error in the unit spec, not a silent emit:
+Each builder in `apps/storefront/src/lib/seo.ts` assembles a typed object and returns `schema.parse(payload)`. A payload that breaks the schema throws, and the unit spec catches it. The schemas do not use `.strict()`, so a key the schema does not list is dropped from the output, not emitted:
 
 ```ts
 const productJsonLdSchema = z.object({
@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
 });
 ```
 
-Sitemaps and `robots.txt` leave `forwardAcceptLanguage` off; the two `llms` files turn it on because the API resolves them per language. `sitemap.xml.ts` and `llms_full.txt.ts` are 301s to `/sitemap_index.xml` and `/llms-full.txt`. When you add a route, add the matching entry to the `server.proxy` block of `apps/storefront/vite.config.ts` (lines 143-220) or the dev server answers HTML for it. As it stands the block has entries for the four sitemaps, `/sitemap.xml`, `/robots.txt` and `/llms.txt`, and none for `/llms-full.txt`: the Nitro route serves that file on the production build, and the dev server answers the Angular shell for it.
+Sitemaps and `robots.txt` leave `forwardAcceptLanguage` off; the two `llms` files turn it on because the API resolves them per language. `sitemap.xml.ts` and `llms_full.txt.ts` are 301s to `/sitemap_index.xml` and `/llms-full.txt`. When you add a route, add the matching entry to the `server.proxy` block of `apps/storefront/vite.config.ts` (lines 152-236) or the dev server answers HTML for it. As it stands the block has entries for the four sitemaps, `/sitemap.xml`, `/robots.txt` and `/llms.txt`, and none for `/llms-full.txt`: the Nitro route serves that file on the production build, and the dev server answers the Angular shell for it.
 
 ### 4. Change the API builder
 
@@ -124,7 +124,7 @@ for (const bot of AI_CRAWLERS) {
 lines.push(`Sitemap: ${siteUrl}/sitemap_index.xml`);
 ```
 
-Add a crawler to `AI_CRAWLERS` in `seo.constants.ts`, then to the roster in `apps/api/src/modules/seo/seo.service.spec.ts` (lines 1190-1208): that test holds the same eleven names in a `docRoster` array and asserts `[...AI_CRAWLERS]` equals it, so the constant alone fails `npx nx test api`. Every sitemap builder prefixes its XML with `<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>`; the stylesheet is the static file `apps/storefront/public/sitemap.xsl`. The endpoints in `seo-storefront.controller.ts` are `@Public()`, rate limited with `RateLimit.StorefrontRead()`, and `@PublicCacheable(3600)`; the `llms` endpoints in `geo-storefront.controller.ts` add `Accept-Language` to `Vary`.
+Add a crawler to `AI_CRAWLERS` in `seo.constants.ts`, then to the roster in `apps/api/src/modules/seo/seo.service.spec.ts` (lines 1193-1208): that test holds the same eleven names in a `docRoster` array and asserts `[...AI_CRAWLERS]` equals it, so the constant alone fails `npx nx test api`. Every sitemap builder prefixes its XML with `<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>`; the stylesheet is the static file `apps/storefront/public/sitemap.xsl`. The endpoints in `seo-storefront.controller.ts` are `@Public()`, rate limited with `RateLimit.StorefrontRead()`, and cached with `@PublicCacheable` (300 or 3600 seconds, per endpoint); the `llms` endpoints in `geo-storefront.controller.ts` add `Accept-Language` to `Vary`.
 
 ### 5. Ping IndexNow on the right event
 
@@ -141,7 +141,7 @@ async onProductMutated(payload: ProductMutatedEventPayload): Promise<void> {
 }
 ```
 
-`submitProductIndexNow` builds one URL per configured locale and calls `SearchEngineSubmitService.submitToIndexNow(urls, siteUrl)`, which returns `{ accepted: false, reason: 'INDEXNOW_KEY unset' }` without a key, drops any URL submitted in the last five minutes through a Redis claim, and posts to `https://api.indexnow.org/indexnow` in batches. Every outcome is recorded by `SeoSubmissionService.recordEngineResult` and shown on the admin SEO screen. Google does not take IndexNow; it discovers the sitemap from `robots.txt`.
+`submitProductIndexNow` builds one URL per configured locale and calls `SearchEngineSubmitService.submitToIndexNow(urls, siteUrl)`, which returns `{ accepted: false, reason: 'INDEXNOW_KEY unset' }` without a key, drops any URL submitted in the last five minutes through a Redis claim, and posts to `https://api.indexnow.org/indexnow` in batches. Every outcome is recorded by `SeoSubmissionService.recordEngineResult` and shown on the admin SEO screen.
 
 ## Tests to run
 
@@ -161,7 +161,7 @@ npm run test:storefront-ssr-smoke
 ## Gotchas
 
 - The API caches each surface in Redis: the sitemaps for six hours (`SEO_SITEMAP_TTL_SECONDS` in `apps/api/src/modules/seo/seo.constants.ts`, line 76), `seo:robots` for one hour (`SEO_ROBOTS_TTL_SECONDS`, line 78) and the `llms` files for six (`GEO_LLMS_TXT_TTL_SECONDS` in `apps/api/src/modules/geo/geo.constants.ts`). A builder change shows up after the TTL or a regen job, not on the next request.
-- The IndexNow key file is not in `apps/storefront/public/`. The rule is line 39 of the root `.gitignore`, `apps/storefront/public/[a-f0-9]*.txt`; that directory has no `.gitignore` of its own. The installer writes it next to the rendered compose file and edge nginx serves it, as `apps/storefront/public/README-search-submission.md` explains. A key set in `INDEXNOW_KEY` with no served file is rejected by IndexNow.
+- The IndexNow key file is not in `apps/storefront/public/`. The rule is line 39 of the root `.gitignore`, `apps/storefront/public/[a-f0-9]*.txt`; that directory has no `.gitignore` of its own. The operator runbook is `apps/storefront/public/README-search-submission.md`, which says how the key file gets served. A key set in `INDEXNOW_KEY` with no served file is rejected by IndexNow.
 - `robots.txt` disallows `/search?`, so the search results page is intentionally not crawled. The `WebSite` JSON-LD still advertises the search action.
 - `organizationJsonLd` filters every configured social URL through an absolute-URL check and drops the bad ones rather than throwing. The schema parse would otherwise take the home page down for one junk row.
 - The private routes (`account`, `cart`, `checkout`, `order-confirmation`, `auth`) emit `noindex, nofollow` and no `hreflang`. Do not add a loader or a canonical to them.

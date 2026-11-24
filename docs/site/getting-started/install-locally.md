@@ -2,11 +2,11 @@
 title: Install locally
 description: Run the whole engine on a laptop with Docker Desktop. Linux and macOS through setup.sh, Windows through setup.ps1, the local ports, the demo catalogue, where mail goes, how long it takes, and how to tear it down.
 primaryQuery: ecommerce platform local docker desktop
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
-The same installer that sets up a server runs the whole engine on a laptop: the API, the admin, the storefront, Postgres and Redis in Docker, on local ports, with no TLS, no third-party accounts and a demo catalogue. It is the fastest way to see the product, to evaluate it, or to develop a storefront against a real API. A first install measured seven minutes on a Windows laptop with Docker Desktop; a re-run took twenty-six seconds.
+The same installer that sets up a server runs the whole engine on a laptop: the API, the admin, the storefront, Postgres and Redis in Docker, on local ports, with no TLS, no third-party accounts and a demo catalogue. It is the fastest way to see the product, to evaluate it, or to develop a storefront against a real API.
 
 ## What you need
 
@@ -25,7 +25,7 @@ cd themerchantengine
 
 ## Windows
 
-Open PowerShell (5.1 or 7 both work) in the cloned directory:
+Open PowerShell (5.1 or 7 both work) and run:
 
 ```powershell
 git clone <the engine repository> themerchantengine

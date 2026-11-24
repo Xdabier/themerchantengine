@@ -2,7 +2,7 @@
 title: Add a model
 description: "Declare a Prisma model with its soft-delete column and foreign keys, register it with the soft-delete filter, write the migration record, apply the schema the way the installer does, and guard any contested counter."
 primaryQuery: add a prisma model nestjs ecommerce soft delete migration
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -107,7 +107,7 @@ A delete is an update. `apps/api/src/modules/carriers/carriers.service.ts`:
 
 ### 3. Write the migration record by hand
 
-Do not run `npx prisma migrate dev` here. The folders under `prisma/migrations/` do not start from an empty database: the oldest one, `prisma/migrations/20260503154300_add_brand_model_and_product_gtin_mpn/migration.sql`, alters `Product` and references `Asset`, and no folder creates either table. `migrate dev` replays the chain on a shadow database, fails with `P3006` on that first folder, and writes nothing. The schema is applied by `prisma db push` everywhere (next paragraph), and the migration folder is the written record of the change.
+Do not run `npx prisma migrate dev` here. The folders under `prisma/migrations/` do not replay from an empty database. The Brand folder, `prisma/migrations/20260503154300_add_brand_model_and_product_gtin_mpn/migration.sql`, alters `Product` and references `Asset`, and no folder creates either table. The schema is applied by `prisma db push` everywhere (next paragraph), and the migration folder is the written record of the change.
 
 Create `prisma/migrations/<UTC timestamp>_<snake_case_name>/migration.sql` yourself; the existing folder names show the timestamp form. The SQL for a soft-deletable table with a foreign key, from that same Brand folder:
 
@@ -135,7 +135,7 @@ ALTER TABLE "Brand"
   ON DELETE SET NULL ON UPDATE CASCADE;
 ```
 
-Know what applies the schema where. On a developer box it is `npm run db:push`, which `package.json` chains as `prisma db push`, then `npm run db:fts`, then the order-history backfill. The installer's schema step in `tools/setup/src/runner/install.ts` runs `npx prisma db push --accept-data-loss` inside the API container, then pipes `prisma/search_fts_setup.sql` through the Postgres container as the superuser, then the two index scripts. The backend e2e harness in `test/e2e-global-setup.ts` does the same push before it seeds. The GitHub workflow in `.github/workflows/ci.yml` never runs `migrate deploy`; its `install-smoke` job runs `./setup.sh --profile local`, which is the installer. So the migration file is the written record and the lane for a `migrate` deployment, and a backfill written only in its SQL never runs on a pushed database: `prisma/migrations/20260830130000_order_status_history/migration.sql` says so in its header, and its executable twin is `prisma/backfill-order-status-history.ts`, wired into `db:push` and `db:setup`.
+Know what applies the schema where. On a developer box, run `npm run db:push`. It chains `prisma db push`, then `npm run db:fts`, then the order-history backfill. The installer's schema step in `tools/setup/src/runner/install.ts` runs `npx prisma db push --accept-data-loss` inside the API container. It then pipes `prisma/search_fts_setup.sql` through the Postgres container as the superuser, and runs the notification and shipping index scripts. The backend e2e harness in `test/e2e-global-setup.ts` does the same push before it seeds. The GitHub workflow in `.github/workflows/ci.yml` never runs `migrate deploy`. Its `install-smoke` job runs `./setup.sh --profile local`, which is the installer. So the migration folder is a written record. The installer and CI do not run `migrate deploy`. A backfill written only in its SQL never runs on a pushed database. The migration `prisma/migrations/20260830130000_order_status_history/migration.sql` says so in its header. Its executable twin is `prisma/backfill-order-status-history.ts`, wired into `db:push` and `db:setup`.
 
 Then run `npm run prisma:generate` so the API compiles against the new model.
 
@@ -159,7 +159,7 @@ When the model holds a balance or a count that two requests can decrement at onc
     }
 ```
 
-Zero affected rows is the contention signal. `apps/api/src/modules/inventory/inventory.service.ts` does the same for `StockLevel.onHand` with `$executeRaw` statements of the shape `UPDATE "StockLevel" SET "onHand" = "onHand" - qty WHERE ... AND "onHand" >= qty` (the decrement, the matching increment inside a transaction, and the release), and those are the only raw writes in that module; a new one needs a review, not a copy.
+Zero affected rows is the contention signal. `apps/api/src/modules/inventory/inventory.service.ts` uses the same idea on `StockLevel.onHand`. Its raw statements put the stock check in the `WHERE` clause, for example `UPDATE "StockLevel" SET "onHand" = "onHand" - qty WHERE ... AND "onHand" >= qty` for the decrement. Other statements there use `$executeRaw` for the increment and `$queryRaw` with `RETURNING` for a set-to. Read the comments in that file before you add one. A new raw write needs a review, not a copy.
 
 ### 5. Human-facing numbers come from a Postgres sequence
 
@@ -195,7 +195,7 @@ npm run test:e2e
 
 - A bare `npx prisma db push` drops the product search column and leaves its trigger behind, and the API then refuses to boot on dev. Use `npm run db:push`, or run `npm run db:fts` after the push. Details in [Search after schema changes](./search-after-schema-changes.md).
 - `--accept-data-loss` is what lets a push through when the search column holds data. `db:setup` in `package.json` and the installer both pass it, because the column lives outside `prisma/schema.prisma`. On a table with no rows the flag changes nothing: a bare push drops the column with no prompt and no message, and reports the database in sync.
-- A partial unique index cannot be declared in the schema, so `db push` never creates it. `prisma/shipping_indexes.sql` enforces one default shipping method per zone among live rows, and `prisma/apply-shipping-indexes.ts` re-installs it after every push. A unique rule that must ignore soft-deleted rows needs the same treatment.
+- A partial unique index cannot be declared in the schema, so `db push` never creates it. `prisma/shipping_indexes.sql` enforces one default shipping method per zone among live rows, and `prisma/apply-shipping-indexes.ts` re-installs it. The installer and the e2e setup run it after their push. `npm run db:push` and `npm run db:setup` do not, so run `npx ts-node prisma/apply-shipping-indexes.ts` yourself after a push on a dev database. A unique rule that must ignore soft-deleted rows needs the same treatment.
 - Migrations are forward-only. There is no schema rollback in the installer or in `deploy/scripts/rollback.sh`; the dump you took before the update is the rollback, see [Rollback](../../../operate/rollback.md) and [Backups and restore](../../../operate/backups-and-restore.md).
 - The filter covers reads and `count` only. An `update` or `delete` that forgets `deletedAt: null` in its `where` will happily revive or alter a retired row.
 - A `NOT NULL` column added to a table with rows needs a default or a backfill, and under `db push` the backfill has to be a script under `prisma/`, not SQL in the migration folder.

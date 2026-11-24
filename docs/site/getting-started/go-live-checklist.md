@@ -2,7 +2,7 @@
 title: Go-live checklist
 description: The checks to run on a freshly installed store before customers arrive, each with the command that proves it. DNS and TLS, the backup timer, Search Console and Bing, the IndexNow key, llms.txt, Turnstile, the owner password, the demo catalogue.
 primaryQuery: ecommerce go live checklist self hosted
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -20,7 +20,7 @@ done
 curl -sSI https://<apex>/ | grep -i strict-transport-security
 ```
 
-Expect the box's address on every line, an `notAfter` date about ninety days out, and an HSTS header on the storefront. `http://` on any host redirects to `https://`.
+Expect the box's address on every line, a `notAfter` date about ninety days out, and an HSTS header on the storefront. `http://` on any host redirects to `https://`.
 
 ## The three applications answer
 
@@ -75,4 +75,4 @@ Expect a 400 naming the missing response. A 201 here means the storefront has no
 
 ## Write down what the box needs from you
 
-The store now runs on its own, with two things it cannot do for itself: copying the nightly dump somewhere else, and acting on a certificate alert email. Put both in whatever runbook or calendar your team uses, and read [Topology](../operate/topology.md) once so the compose commands are familiar before the day you need them.
+Two tasks stay with you: copying the nightly dump somewhere else, and acting on a certificate alert email. Put both in a runbook or a calendar. Read [Topology](../operate/topology.md) once too, so the compose commands are familiar before you need them.

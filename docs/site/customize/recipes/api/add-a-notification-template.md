@@ -2,13 +2,13 @@
 title: Add a notification template
 description: "Add a transactional email flow: the flow code, the per-locale subject and body defaults, the file fallback, the event-to-template dispatch row, the seed, the token allow-list the editor enforces, and the preview and test-send endpoints."
 primaryQuery: add an email notification template nestjs ecommerce
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-A domain event should send a customer or an operator an email: a back-order notice, a subscription renewal, a review reminder. A flow is a code such as `order.placed` with a Translatable subject and body per locale, stored as a `NotificationTemplate` row the operator edits in the admin, with a compiled file template as the fallback. This page walks `order.placed` end to end. You end with a flow that renders in every store locale, sends through the mail queue, appears in the admin editor with a token insert menu, and can be previewed and test-sent. The in-app dashboard notices in `apps/api/src/modules/notifications/notifications.constants.ts` are a different thing: they are the inbox bell, not email.
+A domain event should send a customer or an operator an email: a back-order notice, a subscription renewal, a review reminder. A flow is a code such as `order.placed` with a Translatable subject and body per locale, stored as a `NotificationTemplate` row the operator edits in the admin, with a compiled file template as the fallback. The steps below use `order.placed` as the example. You end with a flow that renders in every store locale, sends through the mail queue, appears in the admin editor with a token insert menu, and can be previewed and test-sent. The in-app dashboard notices in `apps/api/src/modules/notifications/notifications.constants.ts` are a different thing: they are the inbox bell, not email.
 
 ## Files you touch
 
@@ -62,7 +62,7 @@ The file header states the rule: add a flow only by extending this union, adding
         cta('orderUrl', 'View order', 'en'),
 ```
 
-The `Translatable` type at `prisma/notification-template-defaults.ts:62-66` is a closed alias with `fr`, `en` and `ar` all required, so a subject or body that drops a locale fails to type-check. A body is the inner block only; the renderer wraps it in the brand layout. `{{token}}` is HTML-escaped, `{{{token}}}` is raw and belongs only inside an `href`. The store name is never a literal: the renderer adds `{{storeName}}` from the runtime config, so a flow that names the store declares it in `variables`. Money arrives already formatted; there is no currency variable. This file runs inside the production image without `apps/api`, so it imports nothing from there.
+The `Translatable` type at `prisma/notification-template-defaults.ts:60-64` is a closed alias with `fr`, `en` and `ar` all required, so a subject or body that drops a locale fails to type-check. A body is the inner block only; the renderer wraps it in the brand layout. `{{token}}` is HTML-escaped, `{{{token}}}` is raw and belongs only inside an `href`. The store name is never a literal: the renderer adds `{{storeName}}` from the runtime config, so a flow that names the store declares it in `variables`. Money arrives already formatted; there is no currency variable. This file runs inside the production image without `apps/api`, so it imports nothing from there.
 
 ### 3. Add the compiled fallback
 
@@ -81,20 +81,20 @@ export function render(locale: MailLocale, vars: Vars, brand: MailBrand): Render
 import { render as orderPlaced } from './order.placed';
 ```
 
-`apps/api/src/modules/mail/templates/render.ts` is a two-tier resolver: the database row wins when its body is non-empty, the file renders when the row is missing, empty or fails to render. The registry is static so every job name is type-checked to have a fallback.
+`apps/api/src/modules/mail/templates/render.ts` is a two-tier resolver: the database row wins when its subject and body are non-empty, the file renders when the row is missing, empty or fails to render. The registry is static so every job name is type-checked to have a fallback.
 
 ### 4. Bind the event
 
 `apps/api/src/modules/mail/dispatch/dispatch.table.ts`:
 
+The order rows look like this (the table is an array of `dispatchEntry(...)` calls; these two lines are excerpted from it):
+
 ```ts
-export const DISPATCH_TABLE: DispatchEntry[] = [
   dispatchEntry(ORDER_EVENTS.CREATED, 'order.placed', resolveOrder),
   dispatchEntry(ORDER_EVENTS.SHIPPED, 'order.shipped', resolveOrder),
-  dispatchEntry(RETURN_EVENTS.CREATED, 'return.requested', resolveReturn),
 ```
 
-One row per flow. `MailDispatchListener` binds one EventEmitter2 listener per row; the resolver in `resolvers.ts` loads the entity and returns the recipient, the locale and the variables. Event names come from the emitting module's own constants, so a rename cannot silently unbind a flow.
+One row per flow. `MailDispatchListener` binds one EventEmitter2 listener per row; the resolver in `resolvers.ts` loads the entity and returns the recipient, the locale and the variables. Event names come from the emitting module's own constants.
 
 ### 5. Seed the row
 
@@ -159,7 +159,7 @@ The response reports the honest outcome: `queued`, `suppressed` or `skipped`. Ev
 
 ### 8. How it sends
 
-`MailService.enqueue` in `apps/api/src/modules/mail/mail.service.ts` checks, in order: a dedupe key against the BullMQ `mail` queue, the recipient's suppression row, the flow's `sendEnabled` flag and the global `notifications.pauseAll` setting. Each refusal writes a `NotificationLog` row with its status and never drops silently. `apps/api/src/modules/mail/mail.processor.ts` renders and sends through Resend at four workers and five jobs per second; the Resend webhook later moves the log row to `delivered`, `bounced` or `complained`.
+`MailService.enqueue` in `apps/api/src/modules/mail/mail.service.ts` checks, in order: a dedupe key against the BullMQ `mail` queue, the recipient's suppression row, the flow's `sendEnabled` flag and the global `notifications.pauseAll` setting. Each refusal writes a `NotificationLog` row with its status. A dedupe hit returns the original log row instead of sending again. `apps/api/src/modules/mail/mail.processor.ts` renders and sends through Resend at four workers and five jobs per second; the Resend webhook later moves the log row to `delivered`, `bounced` or `complained`.
 
 ## Tests to run
 
@@ -179,10 +179,10 @@ Subjects that pass, one per locale: `Commande {{orderNumber}} reçue · {{storeN
 
 ## Gotchas
 
-- Flows whose code starts with `auth.` or `order.` are locked: `isLockedFlow` in `apps/api/src/modules/mail/mail.constants.ts` refuses `sendEnabled: false` and the pause switch skips them. The comment there names three places the lock rule lives; a new locked family goes into all three.
+- Flows whose code starts with `auth.` or `order.` are locked: `isLockedFlow` in `apps/api/src/modules/mail/mail.constants.ts` makes them ignore `sendEnabled: false` and the global pause switch. The comment there names three places the lock rule lives; a new locked family goes into all three.
 - Seeded rows store locale keys without a `default` key. The editor's `asTranslatable` keeps whatever keys the object holds; a `'default' in v` guard used to blank the subject.
 - A Translatable body refuses a locale the store has not enabled. The seed cuts the defaults down to the enabled set for that reason, and an editor that round-trips a stale extra locale gets a 400.
 - Test send bypasses the consent gate so a `LIFECYCLE` or `MARKETING` flow can be checked, but suppression and the pause switch still apply, so `suppressed` and `skipped` are real answers.
 - A resend of an `auth.*` flow is refused: the single-use credential was redacted from the stored variables and would render as a broken link.
 - The compiled file template is a plain template literal with no interpolator. It escapes at its own call site; the database tier escapes in `interpolate`. Both escape the same five characters.
-- `MailJobName`, `MAIL_FLOW_CODES`, the registry and the seed list are four copies of the same list. The type-check and `npm run test:notification-defaults` catch three of the drifts; the seed list is checked by the e2e "every flow has non-empty bodies" case.
+- `MailJobName`, `MAIL_FLOW_CODES`, the registry and the seed list each name every flow, so a new flow goes into all four. The registry is typed as `Record<MailJobName, Renderer>`. `npm run test:notification-defaults` fails when `MAIL_FLOW_CODES` or `TEMPLATE_DEFAULTS` differ from the registry's flows. The e2e suite checks that every seeded flow has non-empty French and English bodies.

@@ -2,7 +2,7 @@
 title: Add a module
 description: "Create a NestJS module under apps/api/src/modules, register it, keep it isolated behind injected services, give it a permission module in both catalogue copies, and plant the permission rows with the seed, with the carriers and countries modules as the worked examples."
 primaryQuery: add a module nestjs modular monolith ecommerce
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -116,7 +116,7 @@ export const PERMISSION_ACTIONS = Object.freeze([
 ] as const);
 ```
 
-`prisma/permission-catalogue.ts` holds the same two arrays as plain `as const` literals. The copy exists because the production runtime image ships `prisma/` but not `libs/`, so the seed cannot import the library.
+`prisma/permission-catalogue.ts` holds the same two arrays as plain `as const` literals. The copy exists because the production runtime image ships `prisma/` and only `libs/shared/common/src` from `libs/`, not the permissions library, so the seed cannot import it.
 
 ### 5. Let the drift specs tell you what is missing
 
@@ -175,7 +175,7 @@ npm run db:seed
 
 ### 7. Give it a route node
 
-When the module has admin routes, add its node to `ADMIN_API_ROUTES` in `libs/shared/admin-routes/src/index.ts`; the controller and the Angular service in `libs/admin-services/` both read it.
+When the module has admin routes, add its node to `ADMIN_API_ROUTES` in `libs/shared/admin-routes/src/index.ts`; the controllers read it, so the route paths stay in one place.
 
 ## Tests to run
 
@@ -194,9 +194,9 @@ npm run test:e2e
 
 - The drift spec refuses to pass on an empty scan: it expects more than twenty controllers and more than a hundred keys, so a broken glob shows up as a failure, not a green run.
 - The parity spec's third test is titled with the current count of permission strings, but its assertion compares the arrays, so that title is a label. The number is pinned elsewhere: `libs/shared/permissions/src/index.spec.ts` asserts 26 modules and 130 strings, and `npx nx test permissions` fails until you update both.
-- Nothing in lint flags `modules/a` importing from `modules/b`. Every API module is one Nx project (`apps/api/project.json`, name `api`), and `@nx/enforce-module-boundaries` in `.eslintrc.js:116-118` runs at `warn` and only constrains imports between projects by tag. The isolation rule (another module's data only through its exported service) is enforced by review, not by a tool.
+- Nothing in lint flags `modules/a` importing from `modules/b`. Every API module is one Nx project (`apps/api/project.json`, name `api`), and `@nx/enforce-module-boundaries` in `.eslintrc.js:131` runs at `warn`, and its `depConstraints` (line 141) only constrain imports between projects by tag. The isolation rule (another module's data only through its exported service) is enforced by review, not by a tool.
 - `prisma/reconcile-role-permissions.ts` deletes only eleven named historical key families and reports anything else. It never deletes "everything outside the catalogue", so a module you remove from the catalogue leaves its grants in place until you clean them.
 - A role created before your module exists never gets the new keys from the upsert. Only `syncRolePermissions` adds them, and only for Super Admin and Admin.
 - `npm run db:seed` without `SEED_SCOPE` runs the destructive demo seed. It refuses every database name but the test one unless `SEED_DEV_OK=1` is set.
-- The permission catalogue is the whole cross product. There is no way to declare `loyalty:view` without also declaring `loyalty:manage`; the roles grid shows all five columns.
+- The permission catalogue is the whole cross product. There is no way to declare `loyalty:view` without also declaring `loyalty:manage`.
 - `@Permissions` accepts any string at compile time; a typo is a 403 at runtime and a red drift spec, never a compile error.

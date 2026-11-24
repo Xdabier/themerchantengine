@@ -2,13 +2,13 @@
 title: Load data at SSR
 description: "How a storefront page fetches at first byte: the .server.ts loader, the per-request API client, why the locale comes from the route params, why the query string rides a header on the production build, cookie forwarding, and the 304 short-circuit."
 primaryQuery: ssr data loading analog nitro loader locale query cookies
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-A public page must render with its data in the HTML: product, category, search results, CMS page. In this storefront that is a `.server.ts` file next to the page, exporting `load`. Analog compiles it to a Nitro endpoint and its router fetches that endpoint on every navigation, on the server and in the browser, so one fetch path serves both. The loader runs outside Angular's injector, and the request it receives is not the customer's request. This page walks the catalog loader, which reads a query string, and names each rule and the test that pins it.
+A public page must render with its data in the HTML: product, category, search results, CMS page. In this storefront that is a `.server.ts` file next to the page, exporting `load`. Analog compiles it to a Nitro endpoint and its router fetches that endpoint on every navigation, on the server and in the browser, so one fetch path serves both. The loader runs outside Angular's injector, and the request it receives is not the customer's request. The catalog loader is the worked example. It reads a query string, and each rule below names the test that pins it.
 
 ## Files you touch
 
@@ -165,7 +165,7 @@ interface LoaderCase {
 ## Gotchas
 
 - Do not set `VITE_ANALOG_PUBLIC_BASE_URL`. Analog's resolver reads it to answer page endpoints with `globalThis.$fetch(url.pathname)` instead of `HttpClient`, which skips every interceptor and drops the query again with nothing red anywhere (`apps/storefront/vite.config.ts`).
-- Assertions on the filter rail, the sort control or the search heading are green forever: the components re-read the query from the Angular route snapshot. Only the loader payload (the ordered `data-product-slug` list, the result count) can prove the query reached the server.
+- Assertions on the filter rail, the sort control or the search heading always pass, whatever the loader does, because the components re-read the query from the Angular route snapshot. Only the loader payload (the ordered `data-product-slug` list, the result count) can prove the query reached the server.
 - The browser caches the loader payload under the pathname in `TransferState`. A wrong SSR payload is not repaired after hydration.
 - Do not `inject()` an Angular service in a loader; it runs as an h3 handler outside the injector. `STOREFRONT_API_CLIENT` from `app.config.server.ts` is for chrome components that render inside the Angular SSR pass.
 - `createApiClient` resolves `path` against `baseUrl` only and never honours an absolute URL, so a loader cannot be steered to another host by request input.

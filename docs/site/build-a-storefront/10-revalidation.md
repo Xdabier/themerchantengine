@@ -2,11 +2,11 @@
 title: Revalidation
 description: "The route a storefront exposes so the engine can tell it a page changed: the secret header, the body of paths and a reason, the events that fire it, the fast 200 it must answer, the dedup window, and what to invalidate in Next.js, Nuxt and SvelteKit."
 primaryQuery: storefront revalidation webhook secret invalidate ssr cache paths ecommerce api
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-A storefront that caches rendered HTML, or the store config, serves stale pages after an operator edits a product, a category slug, a home section or a store setting. The engine closes that gap by calling one route on your storefront with the list of paths that changed. Exposing that route is the tenth obligation of the contract (see [the ten obligations](./index.md#the-ten-obligations)). The route is yours to implement; this page gives you the exact request the engine sends, the answer it expects, and what the shipped storefront does with it.
+A storefront that caches rendered HTML, or the store config, serves stale pages after an operator edits a product, a category slug, a home section or a store setting. The engine fixes that by calling one route on your storefront with the list of paths that changed. Exposing that route is the tenth obligation of the contract (see [the ten obligations](./index.md#the-ten-obligations)). The route is yours to implement; this page gives you the exact request the engine sends, the answer it expects, and what the shipped storefront does with it.
 
 ## When the engine calls you
 
@@ -49,13 +49,13 @@ The body has exactly three fields:
 
 The secret rides in the `X-Revalidate-Secret` header and nowhere else. Compare it with a constant-time function.
 
-The example above is the request the shipped route's test suite sends (`apps/storefront/src/server/__tests__/revalidate.post.spec.ts`), with the headers the engine adds. It is not captured from a running engine: the engine reads `STOREFRONT_REVALIDATE_URL` from its process environment at dispatch time, so a target cannot be pointed at a capture listener without restarting the API, and the engine this page was run against had no target configured. The listener code and the spec agree on every field.
+The example above is the request the shipped route's test suite sends (`apps/storefront/src/server/__tests__/revalidate.post.spec.ts`), with the headers the engine adds. It is not captured from a running engine: the engine reads `STOREFRONT_REVALIDATE_URL` from its process environment at dispatch time, so a target cannot be pointed at a capture listener without restarting the API, and the engine this page was run against had no target configured. The field names match the listener code and the spec.
 
 Retries and timeouts: there are none. The listener awaits one `fetch`, logs a warning on any non-2xx and an error on a network failure, and returns. The write that triggered it has already committed and is never rolled back. A storefront that misses a call serves its stale page until the next event, or until its own TTL expires, so keep a TTL on everything you cache.
 
 ## The response
 
-Answer `200` with a small JSON body and do the work after, not before. The engine does not read the body; it only checks `response.ok`. Answer inside a second: the listener runs asynchronously right after the write commits, holds no timeout of its own, and a slow answer keeps an engine worker busy for as long as you take.
+Answer `200` with a small JSON body first, then do the work. The engine does not read the body; it only checks `response.ok`. Answer inside a second: the listener runs asynchronously right after the write commits, holds no timeout of its own, and a slow answer keeps an engine worker busy for as long as you take.
 
 The shipped storefront answers:
 
@@ -69,7 +69,7 @@ and, for an `eventId` it has already seen within twelve hours:
 {"data":{"invalidated":0,"eventId":"11111111-1111-4111-8111-111111111111","deduped":true}}
 ```
 
-Both bodies are the shapes `apps/storefront/src/server/__tests__/revalidate.post.spec.ts` asserts. The dedup window is a Redis `SET NX` with a twelve-hour TTL in `apps/storefront/src/server/lib/dedup-store.ts` when `REDIS_HOST` is set, and an in-memory map otherwise; in production the store refuses to boot without Redis, because a captured `(secret, eventId)` pair could otherwise be replayed against another replica. Two things matter for your own implementation: the dedup key is the `eventId`, and a store that cannot be reached must fail open (treat the event as new and invalidate again), never closed.
+Both bodies are the shapes `apps/storefront/src/server/__tests__/revalidate.post.spec.ts` asserts. The dedup window is a Redis `SET NX` with a twelve-hour TTL in `apps/storefront/src/server/lib/dedup-store.ts` when `REDIS_HOST` is set, and an in-memory map otherwise; in production the store throws on first use without Redis, because a captured `(secret, eventId)` pair could otherwise be replayed against another replica. For your own implementation, the dedup key is the `eventId`. A store that cannot be reached must fail open (treat the event as new and invalidate again), not closed.
 
 ## Error codes
 
@@ -91,7 +91,7 @@ Every path the engine names is already localised: a slug change yields `/en/cata
 
 ## Framework notes
 
-- Next.js: expose a route handler at the path you configure, check the header, then call `revalidatePath(path)` for each entry (or `revalidateTag('product:' + slug)` if you tag your fetches). Both are synchronous marks, so the handler returns quickly by nature.
+- Next.js: expose a route handler at the path you configure, check the header, then call `revalidatePath(path)` for each entry (or `revalidateTag('product:' + slug)` if you tag your fetches). Both are synchronous marks, so the handler returns quickly.
 - Nuxt: a server route under `server/api/`; invalidate with `useStorage('cache').removeItem(...)` for the `cachedEventHandler` and `defineCachedFunction` keys of each path, or purge the CDN in front of Nitro.
 - SvelteKit: the adapter decides. On Vercel use ISR with a `bypassToken` and purge by path; on a Node adapter you own the cache, so drop the keys you built from `url.pathname` and the locale.
 - On every framework: also drop the sixty-second cache of `GET /v1/store/config` that [the config page](./01-config-locale-money.md#the-sixty-second-cache) tells you to keep, on a `config.write` reason at least. The shipped storefront's `apps/storefront/src/server/store-config.ts` exports `resetStoreConfigCache()` for that purpose, though its route does not yet call it.
@@ -101,4 +101,4 @@ The long form, with the cookie forwarding and the idempotency-key notes that the
 
 ## What the shipped storefront does
 
-The Analog.js storefront's route validates the secret, validates the body, records the `eventId`, logs `{ paths, reason, eventId, deduped }`, and answers. Its handler accepts an `invalidate(path)` function as a dependency for tests, and the production handler passes none, because the shipped storefront renders every page on request and holds no HTML cache to drop. Its only cache is the sixty-second store config, which the route does not touch either, so a settings change shows up on the shipped storefront within a minute regardless of this call. If you add an HTML cache to a storefront of your own, this route is where you drop it.
+The Analog.js storefront's route validates the secret, validates the body, records the `eventId`, logs `{ paths, reason, eventId, deduped }`, adds `path` and `invalidateError` to the line when one path fails, and answers. Its handler accepts an `invalidate(path)` function as a dependency for tests, and the production handler passes none, because the shipped storefront renders every page on request and holds no HTML cache to drop. Its only cache is the sixty-second store config, which the route does not touch either, so a settings change shows up on the shipped storefront within a minute regardless of this call. If you add an HTML cache to a storefront of your own, this route is where you drop it.

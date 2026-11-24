@@ -2,11 +2,11 @@
 title: Troubleshooting
 description: Every line the wrapper, the stepper and the installer print when they stop, with the cause and the fix, plus the day-two failures an operator meets on a running store.
 primaryQuery: ecommerce docker install troubleshooting
-updated: 2026-09-08
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-The installer stops at the first thing that is wrong and prints one line saying what. This page lists those lines, grouped by where in the run they appear, with the fix. After any fix, run setup again: completed steps are kept and the run resumes where it stopped.
+When the installer fails, it stops at the first problem and prints one line naming it. This page lists those lines, grouped by where in the run they appear, with the fix. After any fix, run setup again: completed steps are kept and the run resumes where it stopped.
 
 ## Before the stepper starts
 
@@ -60,5 +60,5 @@ The installer prints `x   <step>: <reason>`, then `fix the cause and run setup a
 - **The storefront logs `revalidate signature mismatch`.** The revalidate secret differs between the engine's and the storefront's environment files. Rotate it as [Store settings](../operate/store-settings.md) describes.
 - **Storefront search returns nothing.** The full-text search index was dropped by a schema push and not re-applied. Re-run the installer, or apply the index by hand as [Update the store](../operate/update.md) describes.
 - **Product images answer 403.** The bucket serves objects with the ACL the installer set on them, and a bucket policy on the provider's console can override it. Allow public reads on the bucket, or re-run the installer's storage step to probe it again.
-- **The API logs a warning from IndexNow or Search Console.** Submission is fail-open by design: a refused submission logs and never fails the change that triggered it. `docker logs themerchantengine-api | grep -i indexnow` shows the response; a 403 from IndexNow means the key file is not served at `https://<apex>/<key>.txt`.
+- **The API logs a warning from IndexNow or Search Console.** Submission is fail-open by design: a refused submission logs and never fails the change that triggered it. `docker logs themerchantengine-api | grep -i indexnow` shows the response; a 403 from IndexNow usually means the key file is not served at `https://<apex>/<key>.txt`.
 - **A certificate alert email arrived.** The renewal unit failed or a host serves a certificate under twenty-one days from expiry. [TLS and renewal](../operate/tls-and-renewal.md) has the diagnosis in order.

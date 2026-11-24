@@ -2,13 +2,13 @@
 title: Add a home section type
 description: "How a home-page section type travels from the Prisma enum through the API's per-type config DTO, the admin editor, the storefront's Zod union and the component map, using the trust-signals strip as the worked example."
 primaryQuery: add a home page section type ecommerce storefront admin editor
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-The home page is a list of `StorefrontSection` rows the operator orders in the admin, each with a `type` and a type-specific `config`. Five types exist: `HERO`, `PROMOTIONAL_BANNER`, `CATEGORY_SHOWCASE`, `FEATURED_PRODUCTS` and `TRUST_SIGNALS`. You want a sixth, for example a testimonial band. A type is one value that has to agree in five places, and each place has a guard that fails when it does not. This page follows `TRUST_SIGNALS` through all five. You end with a type the admin can create, the API validates, and the storefront renders.
+The home page is a list of `StorefrontSection` rows the operator orders in the admin, each with a `type` and a type-specific `config`. Five types exist: `HERO`, `PROMOTIONAL_BANNER`, `CATEGORY_SHOWCASE`, `FEATURED_PRODUCTS` and `TRUST_SIGNALS`. You want a sixth, for example a testimonial band. A type is one value that has to agree in five places, and each place has a guard that fails when it does not. The worked example follows `TRUST_SIGNALS` through all five. You end with a type the admin can create, the API validates, and the storefront renders.
 
 ## Files you touch
 
@@ -103,7 +103,7 @@ const CONFIG_DTO_BY_TYPE: Record<AllowedSectionType, new () => object> = {
 };
 ```
 
-`CONFIG_DTO_BY_TYPE`, `ASSET_ID_PATHS_BY_TYPE` and `SECTION_ASSET_INTENT` are all `Record<AllowedSectionType, ...>`, so a member added to `ALLOWED_SECTION_TYPES` without an entry in each map is a compile error. `validateSectionConfig(type, config)` in the same file runs the selected DTO with `whitelist`, `forbidNonWhitelisted` and `forbidUnknownValues`, so an unknown key in `config` is a 400, not a silent strip. The asset intent picks the variant size `StorefrontConfigService.hydrateAssetUrls` writes into `config` before the row reaches the storefront.
+`CONFIG_DTO_BY_TYPE`, `ASSET_ID_PATHS_BY_TYPE` and `SECTION_ASSET_INTENT` are all `Record<AllowedSectionType, ...>`, so a member added to `ALLOWED_SECTION_TYPES` without an entry in each map is a compile error. `validateSectionConfig(type, config)` in the same file runs the selected DTO with `whitelist`, `forbidNonWhitelisted` and `forbidUnknownValues`, so an unknown key in `config` gets a 400. The asset intent picks the variant size `StorefrontConfigService.hydrateAssetUrls` writes into `config` before the row reaches the storefront.
 
 ### 4. Give the admin a form
 
@@ -193,7 +193,7 @@ The `never` default is the second compile-time gate. The component takes the row
 
 ### 7. Guard every optional array at the read site
 
-Where the schema leaves a field optional, the consumer guards the read. `apps/storefront/src/app/sections/home/hero-banner.component.ts` and `campaign-banner.component.ts` do it on the image ladder:
+Where the schema leaves a field optional, the consumer guards the read. `apps/storefront/src/app/sections/home/hero-banner.component.ts` does it in a `computed()` for the image ladder:
 
 ```ts
 protected readonly heroImageSources = computed(() => this.resolvedCopy().imageSources ?? []);
@@ -216,7 +216,7 @@ npx nx e2e storefront-e2e --grep=home-sections
 ```
 
 - The two `tsc` lines are the only commands on this list that run the compile-time gates of steps 3 and 6 (the `Record<AllowedSectionType, ...>` maps and the `never` default). `apps/api/jest.config.ts` (lines 32-40) transforms with ts-jest under `isolatedModules: true`, which does not type-check, and Vitest never type-checks source files, so `npx nx test api` and `npx nx test storefront` pass with a map entry missing. Use `apps/api/tsconfig.build.json`, not `apps/api/tsconfig.app.json`: the latter includes spec files under `apps/api/scripts/` and `libs/shared/common/` without the Jest types and reports hundreds of unrelated errors.
-- `npx nx build admin --configuration=production` is the AOT build, the only command that compiles the editor template. `apps/admin/src/app/features/storefront/section-editor.page.spec.ts` sets the selector to `TRUST_SIGNALS` and asserts which form signal is live; it does not mount the `@case` for a type, so a missing `@case` passes Jest and fails here.
+- `npx nx build admin --configuration=production` is the AOT build, the only command that compiles the editor template. `apps/admin/src/app/features/storefront/section-editor.page.spec.ts` sets the selector to `TRUST_SIGNALS` and asserts which form signal is live; it does not cover every `@case` branch, so the AOT build is the gate that compiles the whole template.
 - `npx nx test api` runs `apps/api/src/modules/storefront-config/storefront-config.service.spec.ts`, including the rejected-type and unknown-config-key paths.
 - `npx nx test admin` runs `apps/admin/src/app/features/storefront/section-editor.page.spec.ts`.
 - `npx nx test storefront-types` runs `libs/storefront-types/src/lib/storefront-config/sections.schemas.spec.ts`, the union parse.
@@ -227,8 +227,8 @@ npx nx e2e storefront-e2e --grep=home-sections
 
 - The public list applies `isVisible`, `visibleFrom` and `visibleUntil` in `StorefrontConfigService` before the storefront sees a row. A section that saves fine and never shows is usually outside its window.
 - `hydrateAssetUrls` only visits the JSON paths a type declares in its `*_ASSET_ID_PATHS`. A new type with an image and an empty path list ships `assetId` with no URL.
-- Dropping a type from the storefront map while the admin still offers it is a dead knob: the operator configures a section nobody sees and gets no error. `section-component-map.spec.ts` pins the map to `SECTION_TYPES` so this cannot be done quietly.
+- Dropping a type from the storefront map while the admin still offers it is a dead knob: the operator configures a section nobody sees and gets no error. `section-component-map.spec.ts` pins the map to `SECTION_TYPES` so a missing entry fails the spec.
 - A section save emits `STOREFRONT_SECTION_UPDATED_EVENT` (`apps/api/src/modules/storefront-config/storefront-config.events.ts`); the webhooks module posts it to the storefront's `apps/storefront/src/server/routes/api/_internal/revalidate.post.ts`, which checks `X-Revalidate-Secret` in constant time. Both processes must share `STOREFRONT_REVALIDATE_SECRET`.
-- The storefront schemas are `.passthrough()` and the admin ones `.strict()`. That is deliberate: the storefront tolerates a field the API adds, the admin refuses to send one the API would reject with `forbidNonWhitelisted`.
+- The storefront schemas are `.passthrough()` and the admin ones `.strict()`. The reason is the split of duties: the storefront tolerates a field the API adds, and the admin refuses to send one the API would reject with `forbidNonWhitelisted`.
 - The API config DTO validates `Translatable` text as `{ default, <locale> }` objects; the storefront resolves them with `pickTranslation(value, locale)` in `inputsFor`. Do not send a plain string from the admin.
 - `TrustStripComponent` renders the chrome-copy pillars when the row carries none, so an empty test payload still shows four pillars. Assert on the operator's text, not on the count.

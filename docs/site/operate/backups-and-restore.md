@@ -2,7 +2,7 @@
 title: Backups and restore
 description: The nightly database dump the installer scheduled, how to take one by hand before an update, how to restore into the running Postgres, what the dump does and does not contain, and why a copy has to leave the box.
 primaryQuery: self hosted ecommerce backups
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -41,13 +41,13 @@ gunzip -c /var/backups/themerchantengine/pg-2026-09-01.sql.gz | docker exec -i t
 $COMPOSE start api
 ```
 
-`$COMPOSE` is the compose command from [Topology](./topology.md). The database is created with the same owner the installer gives it, `merchants_app`, so the next schema push is not refused on the public schema. The dump carries the search index column, its trigger and the grants for the application role, so nothing needs re-applying after a restore. Sessions in Redis survive, and a customer who was signed in stays signed in.
+`$COMPOSE` is the compose command from [Topology](./topology.md). The database is created with the same owner the installer gives it, `merchants_app`, so the next schema push is not refused on the public schema. The dump carries the search index column, its trigger and the grants for the application role, so nothing needs re-applying after a restore. Sessions are stored in Postgres too, so a customer who was signed in at the time of the dump stays signed in.
 
 ## What the dump does not contain
 
 - **Uploaded assets.** Product images, the logo and every other file live in your S3 bucket (or under `deploy/local/uploads` on the local profile). Turn on the bucket's own versioning; that is the backup there.
 - **The environment files and `config/`.** `.env.production`, `apps/storefront/.env.production` and the rendered stack's `config/` directory are what a fresh box needs to run this database again. Copy them off the box too, encrypted, because the environment files hold every secret.
-- **Redis.** Sessions and caches, rebuilt on their own.
+- **Redis.** Cached data only, rebuilt on its own.
 
 ## Copy the dumps off the box
 

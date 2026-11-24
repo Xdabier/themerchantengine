@@ -2,7 +2,7 @@
 title: Add a form field
 description: "Add a control to an existing admin form: the Zod schema, the Reactive Forms control, the error isolated on the invalid field, the submit button gated on dirty state, the Translatable editor, and the validator tests."
 primaryQuery: add a form field angular reactive forms zod admin dashboard
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -184,7 +184,7 @@ function translatableRequired(control: AbstractControl): ValidationErrors | null
 
 The editor's tab list comes from the `TRANSLATABLE_LOCALES` token (`libs/admin-ui/src/atoms/translatable-locales.token.ts`), which `apps/admin/src/app/app.config.ts` feeds from the store's configured locales. Leave `locales` unbound; a locale added under Settings then appears on every editor at once. The first tab is the default locale, and its value is mirrored into `default`.
 
-### 6. The one trap that matters
+### 6. Do not read form values inside computed()
 
 Reactive Forms are not signals. A `computed()` that reads `this.form.controls.x.value` or `this.form.dirty` runs once, memoizes, and never runs again, because nothing it read is tracked. The money screen records the rule next to the correct pattern:
 

@@ -2,7 +2,7 @@
 title: Add an endpoint
 description: "Add a route to an existing API module: the class-validator DTO, the controller method with its guard and OpenAPI summary, the service method, the shared admin route constant, and the unit and Supertest specs, with the carriers module as the worked example."
 primaryQuery: add an endpoint nestjs ecommerce api
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -66,7 +66,7 @@ export class CreateCarrierDto {
 }
 ```
 
-The excerpt is abridged. The real class at `apps/api/src/modules/carriers/dto/create-carrier.dto.ts:37-63` also declares `services` (string array, max 50), `zones` (two-letter country codes, max 250), `sortOrder` (non-negative integer) and `config` (a plain object); step 4 reads `dto.config`. `CarrierTranslatableDto` is the module-local class in `apps/api/src/modules/carriers/dto/translatable.dto.ts`, which extends the common `TranslatableLocaleKeysDto` from `apps/api/src/common/dto/translatable-locale-keys.dto.ts` with a required `default` string.
+The excerpt is abridged. The real class at `apps/api/src/modules/carriers/dto/create-carrier.dto.ts:39-65` also declares `services` (string array, max 50), `zones` (two-letter country codes, max 250), `sortOrder` (non-negative integer) and `config` (a plain object); step 4 reads `dto.config`. `CarrierTranslatableDto` is the module-local class in `apps/api/src/modules/carriers/dto/translatable.dto.ts`, which extends the common `TranslatableLocaleKeysDto` from `apps/api/src/common/dto/translatable-locale-keys.dto.ts` with a required `default` string.
 
 The global pipe in `apps/api/src/main.ts` decides what an undecorated property does:
 
@@ -77,7 +77,7 @@ The global pipe in `apps/api/src/main.ts` decides what an undecorated property d
       transform: true,
 ```
 
-A property with no decorator is not stripped quietly; the request is a 400 `VALIDATION_ERROR`. Admin and customer bodies are separate classes, never one shared DTO.
+A property with no decorator makes the request fail with a 400 `VALIDATION_ERROR`.
 
 ### 3. Add the controller method
 
@@ -202,7 +202,7 @@ describe('Currencies (e2e)', () => {
 
 `loginAs` signs in through Better Auth and returns the session cookie; there is no bearer token. Cover the 401 with no cookie, the 403 with a role that lacks the key, the 400 on a bad body and the happy path. No mocks at this layer.
 
-The 403 user comes from `createUserWithRole` in `test/e2e/helpers.ts:148-158`. It takes a `PrismaClient` first, so open one with `createTestPrisma()` from the same file, then pass `{ email, password, role, permissions? }`; `role` is one of `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `SUPPORT` or `CUSTOMER`, and a `permissions` array creates a custom `Role` with exactly those keys. The skeleton, in the shape `apps/api/test/currencies.e2e-spec.ts` uses:
+The 403 user comes from `createUserWithRole` in `test/e2e/helpers.ts:149-159`. It takes a `PrismaClient` first, so open one with `createTestPrisma()` from the same file, then pass `{ email, password, role, permissions? }`; `role` is one of `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `SUPPORT` or `CUSTOMER`, and a `permissions` array creates a custom `Role` with exactly those keys. The skeleton, in the shape `apps/api/test/currencies.e2e-spec.ts` uses:
 
 ```ts
 import { api, createTestPrisma, createUserWithRole, loginAs, ADMIN } from '../../../test/e2e/helpers';
@@ -290,5 +290,5 @@ npm run test:e2e
 - The e2e harness reuses whatever already listens on port 53001. A stale server started with `API_GLOBAL_PREFIX=api` answers `/health` but 404s every route, so `test/e2e-global-setup.ts` probes a real route before reusing it. Stop the old process tree, not just the port listener.
 - Spec files pin the literal URL on purpose. Do not migrate a spec onto `ADMIN_API_ROUTES`; the literal is what proves the constant resolves to the right path.
 - A sort field comes from an allowlist constant per endpoint, never from the query string. `apps/api/src/modules/carriers/carriers.service.ts` orders by a fixed `sortOrder, createdAt`.
-- Every response is `Cache-Control: no-store` and Express ETag is disabled. A cacheable public read says so with `@PublicCacheable`, as `apps/api/src/modules/storefront-config/store-config.controller.ts` does.
+- Every response defaults to `Cache-Control: no-store`, and Express's weak-ETag emitter is off. A cacheable public read says so with `@PublicCacheable`, as `apps/api/src/modules/storefront-config/store-config.controller.ts` does.
 - The seed the e2e run replays is destructive outside the test database and refuses any other database name without `SEED_DEV_OK=1`.
