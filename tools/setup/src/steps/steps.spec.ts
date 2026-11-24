@@ -259,6 +259,32 @@ describe('domainsStep', () => {
     expect(out.text).toContain('api.atlas.example resolves to this box');
   });
 
+  it("does not promise expiry emails, which Let's Encrypt stopped sending in 2025", async () => {
+    const labels = new Map<string, string>();
+    const inner = new DocumentPrompter(SERVER_DOC);
+    const spy = new Proxy(inner, {
+      get(target, prop, receiver) {
+        const member = Reflect.get(target, prop, receiver);
+        if (prop !== 'text') return member;
+        return (q: { path: string; label: string }) => {
+          labels.set(q.path, q.label);
+          return (member as (x: unknown) => unknown).call(target, q);
+        };
+      },
+    });
+    const ctx: StepContext = {
+      answers: { profile: 'both' },
+      prompter: spy,
+      out: output(),
+      ports: resolving(),
+      root: ROOT,
+      dryRun: false,
+    };
+    await domainsStep.run(ctx);
+    expect(labels.get('domains.certbotEmail')).toBeDefined();
+    expect(labels.get('domains.certbotEmail')).not.toMatch(/expiry/i);
+  });
+
   it('refuses a host that does not resolve, and one that resolves elsewhere', async () => {
     const ports = resolving();
     ports.hosts.delete('api.atlas.example');

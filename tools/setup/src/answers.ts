@@ -53,7 +53,7 @@ export const setupAnswersSchema = z
         storefront: z.string().optional(),
         admin: z.string().optional(),
         api: z.string().optional(),
-        /** Where certbot sends expiry notices; also the admin's contact for Let's Encrypt. */
+        /** Passed to certbot as `--email`. Let's Encrypt sends no expiry mail; the store's own cert alert does. */
         certbotEmail: z.string().optional(),
       })
       .optional(),
