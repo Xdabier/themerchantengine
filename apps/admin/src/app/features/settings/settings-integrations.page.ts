@@ -17,9 +17,10 @@ import { RouterLink } from '@angular/router';
  *   TikTok and Snap ids belong on `/analytics/pixels`, which stores them and
  *   which the storefront now reads. Two editors for one setting is how the two
  *   disagree.
- * - `emailApiKey`, `smsApiKey` and `stripeWebhookSecret` are provider secrets.
- *   Constitution §3.7 keeps secrets in environment variables, never in a
- *   database row an admin session can read back.
+ * - `emailApiKey` and `smsApiKey` are provider secrets that live in
+ *   environment variables (constitution §3.7).
+ * - `stripeWebhookSecret` belongs on the payment method, which stores its
+ *   secret fields encrypted and masks them on read.
  * - `sentryDsn` and `stripePublishableKey` are deploy-time configuration for
  *   services that are not wired to this application at all.
  *
@@ -75,9 +76,17 @@ import { RouterLink } from '@angular/router';
         <div class="flex flex-col gap-2">
           <dt class="text-xs tracking-widest uppercase text-ink-muted">Provider secrets</dt>
           <dd class="text-sm text-ink">
-            Email, SMS and payment provider keys are deployment configuration and live in
-            environment variables on the server, never in a database row an admin session could read
-            back. Ask whoever owns the deploy to rotate one.
+            Email and SMS provider keys are deployment configuration and live in environment
+            variables on the server. Ask whoever owns the deploy to rotate one. Payment provider keys
+            are set on each payment method, stored encrypted and never shown again after you save
+            them. Without one there, the server falls back to its environment variables.
+            <a
+              routerLink="/payment-methods"
+              class="tabular underline underline-offset-4 hover:text-ink-emphasis focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-2"
+              data-testid="settings-integrations-payment-methods-link"
+            >
+              Open payment methods
+            </a>
           </dd>
         </div>
       </dl>

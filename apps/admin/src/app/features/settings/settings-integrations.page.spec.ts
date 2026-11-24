@@ -64,6 +64,19 @@ describe('SettingsIntegrationsPage', () => {
     expect(text).toMatch(/environment variable/i);
   });
 
+  it('sends payment keys to the payment method screen, where they are stored encrypted', () => {
+    // Stripe keys are set per payment method and saved encrypted in the
+    // database, so "never in a database row" was false for them.
+    configure();
+    const text = (component.nativeElement.textContent ?? '') as string;
+    expect(text).not.toMatch(/never in a database row/i);
+    const link = component.nativeElement.querySelector(
+      '[data-testid="settings-integrations-payment-methods-link"]',
+    ) as HTMLAnchorElement;
+    expect(link).toBeTruthy();
+    expect(link.getAttribute('href')).toBe('/payment-methods');
+  });
+
   it('names the analytics field that used to live here, so the removal is discoverable', () => {
     // An operator who bookmarked this page to set a GA4 id needs to be told
     // where it went, not shown an empty page.
