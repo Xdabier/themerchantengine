@@ -288,6 +288,45 @@ describe('the engine install on one box (profile both)', () => {
     );
   });
 
+  it('keeps the keys an operator added by hand when setup runs again', async () => {
+    const first = await install(SERVER);
+    const shell = first.shell;
+    const engineFile = first.ctx.layout.engineEnvFile as string;
+    const storefrontFile = first.ctx.layout.storefrontEnvFile as string;
+    // The operate docs tell operators to add these two to the engine file.
+    shell.writeFile(
+      engineFile,
+      `${shell.readFile(engineFile)}\nCERT_ALERT_TO="ops@atlas.example"\nTME_FINGERPRINT=off\n`,
+    );
+    shell.writeFile(storefrontFile, `${shell.readFile(storefrontFile)}\nEXTRA_FLAG='1'\n`);
+    shell.responses.push({ match: 'SELECT 1 FROM pg_roles', result: { code: 0, stdout: '1\n' } });
+    shell.responses.push({
+      match: 'SELECT 1 FROM pg_database',
+      result: { code: 0, stdout: '1\n' },
+    });
+    await install(SERVER, shell);
+    const engine = parseEnv(shell.readFile(engineFile));
+    expect(engine.CERT_ALERT_TO).toBe('ops@atlas.example');
+    expect(engine.TME_FINGERPRINT).toBe('off');
+    expect(engine.DB_PASSWORD).toBe(first.ctx.secrets.DB_PASSWORD);
+    expect(parseEnv(shell.readFile(storefrontFile)).EXTRA_FLAG).toBe('1');
+  });
+
+  it('lets a new answer win over the old value of a key setup writes', async () => {
+    const first = await install(SERVER);
+    const shell = first.shell;
+    shell.responses.push({ match: 'SELECT 1 FROM pg_roles', result: { code: 0, stdout: '1\n' } });
+    shell.responses.push({
+      match: 'SELECT 1 FROM pg_database',
+      result: { code: 0, stdout: '1\n' },
+    });
+    await install({ ...SERVER, mail: { ...SERVER.mail, fromName: 'Atlas Shop' } }, shell);
+    const text = shell.readFile(first.ctx.layout.engineEnvFile as string);
+    const fromNameLines = text.split('\n').filter((l) => /^(export\s+)?RESEND_FROM_NAME=/.test(l));
+    expect(fromNameLines).toHaveLength(1);
+    expect(parseEnv(text).RESEND_FROM_NAME).toBe('Atlas Shop');
+  });
+
   it('fails the install when a smoke probe never answers', async () => {
     const shell = recordingShell(seeded());
     shell.probeStatus = 502;

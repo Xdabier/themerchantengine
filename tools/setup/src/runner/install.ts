@@ -7,17 +7,18 @@ import {
   CLIENT_CONFIG_FILE,
 } from '../output/client-config';
 import {
+  ENGINE_CONDITIONAL_KEYS,
   GSC_CONTAINER_PATH,
   LOGO_CONTAINER_PATH,
   composeEngineEnv,
   composeStorefrontEnv,
 } from '../output/compose-env';
-import { parseEnv, serializeEnv } from '../output/env-file';
+import { keepUnmanagedKeys, parseEnv, serializeEnv, type EnvSection } from '../output/env-file';
 import type { Ports } from '../ports';
 import { renderFile } from '../render/template';
 import { generateSecrets, type GeneratedSecrets } from '../state/secrets';
-import { hostOf } from '../../../../libs/shared/common/src/url';
-import { NEUTRAL_LOCALE_SET } from '../../../../libs/shared/common/src/locale/store-locales';
+import { hostOf } from '@common/url';
+import { NEUTRAL_LOCALE_SET } from '@common/locale/store-locales';
 import { BACKUP_DIR, IMAGE_TAG, layoutFor, relative, type Layout } from './layout';
 import type { Shell } from './shell';
 
@@ -53,7 +54,7 @@ export class InstallFailed extends Error {
 }
 
 const HEADER = (profile: string, when: Date) =>
-  `Written by themerchantengine setup (profile ${profile}) on ${when.toISOString()}.\nRun setup again to change a value; do not edit by hand.`;
+  `Written by themerchantengine setup (profile ${profile}) on ${when.toISOString()}.\nRun setup again to change a value it writes. Keys you add by hand are kept on a rerun.`;
 
 /**
  * Secrets an earlier run wrote are kept; a fresh run generates them. The
@@ -78,6 +79,30 @@ export function secretsFor(shell: Shell, layout: Layout): GeneratedSecrets {
           STOREFRONT_REVALIDATE_SECRET: storefront['STOREFRONT_REVALIDATE_SECRET'] ?? '',
         },
   );
+}
+
+/** Writes an env file and keeps the keys an operator added to the old one. */
+function writeEnv(
+  ctx: InstallContext,
+  file: string,
+  sections: EnvSection[],
+  conditional: ReadonlySet<string>,
+  when: Date,
+): void {
+  const { shell } = ctx;
+  const previous = shell.exists(file) ? parseEnv(shell.readFile(file)) : {};
+  const managed = new Set([
+    ...conditional,
+    ...sections.flatMap((s) => s.entries.map((e) => e.key)),
+  ]);
+  const kept = keepUnmanagedKeys(sections, previous, managed);
+  if (kept.skipped.length) {
+    ui.warn(
+      ctx.out,
+      `${relative(ctx.layout.root, file)}: left out ${kept.skipped.join(', ')}, a value with $, a backtick or a line break cannot be kept`,
+    );
+  }
+  shell.writeFile(file, serializeEnv(kept.sections, HEADER(ctx.layout.profile, when)), 0o600);
 }
 
 function compose(ctx: InstallContext): string[] {
@@ -174,16 +199,14 @@ export function engineSteps(ctx: InstallContext): InstallStep[] {
     async run() {
       const when = ctx.now();
       const engineEnv = composeEngineEnv(answers, ctx.secrets);
-      shell.writeFile(
-        layout.engineEnvFile as string,
-        serializeEnv(engineEnv, HEADER(layout.profile, when)),
-        0o600,
-      );
+      writeEnv(ctx, layout.engineEnvFile as string, engineEnv, ENGINE_CONDITIONAL_KEYS, when);
       if (layout.runsStorefront) {
-        shell.writeFile(
+        writeEnv(
+          ctx,
           layout.storefrontEnvFile as string,
-          serializeEnv(composeStorefrontEnv(answers, ctx.secrets), HEADER(layout.profile, when)),
-          0o600,
+          composeStorefrontEnv(answers, ctx.secrets),
+          new Set(),
+          when,
         );
       }
       const config = buildStoreConfig(answers);
@@ -465,13 +488,12 @@ export function storefrontSteps(ctx: InstallContext): InstallStep[] {
       id: 'write-outputs',
       title: 'Write the environment and the rendered stack',
       async run() {
-        shell.writeFile(
+        writeEnv(
+          ctx,
           layout.storefrontEnvFile as string,
-          serializeEnv(
-            composeStorefrontEnv(answers, ctx.secrets),
-            HEADER(layout.profile, ctx.now()),
-          ),
-          0o600,
+          composeStorefrontEnv(answers, ctx.secrets),
+          new Set(),
+          ctx.now(),
         );
         writeStack(ctx);
         ui.ok(

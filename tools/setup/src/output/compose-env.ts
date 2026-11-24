@@ -36,6 +36,21 @@ const origins = (answers: SetupAnswers) => {
   };
 };
 
+/**
+ * Engine keys only some answers write. A rerun with other answers must drop
+ * them instead of keeping them as hand-added keys.
+ */
+export const ENGINE_CONDITIONAL_KEYS: ReadonlySet<string> = new Set([
+  'TURNSTILE_SECRET',
+  'S3_ENDPOINT',
+  'S3_REGION',
+  'S3_BUCKET',
+  'S3_ACCESS_KEY',
+  'S3_SECRET_KEY',
+  'S3_PUBLIC_URL',
+  'UPLOADS_BASE_URL',
+]);
+
 /** The `.env.production` (or `.env` on a local profile) the api and admin stack reads. */
 export function composeEngineEnv(answers: SetupAnswers, secrets: GeneratedSecrets): EnvSection[] {
   const profile = need(answers.profile, 'profile');

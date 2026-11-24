@@ -5,6 +5,8 @@ import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   EnvValueError,
+  KEPT_SECTION_TITLE,
+  keepUnmanagedKeys,
   parseEnv,
   quoteEnvValue,
   readEnvFile,
@@ -110,5 +112,30 @@ describe('env file', () => {
       expect(fs.statSync(file).mode & 0o777).toBe(0o600);
     }
     expect(fs.readdirSync(dir).filter((f) => f.endsWith('.tmp'))).toEqual([]);
+  });
+});
+
+describe('keepUnmanagedKeys', () => {
+  const sections = [{ title: 'Server', entries: [{ key: 'PORT', value: '53000' }] }];
+
+  it('carries a hand-added key into its own section', () => {
+    const out = keepUnmanagedKeys(sections, { PORT: '1', EXTRA_FLAG: 'on' }, new Set());
+    expect(out.sections).toHaveLength(2);
+    expect(out.sections[1]).toEqual({
+      title: KEPT_SECTION_TITLE,
+      entries: [{ key: 'EXTRA_FLAG', value: 'on' }],
+    });
+    expect(out.skipped).toEqual([]);
+  });
+
+  it('drops a managed key this run does not write', () => {
+    const out = keepUnmanagedKeys(sections, { S3_BUCKET: 'old' }, new Set(['S3_BUCKET']));
+    expect(out.sections).toEqual(sections);
+  });
+
+  it('names a value it cannot quote instead of keeping it', () => {
+    const out = keepUnmanagedKeys(sections, { PRICE: 'costs $5', ok_lower: 'x' }, new Set());
+    expect(out.sections).toEqual(sections);
+    expect(out.skipped).toEqual(['PRICE', 'ok_lower']);
   });
 });
