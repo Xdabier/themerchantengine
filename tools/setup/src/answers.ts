@@ -16,9 +16,10 @@ import {
  * optional here because a resumed run holds only the steps it has completed;
  * each step validates what it needs when it runs.
  *
- * Secrets are the fields listed in {@link SECRET_ANSWER_PATHS}. They are read
- * from an answers file and from the environment file the stepper wrote, and
- * never written to the state file.
+ * Secrets are the fields listed in {@link SECRET_ANSWER_PATHS}. They come from
+ * the prompts or an answers file on every run, and are never written to the
+ * state file. The environment file is read back only for the secrets the
+ * installer generated (see `secretsFor`), not for these.
  */
 export const SETUP_PROFILES = ['engine', 'storefront', 'both', 'local'] as const;
 export type SetupProfile = (typeof SETUP_PROFILES)[number];
