@@ -966,6 +966,7 @@ describe('OrdersService', () => {
       const result = await service.retryTrackedPayment(
         { orderNumber: 'ORD-2026-000001', email: ' Guest@Example.test ' },
         'en',
+        'idem-1',
       );
 
       expect(result).toEqual({ paymentAction: action });
@@ -984,6 +985,7 @@ describe('OrdersService', () => {
         service.retryTrackedPayment(
           { orderNumber: 'ORD-2026-000001', email: 'someone@else.test' },
           'en',
+          'idem-1',
         ),
       ).rejects.toMatchObject({ response: { error: { code: 'ORDER_NOT_FOUND' } } });
       expect(paymentGateway.openSession).not.toHaveBeenCalled();
@@ -996,9 +998,55 @@ describe('OrdersService', () => {
         service.retryTrackedPayment(
           { orderNumber: 'ORD-2026-000001', email: 'guest@example.test' },
           'en',
+          'idem-1',
         ),
       ).rejects.toMatchObject({ response: { error: { code: 'ORDER_PAYMENT_NOT_RETRYABLE' } } });
       expect(paymentGateway.openSession).not.toHaveBeenCalled();
+    });
+
+    it('replays the cached action for a repeated key and opens no second session', async () => {
+      prisma.order.findUnique.mockResolvedValue(payable());
+      idempotency.beginRequest.mockResolvedValueOnce({
+        state: 'cached',
+        cachedResponse: { paymentAction: action },
+      });
+
+      const result = await service.retryTrackedPayment(
+        { orderNumber: 'ORD-2026-000001', email: 'guest@example.test' },
+        'en',
+        'idem-1',
+      );
+
+      expect(result).toEqual({ paymentAction: action });
+      expect(paymentGateway.openSession).not.toHaveBeenCalled();
+      expect(prisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses a second retry while the first is still running', async () => {
+      prisma.order.findUnique.mockResolvedValue(payable());
+      idempotency.beginRequest.mockResolvedValueOnce({ state: 'in-flight' });
+
+      await expect(
+        service.retryTrackedPayment(
+          { orderNumber: 'ORD-2026-000001', email: 'guest@example.test' },
+          'en',
+          'idem-1',
+        ),
+      ).rejects.toThrow(OrderIdempotencyInFlightException);
+      expect(paymentGateway.openSession).not.toHaveBeenCalled();
+    });
+
+    it('checks the email before it touches the idempotency store', async () => {
+      prisma.order.findUnique.mockResolvedValue(payable());
+
+      await expect(
+        service.retryTrackedPayment(
+          { orderNumber: 'ORD-2026-000001', email: 'someone@else.test' },
+          'en',
+          'idem-1',
+        ),
+      ).rejects.toMatchObject({ response: { error: { code: 'ORDER_NOT_FOUND' } } });
+      expect(idempotency.beginRequest).not.toHaveBeenCalled();
     });
   });
 
@@ -4237,10 +4285,14 @@ describe('OrdersService', () => {
         action,
       });
 
-      const result = await service.retryPayment('order-1', {
-        userId: 'user-1',
-        acceptLanguage: 'en',
-      });
+      const result = await service.retryPayment(
+        'order-1',
+        {
+          userId: 'user-1',
+          acceptLanguage: 'en',
+        },
+        'idem-1',
+      );
 
       expect(paymentGateway.openSession).toHaveBeenCalledWith(
         'card',
@@ -4265,7 +4317,7 @@ describe('OrdersService', () => {
         action,
       });
 
-      await service.retryPayment('order-1', { userId: 'user-1' });
+      await service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1');
 
       expect(paymentGateway.cancel).toHaveBeenCalledWith(
         'card',
@@ -4285,7 +4337,7 @@ describe('OrdersService', () => {
         action,
       });
 
-      const result = await service.retryPayment('order-1', { userId: 'user-1' });
+      const result = await service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1');
 
       expect(result).toEqual({ paymentAction: action });
     });
@@ -4295,13 +4347,13 @@ describe('OrdersService', () => {
         retryable({ userId: null, guestSessionId: 'sess-1' }),
       );
       await expect(
-        service.retryPayment('order-1', { sessionId: 'sess-1' }),
+        service.retryPayment('order-1', { sessionId: 'sess-1' }, 'idem-1'),
       ).resolves.toHaveProperty('paymentAction');
     });
 
     it('answers not found to an anonymous caller who does not own the order', async () => {
       prisma.order.findUnique.mockResolvedValue(retryable());
-      await expect(service.retryPayment('order-1', {})).rejects.toMatchObject({
+      await expect(service.retryPayment('order-1', {}, 'idem-1')).rejects.toMatchObject({
         response: { error: { code: 'ORDER_NOT_FOUND' } },
       });
       expect(paymentGateway.openSession).not.toHaveBeenCalled();
@@ -4311,7 +4363,9 @@ describe('OrdersService', () => {
       'refuses with a stable code when the payment is %s',
       async (paymentStatus) => {
         prisma.order.findUnique.mockResolvedValue(retryable({ paymentStatus }));
-        await expect(service.retryPayment('order-1', { userId: 'user-1' })).rejects.toMatchObject({
+        await expect(
+          service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1'),
+        ).rejects.toMatchObject({
           response: { error: { code: 'ORDER_PAYMENT_NOT_RETRYABLE' } },
         });
         expect(paymentGateway.openSession).not.toHaveBeenCalled();
@@ -4323,7 +4377,9 @@ describe('OrdersService', () => {
       prisma.order.findUnique.mockResolvedValue(
         retryable({ paymentMethodCode: 'cod', paymentStatus: PaymentStatus.PENDING }),
       );
-      await expect(service.retryPayment('order-1', { userId: 'user-1' })).rejects.toMatchObject({
+      await expect(
+        service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1'),
+      ).rejects.toMatchObject({
         response: { error: { code: 'ORDER_PAYMENT_NOT_RETRYABLE' } },
       });
       expect(paymentGateway.openSession).not.toHaveBeenCalled();
@@ -4331,16 +4387,79 @@ describe('OrdersService', () => {
 
     it('refuses on a cancelled order', async () => {
       prisma.order.findUnique.mockResolvedValue(retryable({ status: OrderStatus.CANCELLED }));
-      await expect(service.retryPayment('order-1', { userId: 'user-1' })).rejects.toMatchObject({
+      await expect(
+        service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1'),
+      ).rejects.toMatchObject({
         response: { error: { code: 'ORDER_PAYMENT_NOT_RETRYABLE' } },
       });
     });
 
     it('refuses when the order never chose a payment method', async () => {
       prisma.order.findUnique.mockResolvedValue(retryable({ paymentMethodCode: null }));
-      await expect(service.retryPayment('order-1', { userId: 'user-1' })).rejects.toMatchObject({
+      await expect(
+        service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1'),
+      ).rejects.toMatchObject({
         response: { error: { code: 'ORDER_PAYMENT_NOT_RETRYABLE' } },
       });
+    });
+
+    it('stores the action under the key so a repeated request gets the same session', async () => {
+      prisma.order.findUnique.mockResolvedValue(retryable());
+      paymentGateway.openSession.mockResolvedValueOnce({
+        reference: 'pi_new',
+        status: PaymentStatus.PENDING,
+        action,
+      });
+
+      await service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1');
+
+      expect(idempotency.beginRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ key: 'idem-1', callerHash: expect.any(String) }),
+      );
+      expect(idempotency.completeRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          key: 'idem-1',
+          entityId: 'order-1',
+          responseJson: { paymentAction: action },
+        }),
+      );
+    });
+
+    it('replays the cached action for a repeated key and opens no second session', async () => {
+      prisma.order.findUnique.mockResolvedValue(retryable());
+      idempotency.beginRequest.mockResolvedValueOnce({
+        state: 'cached',
+        cachedResponse: { paymentAction: action },
+      });
+
+      const result = await service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1');
+
+      expect(result).toEqual({ paymentAction: action });
+      expect(paymentGateway.cancel).not.toHaveBeenCalled();
+      expect(paymentGateway.openSession).not.toHaveBeenCalled();
+    });
+
+    it('refuses a second retry while the first is still running', async () => {
+      prisma.order.findUnique.mockResolvedValue(retryable());
+      idempotency.beginRequest.mockResolvedValueOnce({ state: 'in-flight' });
+
+      await expect(service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1')).rejects.toThrow(
+        OrderIdempotencyInFlightException,
+      );
+      expect(paymentGateway.openSession).not.toHaveBeenCalled();
+    });
+
+    it('releases the key when opening the session fails', async () => {
+      prisma.order.findUnique.mockResolvedValue(retryable());
+      paymentGateway.openSession.mockRejectedValueOnce(new Error('provider down'));
+
+      await expect(service.retryPayment('order-1', { userId: 'user-1' }, 'idem-1')).rejects.toThrow(
+        'provider down',
+      );
+      expect(idempotency.abortRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ key: 'idem-1' }),
+      );
+      expect(idempotency.completeRequest).not.toHaveBeenCalled();
     });
   });
 

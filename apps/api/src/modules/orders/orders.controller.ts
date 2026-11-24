@@ -163,12 +163,13 @@ export class OrdersStorefrontController {
   @ApiResponse({ status: 409, description: 'Order payment is not retryable' })
   retryTrackedPayment(
     @Body() dto: TrackOrderDto,
-    @IdempotencyKey(IdempotencyKeyPipe) _idempotencyKey: string,
+    @IdempotencyKey(IdempotencyKeyPipe) idempotencyKey: string,
     @Headers('accept-language') acceptLanguage?: string,
   ) {
     return this.orders.retryTrackedPayment(
       { orderNumber: dto.orderNumber, email: dto.email },
       acceptLanguage,
+      idempotencyKey,
     );
   }
 
@@ -277,14 +278,14 @@ export class OrdersStorefrontController {
   retryPayment(
     @Param('id') id: string,
     @Req() req: OptionalAuthRequest,
-    @IdempotencyKey(IdempotencyKeyPipe) _idempotencyKey: string,
+    @IdempotencyKey(IdempotencyKeyPipe) idempotencyKey: string,
     @Headers('accept-language') acceptLanguage?: string,
   ) {
-    return this.orders.retryPayment(id, {
-      userId: req.user?.id,
-      sessionId: guestSessionOf(req),
-      acceptLanguage,
-    });
+    return this.orders.retryPayment(
+      id,
+      { userId: req.user?.id, sessionId: guestSessionOf(req), acceptLanguage },
+      idempotencyKey,
+    );
   }
 
   /**

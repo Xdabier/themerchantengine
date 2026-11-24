@@ -108,6 +108,7 @@ function isStorageNotFound(err: unknown): boolean {
 
 const IDEMPOTENCY_SCOPE = 'orders';
 const PAYMENT_IDEMPOTENCY_SCOPE = 'orders:payment';
+const PAYMENT_RETRY_IDEMPOTENCY_SCOPE = 'orders:payment-retry';
 
 /**
  * True only for ORDER_STATUS_TRANSITION_INVALID, the error a lost status race
@@ -1987,12 +1988,14 @@ export class OrdersService {
   /**
    * Opens a new provider session for an order whose payment has not been
    * taken, so a shopper can retry after a failure. The order stays as it is;
-   * only the payment reference and status change. The action is returned and
-   * never stored (it carries a short-lived client token).
+   * only the payment reference and status change. The action is never stored
+   * on the order (it carries a short-lived client token). The idempotency key
+   * makes a double click replay the first session instead of opening a second.
    */
   async retryPayment(
     orderId: string,
     caller: { userId?: string; sessionId?: string; acceptLanguage?: string },
+    idempotencyKey: string,
   ): Promise<{ paymentAction: ProviderPaymentAction }> {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -2014,7 +2017,12 @@ export class OrdersService {
     if (!order) throw new OrderNotFoundException(orderId);
     this.assertStorefrontOwner(order, orderId, caller.userId, caller.sessionId);
 
-    return this.reopenPaymentSession(order, orderId, caller.acceptLanguage);
+    return this.reopenPaymentSessionOnce(
+      idempotencyKey,
+      caller.userId ?? `guest:${caller.sessionId}`,
+      () => this.reopenPaymentSession(order, orderId, caller.acceptLanguage),
+      orderId,
+    );
   }
 
   /**
@@ -2023,7 +2031,8 @@ export class OrdersService {
    */
   async retryTrackedPayment(
     dto: { orderNumber: string; email: string },
-    acceptLanguage?: string,
+    acceptLanguage: string | undefined,
+    idempotencyKey: string,
   ): Promise<{ paymentAction: ProviderPaymentAction }> {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber: dto.orderNumber },
@@ -2045,7 +2054,60 @@ export class OrdersService {
     if (!order || !onFile || !supplied || onFile.trim().toLowerCase() !== supplied) {
       throw new OrderNotFoundException();
     }
-    return this.reopenPaymentSession(order, order.id, acceptLanguage);
+    return this.reopenPaymentSessionOnce(
+      idempotencyKey,
+      `tracked:${order.orderNumber}:${supplied}`,
+      () => this.reopenPaymentSession(order, order.id, acceptLanguage),
+      order.id,
+    );
+  }
+
+  private async reopenPaymentSessionOnce(
+    idempotencyKey: string,
+    caller: string,
+    reopen: () => Promise<{ paymentAction: ProviderPaymentAction }>,
+    orderId: string,
+  ): Promise<{ paymentAction: ProviderPaymentAction }> {
+    const callerHash = IdempotencyService.sha256Hex(caller);
+    const bodyHash = IdempotencyService.sha256Hex(
+      IdempotencyService.stableStringify({ orderId, action: 'retry' }),
+    );
+    const idempotencyArgs = {
+      scope: PAYMENT_RETRY_IDEMPOTENCY_SCOPE,
+      key: idempotencyKey,
+      callerHash,
+      bodyHash,
+    };
+    const beginResult = await this.idempotency.beginRequest(idempotencyArgs);
+    switch (beginResult.state) {
+      case 'cached':
+        return beginResult.cachedResponse as { paymentAction: ProviderPaymentAction };
+      case 'forbidden':
+        throw new IdempotencyKeyForbiddenException();
+      case 'conflict':
+        throw new IdempotencyKeyConflictException();
+      case 'in-flight':
+        throw new OrderIdempotencyInFlightException();
+      case 'fresh':
+        break;
+    }
+
+    try {
+      const result = await reopen();
+      await this.idempotency.completeRequest({
+        ...idempotencyArgs,
+        entityId: orderId,
+        responseJson: result,
+      });
+      return result;
+    } catch (error) {
+      await this.idempotency.abortRequest({
+        scope: PAYMENT_RETRY_IDEMPOTENCY_SCOPE,
+        key: idempotencyKey,
+        callerHash,
+      });
+      throw error;
+    }
   }
 
   private async reopenPaymentSession(
