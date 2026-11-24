@@ -38,7 +38,7 @@ export const domainsStep: Step = {
     const api = await origin('api', 'API origin', `https://api.${apex}`);
     const certbotEmail = await ctx.prompter.text({
       path: 'domains.certbotEmail',
-      label: "Email for Let's Encrypt expiry notices",
+      label: "Email certbot registers with Let's Encrypt",
       initial: domains.certbotEmail ?? ctx.answers.identity?.contactEmail,
       validate: (v) => (isEmail(v) ? null : 'not an email address'),
     });
