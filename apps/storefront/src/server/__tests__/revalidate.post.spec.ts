@@ -129,6 +129,18 @@ describe('handleRevalidate', () => {
     expect(recorded.status).toBe(400);
   });
 
+  it.each(['product.write', 'category.write', 'cms.write', 'config.write'])(
+    'accepts the %s reason the API sends',
+    async (reason) => {
+      const { event, recorded } = createFakeEvent({
+        headers: { 'X-Revalidate-Secret': SECRET },
+        body: validBody({ reason, paths: ['/en/', '/llms.txt'] }),
+      });
+      await handleRevalidate(event, { secret: SECRET, invalidate: vi.fn() });
+      expect(recorded.status).toBe(200);
+    },
+  );
+
   it('returns 200 + invokes the invalidator for each path on the happy path', async () => {
     const invalidate = vi.fn(async () => undefined);
     const log = vi.fn();
