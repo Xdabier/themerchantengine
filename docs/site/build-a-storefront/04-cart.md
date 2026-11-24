@@ -2,11 +2,11 @@
 title: Cart
 description: "The anonymous cart behind the HttpOnly sessionId cookie: how the first add creates it, reading it under both locales, updating and removing lines, coupon and gift card, the shipping and tax estimate, clearing it, and folding it into the account cart on sign-in."
 primaryQuery: ecommerce api anonymous cart cookie add to cart merge on sign-in coupon gift card estimate
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-This step gives a storefront a basket that survives page loads before the customer has an account, and the call that carries it into the account when they sign in. It serves the third obligation of [the contract](./index.md#the-ten-obligations): carry the anonymous cart cookie. The engine never asks the storefront for a cart id. It mints one on the first add, hands it back as an `HttpOnly` cookie named `sessionId`, and reads that cookie on every cart call after; a signed-in customer's cart is keyed on the session cookie instead. Everything below was run against a local engine serving the `demo` fixture and its fixture catalogue; the only edit to a pasted body is the asset host, replaced by `https://assets.shop.example`, and the cookie values, redacted.
+This step gives a storefront a basket that survives page loads before the customer has an account, and the call that carries it into the account when they sign in. It serves the third obligation of [the contract](./index.md#the-ten-obligations): carry the anonymous cart cookie. The engine never asks the storefront for a cart id. It mints one on the first add, hands it back as an `HttpOnly` cookie named `sessionId`, and reads that cookie on every cart call after; a signed-in customer's cart is keyed on their user id, so it follows the account to any device. Everything below was run against a local engine serving the `demo` fixture and its fixture catalogue; the only edit to a pasted body is the asset host, replaced by `https://assets.shop.example`, and the cookie values, redacted.
 
 ## The request
 

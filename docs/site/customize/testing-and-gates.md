@@ -2,11 +2,11 @@
 title: Testing and gates
 description: 'The commands to run before a change ships, per application, what each one proves, what CI refuses on a push, and the rules the e2e harnesses hold: one harness at a time on the test database, a fail-closed identity check on the API, no skips, no route mocks.'
 primaryQuery: nestjs angular playwright monorepo test gates ci
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-Every application in the monorepo has a unit runner, a linter, a production build and an end-to-end suite, and CI runs all of them on every push. This page lists the commands, says what each proves and what it cannot prove, and explains the rules the three e2e harnesses share. The unit runners skip type-checking on purpose, so the production builds are gates too, not packaging steps.
+Each application in the monorepo has a unit runner, a linter, a production build and an end-to-end suite, and CI runs all of them on every push. The commands below say what each one proves and what it cannot prove. The three e2e harnesses share a set of rules too. The unit runners skip type-checking on purpose, so the production builds are the gates that catch type errors.
 
 Every e2e command needs the test services up first:
 
@@ -37,7 +37,13 @@ npx nx e2e admin-e2e
 
 - `npx nx test admin` runs Jest through `jest-preset-angular` with `isolatedModules: true` (`apps/admin/jest.config.ts`). A strict-template error, a wrong binding on a Zod-typed model, a missing input: none of these fail a unit spec. The Better Auth browser client is replaced by `apps/admin/src/testing/better-auth-client.mock.ts` in every spec.
 - `npx nx build admin --configuration=production` is the AOT build with the budgets from `apps/admin/project.json`: initial bundle 750 kB warning and 900 kB error, any component style 4 kB and 8 kB, the `main` bundle 40 kB and 80 kB. It catches the template errors Jest misses and refuses a bundle that grew past the budget. Run it before every push that touches the admin; CI runs it as the `build` job.
-- `npx nx e2e admin-e2e` is the Playwright suite in `apps/admin-e2e/playwright.config.ts`. `apps/admin-e2e/global-setup.ts` starts the test services, refuses a port 53001 held by a process it did not start (it kills only the pid recorded in `apps/admin-e2e/.playwright-state/api.pid`), drops and recreates the `public` schema of the test database, pushes the schema, re-applies the search index, runs `prisma/seed.ts`, builds the API with `--skip-nx-cache`, spawns it on 53001 under the `/api` prefix, checks its identity, signs in the seeded superadmin and stores the session cookies for every spec. The admin itself runs through `apps/admin-e2e/serve-admin-e2e.mjs` on 53211 with `reuseExistingServer: false`, so a dev server on 53200 with its proxy to the dev API is never adopted. The API log is `apps/admin-e2e/.playwright-state/api.log`. Journey specs live under `apps/admin-e2e/src/modules/` and run in the `authed-desktop` project; `authed-mobile` and the browser matrix are opt-in with `--project=<name>`. `ADMIN_DEV_PORT` and `E2E_API_PORT` move the two ports when the OS reserves them.
+- `npx nx e2e admin-e2e` is the Playwright suite in `apps/admin-e2e/playwright.config.ts`. Its global setup in `apps/admin-e2e/global-setup.ts` runs these steps in order:
+   1. Starts the test services and checks that port 53001 is free. If it is busy, the setup kills only the pid recorded in `apps/admin-e2e/.playwright-state/api.pid`, checks the port again, and refuses to continue if the port is still taken.
+   2. Drops and recreates the `public` schema of the test database, pushes the schema, re-applies the search index and runs `prisma/seed.ts`.
+   3. Builds the API with `--skip-nx-cache`, starts it on 53001 under the `/api` prefix and checks its identity.
+   4. Signs in the seeded superadmin and stores the session cookies for every spec.
+
+   The admin runs through `apps/admin-e2e/serve-admin-e2e.mjs` on 53211. Playwright reuses a server already on that port only when the launcher's marker names the same ports and its process is still alive (`reuseExistingServer` calls `isWarm`, `playwright.config.ts:69`). A dev server on 53200, with its proxy to the dev API, is never adopted. The API log is `apps/admin-e2e/.playwright-state/api.log`. Journey specs live under `apps/admin-e2e/src/modules/` and run in the `authed-desktop` project; `authed-mobile` and the browser matrix are opt-in with `--project=<name>`. `ADMIN_DEV_PORT` and `E2E_API_PORT` move the two ports when the OS reserves them.
 
 `npm run test:services-e2e` is a separate contract suite (`apps/admin-services-e2e/playwright.config.ts`) that targets `http://localhost:53000`, the dev API, and pushes the schema on whatever database `.env` names. It is not in CI and not in the list above.
 
@@ -79,7 +85,7 @@ npm run test:store-config-seed
 npm run test:fixture-catalogue-seed
 ```
 
-- `npm run test:scripts` runs Vitest on `scripts/__tests__/**/*.spec.ts` and `scripts/*.spec.ts` (`scripts/vitest.config.ts`). The specs pin the CI workflow against the tree (`ci.spec.ts`), the deploy scripts and systemd units (`deploy-shared.spec.ts`), the Dockerfiles (`dockerfiles.spec.ts`), the public docs pages (`docs-site.spec.ts`), the security headers each edge vhost may not repeat (`edge-headers.spec.ts`), the inline secret-scan allow markers (`gitleaks-allows.spec.ts`), the Nitro import rule, the release script, the storefront proxy lines in every vhost and the two install wrappers. The Nx project name is `repo-scripts`, so `npx nx run-many -t test` includes it.
+- `npm run test:scripts` runs Vitest on `scripts/__tests__/**/*.spec.ts` and `scripts/*.spec.ts` (`scripts/vitest.config.ts`). The specs pin the CI workflow (`ci.spec.ts`), the deploy scripts and systemd units (`deploy-shared.spec.ts`), the Dockerfiles (`dockerfiles.spec.ts`), the public docs pages (`docs-site.spec.ts`) and the security headers each edge vhost may not repeat (`edge-headers.spec.ts`) against the tree. They also cover the inline secret-scan allow markers, the Nitro import rule, the release script, the storefront proxy lines in every vhost and the two install wrappers. The Nx project name is `repo-scripts`, so `npx nx run-many -t test` includes it.
 - `npm run verify:no-client-refs` scans every tracked and untracked-but-not-ignored text file for the tokens in its token table and fails on a hit outside its allowlist, or on an allowlist entry that matches nothing. `--list` prints the allowlisted hits, `--summary` counts per directory. The token file is left out of the release tarball, so on a tarball the command reports that it runs in the repository only.
 - The setup CLI is the Nx project `setup-cli` (`tools/setup/project.json`): `test` is `npm run test:setup`, `typecheck` is `npm run typecheck:setup`, `build` is `npm run build:setup`. `node tools/setup/verify-standalone.mjs` copies the stepper and the shared sources to a scratch directory without the workspace `node_modules`, installs from the stepper's own lockfile, builds and runs the bundle's `--version`.
 - The two seed suites have no Nx project; CI runs them by their npm scripts after `nx run-many -t test`.

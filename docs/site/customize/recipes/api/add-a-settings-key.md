@@ -2,7 +2,7 @@
 title: Add a settings key
 description: "Register a store setting: the StoreSetting row it lives in, the key registry and default, the PATCH field, the Redis cache and the event that drops it, the public store config it may join, the admin editor that writes it and the storefront read."
 primaryQuery: add a store setting key nestjs prisma ecommerce
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -215,7 +215,7 @@ npm run test:e2e
 
 ## Gotchas
 
-- A key in `store.config.ts` that is missing from `SETTINGS_KEYS` is never returned and never writable. The registry, not the default, is what exists.
+- A key in `store.config.ts` that is missing from `SETTINGS_KEYS` is never returned and never writable.
 - The admin request schema strips what it does not model. Before the guard above existed, a page saved six keys the schema did not know, the API answered 200, and the screen reported "saved" for values never stored.
 - An upsert replaces the whole JSON value. A `{ code }`-only `currencyConfig` used to wipe the symbol and decimal places; `completeCurrencyConfig` now fills the missing halves before the write. Do the same for any object-valued key.
 - A write with Prisma directly emits no event. `test/e2e/store-config.e2e-spec.ts` restores its rows and then PATCHes the same values through the settings endpoints so the running API's locale snapshot refreshes.

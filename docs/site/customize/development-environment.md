@@ -2,11 +2,11 @@
 title: Development environment
 description: "Running the engine from a checkout: the docker services, the database commands, the seeds and the three store fixtures, the dev servers, the test stack, the three e2e harnesses and the traps each one guards against."
 primaryQuery: nestjs angular nx monorepo local development setup docker postgres redis
-updated: 2026-10-27
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-This page is for changing the engine. If you want a running store on a laptop, run the installer under its local profile instead: [Install locally](../getting-started/install-locally.md). The two coexist; the installer keeps its own environment files under `deploy/local/` and never touches the `.env` a checkout uses.
+Set up a checkout like this to change the engine's code. If you want a running store on a laptop, run the installer under its local profile instead: [Install locally](../getting-started/install-locally.md).
 
 ## Prerequisites
 
@@ -94,7 +94,7 @@ Before a single spec runs, each harness calls `assertTestTarget` from `scripts/e
 
 All three read `STORE_CONFIG_FIXTURE` and default to `demo`. Set it to `gulf-rtl` or `maghreb-ltr` to run a suite under another store.
 
-## The one hard rule
+## Run one test harness at a time
 
 Never run two harnesses at the same time. All three reseed the same `merchants_engine_test` on 55433 and all three want port 53001 for an API they configure differently (the backend suite runs it unprefixed, the other two under `/api`). A second harness starting mid-run reseeds the database the first is asserting on, and adopts or collides with the first one's API. Every harness's port guard names "a stopped storefront-e2e run" or "another harness" as the usual squatter, because that is what it was.
 
@@ -107,8 +107,7 @@ Never run two harnesses at the same time. All three reseed the same `merchants_e
 - **The admin button takes a `testId` input.** `libs/admin-ui/src/atoms/button/button.component.ts` binds `[attr.data-testid]="testId()"` on the inner `<button>`; a `data-testid` attribute written on `<app-button>` lands on the wrapper element, which is not what a click targets. Pass `testId="save"` and select `[data-testid="save"]`.
 - **The seed refuses the dev database.** `prisma/seed.ts` exits with a message naming `SEED_DEV_OK=1` when `DATABASE_URL` is not the test database. That is the guard working; set the variable when you mean it.
 - **A Redis cache outlives a reseed.** The API caches sections, sitemaps and product lists in Redis. Every harness flushes the test Redis after seeding; on the dev pair a reseed leaves the dev Redis as it was, so a page can show a catalogue that no longer exists until the keys expire or you flush `redis-dev`.
-- **Windows can reserve a 5xxxx port.** Hyper-V's dynamic exclusion range sometimes covers 53001 or 53211. The knobs are `E2E_API_PORT` and `ADMIN_DEV_PORT` for the admin suite, `STOREFRONT_E2E_API_PORT` and `STOREFRONT_DEV_PORT` for the storefront suite. There is deliberately no knob that points a suite at the dev stack.
-
+- **Windows can reserve a 5xxxx port.** Hyper-V's dynamic exclusion range sometimes covers 53001 or 53211. The knobs are `E2E_API_PORT` and `ADMIN_DEV_PORT` for the admin suite, `STOREFRONT_E2E_API_PORT` and `STOREFRONT_DEV_PORT` for the storefront suite.
 ## Unit tests and lint
 
 ```bash

@@ -2,7 +2,7 @@
 title: Add a screen
 description: "Add a list or detail screen to the Angular admin: the shared route constant, the Zod-parsed service, the page component, the guarded route, the nav entry, the component spec and the Playwright journey against the real API."
 primaryQuery: add a screen angular admin dashboard nestjs api
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -160,7 +160,7 @@ Filters and the page number live in the URL query, so a reload and the back butt
 
 `apps/admin/src/app/core/guards/permission.guard.ts` sends an anonymous visitor to `/auth/login?returnTo=...` and an authenticated one without the permission to `/403`.
 
-The snippet starts at the child. Its parent, the `shipping` route at `apps/admin/src/app/app.routes.ts:436-438`, carries its own `canActivate: [permissionGuard('settings:view')]`, and Angular runs both guards. An operator with `carriers:view` and not `settings:view` still lands on `/403`. The rule for a new screen: read every guard on the path from the root, not only the one you write, and give the nav entry a permission that implies all of them, or guard the parent with the weakest permission its children need.
+The snippet starts at the child. Its parent, the `shipping` route at `apps/admin/src/app/app.routes.ts:428-430`, carries its own `canActivate: [permissionGuard('settings:view')]`, and Angular runs both guards. An operator with `carriers:view` and not `settings:view` still lands on `/403`. For a new screen, read every guard on the path from the root, not only the one you write. An operator who lacks any of them is sent to `/403`.
 
 ### 5. The nav entry
 
@@ -254,4 +254,4 @@ npx nx e2e admin-e2e --grep carrier
 - The route's `data.permission` and the `permissionGuard(...)` argument are typed separately. They must match by hand.
 - The e2e auth fixture throws when `apps/admin-e2e/.playwright-state/storage-state.json` is missing. Run the suite once in full so global setup captures the session before running a single spec with `--grep`.
 - A test that edits seeded data must put it back. The journey specs wrap the edit in `try/finally` and restore through the API, because the test database is shared by every spec in the run.
-- `npx nx e2e admin-e2e` reuses any listener already on port 53001. A stale API from another shell answers every request with a 404 and the whole suite goes red for no reason in the code.
+- `npx nx e2e admin-e2e` does not adopt a listener on port 53001. Global setup kills the pid an earlier run recorded if that process still holds the port, and otherwise stops with an error. The dev server on 53211 is reused only when its marker file names the same ports and the owning pid is still alive.

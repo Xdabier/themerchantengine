@@ -2,11 +2,11 @@
 title: Framework notes
 description: "What changes in Next.js, Nuxt 3 and SvelteKit against the framework-neutral fetch the flow pages show: cookie forwarding at SSR, the idempotency key on a retried action, 304 and the fetch caches, the base URL, the SEO proxy routes and the revalidation route."
 primaryQuery: nextjs nuxt sveltekit headless storefront cookies ssr idempotency revalidate
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-The flow pages show every request as a plain `fetch` that runs the same in Node 22 and in a browser. That code does not change under a framework. What changes is the six things a framework wraps: how a server render reads the visitor's cookies and writes new ones, where a retried form keeps its idempotency key, what the framework's own fetch cache does to an authenticated response, where the base URL lives, how a route streams a file from the API, and how a cached page is dropped when the engine says it changed. Each is one section below, with a snippet for Next.js (App Router), Nuxt 3 and SvelteKit. The snippets are written from each framework's documented APIs as of 2026 and are illustrative: this repository does not build them, and the shipped storefront is Analog.js (see [Reference implementation](./reference-implementation.md)). Each flow page carries the short form of these notes under its "Framework notes" heading.
+The flow pages show every request as a plain `fetch` that runs the same in Node 22 and in a browser. That code does not change under a framework. The framework wraps six things: how a server render reads the visitor's cookies and writes new ones, where a retried form keeps its idempotency key, what the framework's own fetch cache does to an authenticated response, where the base URL lives, how a route streams a file from the API, and how a cached page is dropped when the engine says it changed. Each is one section below, with a snippet for Next.js (App Router), Nuxt 3 and SvelteKit. The snippets are written from each framework's documented APIs as of 2026 and are illustrative: this repository does not build them, and the shipped storefront is Analog.js (see [Reference implementation](./reference-implementation.md)). Each flow page carries the short form of these notes under its "Framework notes" heading.
 
 ## Cookies at SSR
 
@@ -81,7 +81,7 @@ The `handleFetch` hook in `src/hooks.server.ts` is the place to do this once for
 - Nuxt 3: hold it in `useState('checkoutKey', () => crypto.randomUUID())`, which is created once on the server, serialised into the payload and shared with the browser, so the client-side resubmit reuses it. A server route under `server/api/` that places the order reads it from the body and forwards it as the header.
 - SvelteKit: create it in the `+page.server.ts` `load` and return it as page data; the form carries it as a hidden input, and the form action (`export const actions`) forwards it as the header. With `use:enhance` a failed submit keeps the form and the input, so the retry sends the same key. Alternatively store it in a short-lived cookie set in `load`.
 
-In every case, a `409 IDEMPOTENCY_KEY_CONFLICT` means the body changed under the same key (the cart moved); mint a new key only when the cart itself changed, as the shipped storefront does per cart snapshot.
+In every case, a `409 IDEMPOTENCY_KEY_CONFLICT` means the body changed under the same key (the cart moved); mint a new key only when the cart itself changed.
 
 ## `304` and the framework's fetch cache
 

@@ -2,7 +2,7 @@
 title: Change brand tokens
 description: "Which colours in the Angular admin come from the store's settings at runtime and which are the admin's own build-time design tokens, how dark and light mode resolve, and the contrast gate that measures every pair."
 primaryQuery: change brand tokens tailwind angular admin dashboard dark mode
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -125,7 +125,7 @@ The two layers are not linked. The semantic blocks (`apps/admin/src/styles.css:1
 
 ### 3. Light and dark mode
 
-Three blocks, and the order matters. Dark sits on bare `:root`. System light is a media query scoped away from an explicit dark choice. Explicit light comes last so a manual choice wins in both directions:
+There are three blocks. Keep them in this order. Dark sits on bare `:root`. System light is a media query scoped away from an explicit dark choice. Explicit light comes last so a manual choice wins in both directions:
 
 ```css
 @media (prefers-color-scheme: light) {

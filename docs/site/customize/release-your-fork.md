@@ -2,7 +2,7 @@
 title: Release your fork
 description: 'What npm run release checks, builds, archives and tags, what the tarball holds and leaves out, the version and changelog convention it enforces, and how to keep a fork rebased on an upstream release tag without losing your seeds and env examples.'
 primaryQuery: release fork self-hosted ecommerce git archive tarball
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
@@ -46,7 +46,7 @@ Only tracked files are archived. No `.env` file, no `.setup-state.json`, no `nod
 - the manual QA records, the studio brand book, and the marketing and research notes under `docs/`, plus a third-party PDF report
 - the token table and the spec of the client-reference guard, because the table names past clients
 - the specs that read the agent configuration or that token table, which would fail on a tree without them
-- `test/fixtures/license/private.pem`, a guard against a key put back by hand
+- `test/fixtures/license/private.pem`, listed so a signing key put back by hand under `test/` stays out of the archive. The file is not in the tree at this commit, so the entry only matters if one returns.
 
 The same spec runs `git archive` on the real repository and refuses any of those paths in the listing. It requires `setup.sh`, `setup.ps1`, `tools/setup/build.mjs`, `deploy/templates/compose.local.yml`, `prisma/schema.prisma` and `ci/answers.local.json` (placeholder answers the CI workflow installs from) to be present, and checks that the anchored root patterns keep `scripts/ci/` and nested `specs` directories in. It also fails when a shipped spec reads a path the archive leaves out.
 
@@ -59,7 +59,7 @@ If your fork adds files that must not reach a customer, add them to `.gitattribu
 - The version is the `version` field of `package.json`, semantic, and a person sets it. The script does not bump.
 - `CHANGELOG.md` opens with the project name as its `# ` heading, then one `## <version>` section per release, newest first, with `### Major Changes`, `### Minor Changes` and `### Patch Changes` subsections as the release needs them. Changesets is wired (`npm run changeset`, `npm run changeset:version`, config in `.changeset/config.json`), and `changeset version` writes a section in that shape and bumps `package.json` together, which is why the refusal names it as one way to title the entry.
 - While work is in progress the top section may be titled `## Unreleased`. Retitle it with the version, commit, and only then run the release. The script's dry run is the cheapest way to check the three files agree: `npm run release -- --dry-run`.
-- A release that changes the schema destructively says so in its entry. An operator reads the entry before an update, because the installer's schema push is additive and there is no automated schema rollback; [Update the store](../operate/update.md) explains the operator's side.
+- A release that changes the schema destructively says so in its entry. An operator reads the entry before an update, because the installer's schema push runs with `--accept-data-loss` and there is no automated schema rollback; [Update the store](../operate/update.md) explains the operator's side.
 
 ## Keep a fork on a release tag
 
@@ -89,7 +89,7 @@ npm run db:push          # prisma db push, then the search index, then the order
 npm run db:fts           # after any bare prisma db push you ran by hand
 ```
 
-The installer and the test harnesses push the schema with `prisma db push`; they do not replay `prisma/migrations/`, and `prisma migrate dev` cannot replay them either, because the chain does not start from an empty database (see [Add a model](./recipes/data/add-a-model.md)). After a rebase, run `npm run db:push` and then `npm run db:fts`, because the search column, its trigger and its indexes live in `prisma/search_fts_setup.sql` and every push that touches the product table leaves them to be re-applied. A version bump in `package.json` also changes the `info.version` of the two generated OpenAPI documents under `docs/site/reference/_generated/`, so run `npm run docs:generate` and commit the result with the bump, or the `docs-generate-check` job refuses the push.
+The installer and the test harnesses push the schema with `prisma db push`; they do not replay `prisma/migrations/`, and `prisma migrate dev` cannot replay them either, because the chain does not start from an empty database (see [Add a model](./recipes/data/add-a-model.md)). After a rebase, run `npm run db:push`. A bare `prisma db push` drops the search column and leaves its trigger behind, and `prisma/search_fts_setup.sql` holds the column, trigger and indexes that put them back, so `npm run db:fts` must follow any push you run by hand (see [Search after schema changes](./recipes/data/search-after-schema-changes.md)). A version bump in `package.json` also changes the `info.version` of the two generated OpenAPI documents under `docs/site/reference/_generated/`, so run `npm run docs:generate` and commit the result with the bump, or the `docs-generate-check` job refuses the push.
 
 Run the gates before the rebase branch replaces your main branch: the per-application commands on [Testing and gates](./testing-and-gates.md), `npm run verify:no-client-refs` if your fork keeps the token table, and `npm run release -- --dry-run`. On an installed store the update is a re-run of the installer on the new checkout, engine box first; [Update the store](../operate/update.md) has the order and the by-hand steps.
 

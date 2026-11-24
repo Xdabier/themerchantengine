@@ -2,11 +2,11 @@
 title: Reference implementation
 description: "How the shipped Analog.js storefront meets each of the ten obligations: the files, the functions and a real excerpt from each, so you can read a working answer."
 primaryQuery: analog angular storefront reference implementation cookie forwarding idempotency 304
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-The shipped storefront is an Analog.js app on Angular with a Nitro server. Pages live under `apps/storefront/src/app/pages/[locale]/`, one directory per route with an optional `.server.ts` loader beside the page; the API services are in `libs/storefront-services`, the types and Zod schemas in `libs/storefront-types`, and the server routes, middleware and the two API clients under `apps/storefront/src/server/`. Where each piece sits in the whole tree is on [Repository layout](../customize/repository-layout.md#the-storefront). Every section below is one obligation of [the contract](./index.md#the-ten-obligations), with the file that meets it and an excerpt; comments are trimmed from the excerpts, so open the file for the reasoning.
+The shipped storefront is an Analog.js app on Angular with a Nitro server. Pages live under `apps/storefront/src/app/pages/[locale]/`, one directory per route with an optional `.server.ts` loader beside the page; the API services are in `libs/storefront-services`, the types and Zod schemas in `libs/storefront-types`, and the server routes, middleware and the two API clients under `apps/storefront/src/server/`. Where each piece sits in the whole tree is on [Repository layout](../customize/repository-layout.md#the-storefront). Each section below covers one obligation of [the contract](./index.md#the-ten-obligations). It names the file that meets the obligation and gives an excerpt. Comments are trimmed from the excerpts, so open the file for the reasoning.
 
 ## 1. The store config
 
@@ -241,4 +241,4 @@ and further down:
   await dedupStore.recordEvent(eventId, DEDUP_TTL_MS);
 ```
 
-The store is `apps/storefront/src/server/lib/dedup-store.ts`: Redis with a twelve-hour `SET NX` when `REDIS_HOST` is set, in-memory otherwise, and a boot guard that refuses the in-memory one in production. The secret is `STOREFRONT_REVALIDATE_SECRET` on both sides; the engine's caller is `apps/api/src/modules/webhooks/revalidation.listener.ts`, which posts to `STOREFRONT_REVALIDATE_URL` with a fresh `eventId` per event and never blocks the write that triggered it. The engine sends four reasons (`product.write`, `category.write`, `cms.write`, `config.write`); the shipped schema's `REVALIDATE_REASONS` lists the first three, so a config write is answered `400 INVALID_BODY` by this build. Accept all four in yours.
+The store is `apps/storefront/src/server/lib/dedup-store.ts`: Redis with a twelve-hour `SET NX` when `REDIS_HOST` is set, in-memory otherwise, and, in production, a throw on first use when `REDIS_HOST` is unset. The secret is `STOREFRONT_REVALIDATE_SECRET` on both sides; the engine's caller is `apps/api/src/modules/webhooks/revalidation.listener.ts`, which posts to `STOREFRONT_REVALIDATE_URL` with a fresh `eventId` per event and never blocks the write that triggered it. The engine sends four reasons (`product.write`, `category.write`, `cms.write`, `config.write`); the shipped schema's `REVALIDATE_REASONS` lists the first three, so a config write is answered `400 INVALID_BODY` by this build. Accept all four in yours.

@@ -2,7 +2,7 @@
 title: Add a settings tab
 description: "Add a screen under Settings in the Angular admin: the card on the settings home, the child route, the per-screen form over the settings service and its Zod schema, and the e2e journey that saves and restores."
 primaryQuery: add a settings tab angular admin dashboard
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -111,7 +111,7 @@ export function readSetting<T>(settings: SettingsResponse | null, group: string,
 }
 ```
 
-The group name is decided on the API side: `SETTINGS_KEYS` in `apps/api/src/modules/settings/settings.constants.ts:25` lists every key under its group, and `KEY_TO_GROUP` (line 121) is what the API uses to store and to group the response. Read the group from there, not from where the key seems to belong: `currencyConfig` lives under `localization`, not `money`. `readSetting` with a wrong group returns the fallback and nothing fails; the form seeds with the default, the footer says "No changes", and the stored value never shows.
+The group name is decided on the API side: `SETTINGS_KEYS` in `apps/api/src/modules/settings/settings.constants.ts:24` lists every key under its group, and `KEY_TO_GROUP` (line 116) is what the API uses to store and to group the response. Read the group from there, not from where the key seems to belong: `currencyConfig` lives under `localization`, not `money`. `readSetting` with a wrong group returns the fallback and nothing fails; the form seeds with the default, the footer says "No changes", and the stored value never shows.
 
 ### 4. Seed the form, send only what changed
 

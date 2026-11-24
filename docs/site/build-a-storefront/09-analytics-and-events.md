@@ -2,7 +2,7 @@
 title: Analytics and events
 description: "The write-side signals a storefront sends: analytics events, the search event id you echo on click and on conversion, reviews and questions with their helpful votes, the newsletter double opt-in, the contact form, and the honeypot and Turnstile headers both doors require."
 primaryQuery: storefront analytics events search click tracking reviews questions newsletter contact honeypot turnstile ecommerce api
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
@@ -104,7 +104,7 @@ A storefront exposes the two landing pages and nothing else; the tokens are mint
 
 ### Contact: `POST /v1/contact`
 
-Public, bot-protected, `{ "fromName", "fromEmail", "subjectLine", "message" }` with the limits 120, 254, 200 and 5000 characters. Answers `202` with `{ "status": "received" }`. Rate-limited at five requests per fifteen minutes per client, which is tight on purpose. The shipped storefront has no contact form; the route exists for yours.
+Public, bot-protected, `{ "fromName", "fromEmail", "subjectLine", "message" }` with the limits 120, 254, 200 and 5000 characters. Answers `202` with `{ "status": "received" }`. Rate-limited to five requests per fifteen minutes per client. The shipped storefront has no contact form; the route exists for yours.
 
 ### Bot protection on the two doors
 
@@ -285,7 +285,7 @@ Codes are in [the error catalogue](../reference/error-codes.md); statuses and th
 ```
 
 - `REVIEW_DUPLICATE`, 409, on a second review of the same product by the same customer. Show the existing one from `/mine` instead.
-- `REVIEW_NOT_FOUND`, 404, and `REVIEW_NOT_OWNED`, 403, on `PATCH`, `DELETE` and `/helpful` with a wrong id or someone else's review. Proved on `/helpful` and on `PATCH` with a made-up id:
+- `REVIEW_NOT_FOUND`, 404, on `PATCH`, `DELETE` and `/helpful` with an id that does not exist. `REVIEW_NOT_OWNED`, 403, on `PATCH` when the review belongs to someone else. `/helpful` has no ownership check, so a customer can vote on any review. Proved on `/helpful` and on `PATCH` with a made-up id:
 
 ```json
 {"error":{"code":"REVIEW_NOT_FOUND","message":"Review \"00000000-0000-4000-8000-000000000000\" not found"}}

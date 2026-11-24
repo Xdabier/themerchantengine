@@ -2,14 +2,13 @@
 title: Add a Nitro alias
 description: "Why a server-side import through a tsconfig path alias builds green and fails at runtime on the production storefront, the nitro.alias map in vite.config.ts that fixes it, and the two gates that prove the fix."
 primaryQuery: nitro alias tsconfig paths analog production build cannot find package
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-You wrote a `.server.ts` loader, a Nitro route or a middleware that imports a workspace library through a path alias such as `@storefront-types` or `@common/brand`. The dev server works. The unit tests pass. The production build finishes. Then every page answers 500 with `Cannot find package '@common/...'` or `Invalid module "@storefront-types"`. Nitro bundles the server with its own resolver and does not read the aliases in `tsconfig.base.json`; Vite and the `nxViteTsPaths` plugin only serve the Angular client and SSR bundles. This page shows the alias map that tells Nitro the same thing and the two commands that catch a missing entry before it ships.
-
+You wrote a `.server.ts` loader, a Nitro route or a middleware that imports a workspace library through a path alias such as `@storefront-types` or `@common/brand`. The dev server works. The unit tests pass. The production build finishes. Then every page answers 500 with `Cannot find package '@common/...'` or `Invalid module "@storefront-types"`. Nitro bundles the server with its own resolver and does not read the aliases in `tsconfig.base.json`; Vite and the `nxViteTsPaths` plugin only serve the Angular client and SSR bundles.
 ## Files you touch
 
 - `apps/storefront/vite.config.ts`: `NITRO_ALIASES`, passed as `nitro.alias` to the Analog plugin. The only place to add an entry.
@@ -71,7 +70,7 @@ analog({
 }),
 ```
 
-Each entry is an absolute file path, not a directory. A wildcard alias like `@common/*` has no equivalent here: name each module you import. Order matters when one key is a prefix of another. Nitro's resolver takes the first prefix match, so the deep `@common/store-config-fixtures/store-config-fixture.schema` entry sits above the bare `@common/store-config-fixtures` one; the other way round, the short entry would shadow it and the deep import would resolve to the barrel.
+Each entry is an absolute file path, not a directory. A wildcard alias like `@common/*` has no equivalent here: name each module you import. Key order does not matter. Nitro sorts the aliases before it uses them, longest path first, so the deep `@common/store-config-fixtures/store-config-fixture.schema` key wins over the bare `@common/store-config-fixtures` key that is its prefix, wherever you put it.
 
 ### 3. Or import relatively and say why
 
@@ -84,7 +83,7 @@ A server module that needs one function from a library can skip the map. `apps/s
 import { isProduction } from '../../../../../libs/shared/common/src/env/runtime-environment';
 ```
 
-The lint disable is required: the module-boundary rule flags a deep relative import into another project. Keep the comment; it is what stops the next reader from "fixing" it back to an alias. The alias form itself is not what lint objects to. `.eslintrc.js` sets `@nx/enforce-module-boundaries` with a `depConstraints` entry that lets `scope:storefront` depend on `scope:shared`, the tag of `libs/shared/common`, and `apps/storefront/src/i18n/types.ts` imports through `@common/` today with no warning. Lint permits the import; Nitro is the side that needs telling.
+The lint disable is required: the module-boundary rule flags a deep relative import into another project. Keep the comment, so nobody changes the import back to an alias. The alias form itself is not what lint objects to. `.eslintrc.js` sets `@nx/enforce-module-boundaries` with a `depConstraints` entry that lets `scope:storefront` depend on `scope:shared`, the tag of `libs/shared/common`, and `apps/storefront/src/i18n/types.ts` imports through `@common/` today with no warning. Lint allows the alias import. Only Nitro needs the extra entry.
 
 ### 4. Keep the barrel light
 
@@ -126,7 +125,7 @@ npx nx lint storefront
 
 - The build compiles the client, the SSR bundle and the Nitro server. It passes with a missing alias; run it because the smoke depends on its output.
 - `npm run test:storefront-ssr-smoke` needs the test API on 53001 (the storefront e2e harness spawns it; `.github/workflows/ci.yml` holds one with `scripts/ci/hold-test-api.ts`). Exit 0 is a pass, 1 a page that rendered wrong, 2 a harness or fixture problem. All non-zero codes fail the gate.
-- `npx nx test storefront` covers the server modules under Vitest, where the aliases resolve through Vite and a missing Nitro entry is invisible; it is here for the code you touched, not for the alias.
+- `npx nx test storefront` covers the server modules under Vitest, where the aliases resolve through Vite and a missing Nitro entry is invisible to it. Run it for the code you changed.
 - `npx nx lint storefront` catches a deep relative import without its `eslint-disable` line.
 
 ## Gotchas

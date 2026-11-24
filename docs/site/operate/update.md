@@ -2,11 +2,11 @@
 title: Update the store
 description: An update is a re-run of the installer on a newer checkout. What it rebuilds, what it keeps, the order for two boxes, and the two things to do by hand only when you must, editing nginx and pushing the schema.
 primaryQuery: update self hosted ecommerce platform docker
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
-There is no upgrade command. An update is the installer run again on a newer checkout: it rebuilds the images from the new tree, pushes the schema, re-applies the search index, runs the seeds (which never overwrite an operator's edits), keeps every secret and certificate, and restarts what changed. The prompts default to the previous answers, so a re-run is a series of Enter presses; `--answers <file>` skips them.
+There is no upgrade command. An update is the installer run again on a newer checkout: it rebuilds the images from the new tree, pushes the schema, re-applies the search index, runs the seeds (which never overwrite an operator's edits), keeps every generated secret and certificate, and restarts what changed. The prompts default to the previous answers, so most of a re-run is pressing Enter. The third-party secrets and the owner password are asked again, because the state file never holds them, so have them at hand. `--answers <file>` skips the prompts.
 
 ## Update
 
@@ -15,7 +15,7 @@ Take a backup first. [Backups and restore](./backups-and-restore.md) shows the o
 ```bash
 cd /srv/themerchantengine
 git fetch --tags origin
-git checkout v1.0.0            # the release you are moving to, or the branch you deploy from
+git checkout v1.0.1            # the release you are moving to, or the branch you deploy from
 ./setup.sh --profile engine    # the profile this box was installed with
 ```
 
@@ -27,16 +27,19 @@ The run ends with the same closing lines as the install. If a step fails, the in
 
 ## What an update keeps and what it changes
 
-- **Kept:** every generated secret, every third-party key, the issued certificates, the owner account and every user, the database, the uploaded assets, the store settings edited in the admin. The seeds add rows a new release needs (a new permission, a new notification template) and never overwrite a row an operator changed.
-- **Changed:** the three images, the rendered compose file and vhosts (from the new templates), the schema (additive pushes; a release that drops a column says so in its changelog), the search index, and the systemd units.
+An update keeps every generated secret, the issued certificates, the owner account and every user, the database, the uploaded assets and the store settings edited in the admin. The third-party keys stay what you type at the prompts. The seeds add rows a new release needs (a new permission, a new notification template) and never overwrite a row an operator changed.
+
+It changes the three images, the rendered compose file and vhosts (from the new templates), the schema (additive pushes; a release that drops a column says so in its changelog), the search index and the systemd units.
+
+It also rewrites the environment file from your answers, so a line you added by hand is gone afterwards. `PAYMENT_CONFIG_ENCRYPTION_KEY` matters most: without it the API cannot read the Stripe keys saved in the admin, so add it back right after the run and restart the API with `$COMPOSE up -d api`. [Store settings](./store-settings.md#values-the-installer-does-not-write) lists the others.
 
 ## When the changelog says a release changes the schema
 
-The push is additive in the common case and runs inside the installer. When a release notes a destructive schema change, the dump you took before the update is what a rollback restores; there is no automated schema rollback. Read the release's changelog entry before the update, not after.
+The push is additive in the common case and runs inside the installer. When a release notes a destructive schema change, the dump you took before the update is what a rollback restores; there is no automated schema rollback. Read the release's changelog entry before you start.
 
 ## By hand, only when you must
 
-The two things below are steps the installer performs in order. Prefer a re-run of setup. These are for the day the installer cannot run and the store must.
+The two things below are steps the installer performs in order. Prefer a re-run of setup, and use these only when the installer cannot run.
 
 ### Edit an nginx vhost
 

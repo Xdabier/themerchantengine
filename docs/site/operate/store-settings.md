@@ -2,11 +2,11 @@
 title: Store settings, secrets and integrations
 description: Which values belong to the store and are edited in the admin's settings screens, which belong to the box and change by re-running the installer, how to rotate each secret and third-party key, and how the search-engine submission credentials are rotated.
 primaryQuery: ecommerce store settings admin currency locale secrets rotation
-updated: 2026-09-08
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-The installer asked for two kinds of values. The store's own (its name, colours, locales, currency, domains) live in the database and are edited in the admin from the moment the install ends. The box's (keys, secrets, origins the containers bind to) live in the environment files and change by running the installer again. This page says which is which and how each one changes.
+The installer asked for two kinds of values. The store's own (its name, colours, locales, currency, domains) live in the database and are edited in the admin from the moment the install ends. The box's (keys, secrets, origins the containers bind to) live in the environment files and change by running the installer again.
 
 ## Edited in the admin, live on save
 
@@ -18,26 +18,26 @@ Every screen under Settings writes to the store's configuration, invalidates the
 - **Money.** Currency code, symbol, position, separators, decimals shown, and whether prices display tax included, excluded or unmentioned. Prices are stored with three decimals whatever the currency; this screen decides how they render.
 - **Domains.** The three public origins as the store publishes them in canonical URLs and mail links. Changing a domain here does not move the store: the certificates, the vhosts and the API's cookie domain come from the environment, so a real domain change is a re-run of the installer with the new origins.
 - **Appearance.** The logo and favicon URLs the storefront renders.
-- **Integrations.** A signpost, not an editor: it says where each integration is configured. Tracking identifiers (GA4, Meta, TikTok, Snap) are edited under Analytics, Tracking pixels, which the storefront reads. Provider secrets are never stored in the database; they live in the environment file and change by re-running the installer.
+- **Integrations.** It edits nothing itself and says where each integration is configured. Tracking identifiers (GA4, Meta, TikTok, Snap) are edited under Analytics, Tracking pixels, which the storefront reads. The Stripe keys saved on the payment methods page are stored encrypted in the database. Every other provider secret lives in the environment file and changes by re-running the installer.
 
-Beyond Settings, the rest of the admin is also configuration in the same sense: tax zones and classes, shipping zones, carriers and methods, payment methods (switch cash on delivery, manual transfer or Stripe on and off here, and enter the Stripe keys), notification templates, the storefront's home sections and content pages. The installer seeded a first row of each from your answers; the admin owns them after.
+Beyond Settings, the rest of the admin is also configuration in the same sense: tax zones and classes, shipping zones, carriers and methods, payment methods (switch cash on delivery, manual transfer or Stripe on and off here, and enter the Stripe keys), notification templates, the storefront's home sections and content pages. The installer seeded a first row of each from your answers; the admin owns them after. Saving the Stripe keys needs `PAYMENT_CONFIG_ENCRYPTION_KEY` in the environment file, which the installer does not write; [Install on a server](../getting-started/install-on-a-server.md) says how to add it.
 
 ## Changed by re-running the installer
 
-Anything in the environment files. The prompts default to the previous answers, so a re-run is Enter up to the value you change, then the install steps, which are idempotent and take about half a minute when no image needs rebuilding.
+Anything in the environment files. The prompts default to the previous answers, except the secrets, which a re-run asks for again because the state file never holds them. The install steps that follow are idempotent and take about half a minute when no image needs rebuilding.
 
 ```bash
 cd /srv/themerchantengine
 ./setup.sh --profile engine     # the profile this box was installed with
 ```
 
-- **Third-party keys:** the S3 key pair, the Resend key and webhook secret, the Turnstile secret, the IndexNow key, the Bing key, the Search Console service account. Enter the new value at its step; the step verifies it live before anything is written, so a wrong key stops the run rather than the store.
+- **Third-party keys:** the S3 key pair, the Resend key and webhook secret, the Turnstile secret, the Stripe keys, the IndexNow key, the Bing key, the Search Console service account. Enter the new value at its step. The step checks it live, and a wrong key stops the run before anything is written. The secret keys are asked for on every re-run, so have the current ones at hand even when you change only one.
 - **The public origins** the containers bind to and the cookie domain derives from: the domains step.
 - **The owner account:** the installer leaves an existing owner untouched. Change the owner's password from the login page: sign out, "Forgot password", and a new password from the email that arrives.
 
 ## Values the installer does not write
 
-The installer rewrites the whole environment file from your answers on every run. A variable you add to it by hand that the installer does not own is gone after the next re-run: `SENTRY_DSN`, `AUTH_COOKIE_DOMAIN`, the social sign-in client ids and a handful of tuning knobs the API reads with defaults. The installed topology needs none of them. If you rely on one, re-add it after every re-run, or carry the change in your fork's templates.
+The installer rewrites the whole environment file from your answers on every run. A variable you add to it by hand that the installer does not own is gone after the next re-run: `PAYMENT_CONFIG_ENCRYPTION_KEY` and `PAYMENT_CONFIG_ENCRYPTION_KEYS_PREVIOUS`, `CERT_ALERT_TO`, the `TME_FINGERPRINT*` lines, `SENTRY_DSN`, `AUTH_COOKIE_DOMAIN`, the social sign-in client ids and a handful of tuning knobs the API reads with defaults. If you rely on one, re-add it after every re-run, or carry the change in your fork's templates. The payment key matters most: without it the Stripe keys saved in the admin cannot be read, so keep a copy off the box.
 
 ## Rotating a generated secret
 
@@ -55,7 +55,7 @@ Rotating the database or Redis password also means the running container's passw
 grep STOREFRONT_REVALIDATE_SECRET .env.production      # on the engine box
 ```
 
-A storefront logging `revalidate signature mismatch` has the two out of step.
+When the API logs `dispatch: storefront returned 401`, the two are out of step.
 
 ## Rotating the search-engine credentials
 

@@ -2,24 +2,24 @@
 title: Change checkout fields
 description: "The shipping address shape on the API and the storefront, the phone and postal-code rules on both sides, how a rejected order surfaces as a stable error code and a localized message, and the tests that pin each half."
 primaryQuery: change checkout address fields nestjs angular storefront validation
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-You want to add, drop or tighten a field on the checkout address, for example a required postal code or a delivery instruction. The address is typed in four places that must agree: the API DTO that accepts the order, the storefront Zod schemas that type the order payload, the schema that types a saved address the API returns, and the Reactive Form the customer fills. A rule enforced on only one side either blocks a valid order or lets a bad one through to the API's generic `VALIDATION_ERROR`. This page follows the phone field, which has a real rule on both sides, and shows where an order-level refusal turns into a code and a localized message.
+You want to add, drop or tighten a field on the checkout address, for example a required postal code or a delivery instruction. The address is typed in four places that must agree: the API DTO that accepts the order, the storefront Zod schemas that type the order payload, the schema that types a saved address the API returns, and the Reactive Form the customer fills. A rule enforced on only one side either blocks a valid order or lets a bad one through to the API's generic `VALIDATION_ERROR`. The phone field has a real rule on both sides, so the examples use it. The last section shows how an order-level refusal becomes a code and a localized message.
 
 ## Files you touch
 
 - `apps/api/src/modules/orders/dto/create-order.dto.ts`: `AddressDto`, the inline shipping and billing address on `POST /v1/orders`.
 - `apps/api/src/modules/users/dto/customer/create-address.dto.ts`: the saved-address DTO, which carries the phone and country rules.
 - `libs/shared/common/src/utils/phone.ts`: `PHONE_RE` and `normalizePhone`, the API's phone rule.
-- `libs/storefront-types/src/lib/users/users.schemas.ts` and `libs/storefront-types/src/lib/orders/orders.schemas.ts`: the storefront's address input types. `orderAddressInputSchema` (lines 14-24 of the orders file) is its own `z.object`, not derived from `addressInputBase`, so a field is added to each.
+- `libs/storefront-types/src/lib/users/users.schemas.ts` and `libs/storefront-types/src/lib/orders/orders.schemas.ts`: the storefront's address input types. `orderAddressInputSchema` (lines 14-23 of the orders file) is its own `z.object`, not derived from `addressInputBase`, so a field is added to each.
 - `libs/storefront-types/src/lib/shared/entities.ts`: `addressSchema` and the `Address` response type (lines 229-245), the shape of a saved address the API returns. `toOrderAddress` in the checkout page reads from this type.
 - `apps/storefront/src/lib/phone.ts`: the storefront copy of the phone rule.
 - `apps/storefront/src/app/sections/checkout/address-picker.component.ts`: the inline form on the checkout address step; `apps/storefront/src/app/sections/account/address-form.component.ts` is the saved-address form with the same validators.
-- `apps/storefront/src/app/pages/[locale]/checkout/index.page.ts`: `placeOrderErrorMessageFor`, the code-to-string switch.
+- `apps/storefront/src/app/pages/[locale]/checkout/index.page.ts`: `placeOrderErrorMessageFor`, the code-to-string mapper.
 - `apps/storefront/src/i18n/types.ts` and the three catalogues: `checkout.errors.*`.
 - `apps/api/src/modules/orders/order-guest-address-required.exception.ts`: the shape of a typed refusal.
 
@@ -89,7 +89,7 @@ The form rule lives in `apps/storefront/src/lib/phone.ts`, which allows grouping
 export const PHONE_RE = /^\+?(?:[\s().-]*[0-9]){6,15}[\s().-]*$/;
 ```
 
-That file does not import the API's copy, and the two regexes differ on purpose: the form accepts grouping characters the API strips, so the same string passes both. Nothing in lint forbids the import: `.eslintrc.js` lets `scope:storefront` depend on `scope:shared`, and `apps/storefront/src/i18n/types.ts` already imports from `@common/`. The cost is elsewhere: a `@common/*` import in a file Nitro bundles needs an entry in `nitro.alias` (see [Add a Nitro alias](./add-a-nitro-alias.md)). Change both regexes together or the form accepts what the API refuses.
+That file does not import the API's copy, and the two regexes differ on purpose: the form accepts grouping characters the API strips, so the same string passes both. Nothing in lint forbids the import: `.eslintrc.js` lets `scope:storefront` depend on `scope:shared`, and `apps/storefront/src/i18n/types.ts` already imports from `@common/`. Importing across that line has a build cost too: a `@common/*` import in a file Nitro bundles needs an entry in `nitro.alias` (see [Add a Nitro alias](./add-a-nitro-alias.md)). Change both regexes together or the form accepts what the API refuses.
 
 A saved address the API returns is typed a third time, in `libs/storefront-types/src/lib/shared/entities.ts` (lines 229-245):
 
@@ -108,7 +108,7 @@ export const addressSchema = z
 export type Address = z.infer<typeof addressSchema>;
 ```
 
-It is `.passthrough()`, so a field you forget to declare here is not stripped and does not fail at the Zod layer. It surfaces as a type error instead: `toOrderAddress` in `checkout/index.page.ts` reads `addr.<field>` off `Address`, and an undeclared key on a passthrough type comes from its index signature as `unknown`, so `tsc` reports `TS4111` on the read and `TS2322` when the value is assigned to the `string` the order input expects. `npx tsc --noEmit -p apps/storefront/tsconfig.app.json` and the production build fail on it; `npx nx test storefront` does not, because Vitest strips types without checking them. `orderAddressInputSchema` in `libs/storefront-types/src/lib/orders/orders.schemas.ts` (lines 14-24) is the fourth declaration, its own object rather than a derivation of `addressInputBase`.
+It is `.passthrough()`, so Zod keeps a field you forget to declare here instead of stripping it. `orderAddressInputSchema` in `libs/storefront-types/src/lib/orders/orders.schemas.ts` (lines 14-23) is the fourth declaration, its own object rather than a derivation of `addressInputBase` in `users.schemas.ts`.
 
 ### 3. Change the form
 
@@ -146,25 +146,30 @@ export class OrderGuestAddressRequiredException extends BadRequestException {
 }
 ```
 
-`OrdersService.createOrder` throws it when a guest order arrives without `shippingAddress`. The storefront maps codes to strings in `checkout/index.page.ts` (lines 811-833). Abridged; the full switch also maps `ORDER_IDEMPOTENCY_IN_PROGRESS`, `SHIPPING_METHOD_INVALID` and `ORDER_PAYMENT_METHOD_INVALID` to their own strings and returns `errors.generic` for a `StorefrontUnauthorizedError` while the submit handler navigates to login:
+`OrdersService.createOrder` throws it when a guest order arrives without `shippingAddress`. The storefront turns codes into strings in `placeOrderErrorMessageFor`, in `apps/storefront/src/app/pages/[locale]/checkout/index.page.ts` (lines 855-887). It is an if-chain. Most order codes get their own `checkout.errors` key. Five payment-provider codes share `paymentProviderUnavailable`. A `StorefrontUnauthorizedError` gets `generic`, because the submit handler navigates to login. A `StorefrontConflictError` gets `paymentRefused`, any other `StorefrontError` gets `generic`, and anything else gets `networkUnavailable`. Abridged:
 
 ```ts
 private placeOrderErrorMessageFor(err: unknown): string {
   const errors = this.strings().checkout.errors;
-  const code = err !== null && typeof err === 'object' && 'code' in err ? String((err as { code: string }).code) : null;
+  const code =
+    err !== null && typeof err === 'object' && 'code' in err
+      ? String((err as { code: string }).code)
+      : null;
   if (code === 'ORDER_INSUFFICIENT_STOCK') return errors.outOfStock;
   if (code === 'ORDER_CART_EMPTY') return errors.cartEmpty;
   if (code === 'SHIPPING_UNAVAILABLE') return errors.shippingUnavailable;
   if (code === 'ORDER_PAYMENT_METHOD_UNAVAILABLE') return errors.paymentMethodUnavailable;
   if (code === 'ORDER_GUEST_CHECKOUT_DISABLED') return errors.guestCheckoutDisabled;
-  // ... four more branches, listed above
+  // ... one line for each remaining order code, then the provider group
   if (err instanceof StorefrontConflictError) return errors.paymentRefused;
   if (err instanceof StorefrontError) return errors.generic;
   return errors.networkUnavailable;
 }
 ```
 
-A new code needs a line here and a key under `checkout.errors` in `apps/storefront/src/i18n/types.ts`, filled in `fr.ts`, `en.ts` and `ar.ts`. An unmapped code falls to `errors.generic`, which is the English-substring bug this switch replaced. See [Add a string](./add-a-string.md).
+`ORDER_GUEST_ADDRESS_REQUIRED` has no branch here, so it shows the generic copy.
+
+A new code needs a branch here and a key under `checkout.errors` in `apps/storefront/src/i18n/types.ts`, filled in `fr.ts`, `en.ts` and `ar.ts`. A code with no branch reaches the fallbacks, so the customer sees the generic copy. See [Add a string](./add-a-string.md).
 
 ## Tests to run
 
@@ -178,7 +183,7 @@ npx nx test storefront
 npx nx e2e storefront-e2e --grep=checkout
 ```
 
-`npm run docs:generate` rewrites the orders and users pages of the public API reference under `docs/site/reference/`, and `error-codes.md` when a new error code joins them, from the DTOs this recipe edits; commit the regenerated files with the field, or `npm run test:scripts` and the `docs-generate-check` CI job refuse the tree.
+`npm run docs:generate` regenerates the API reference under `docs/site/reference/` from the DTOs this recipe edits. Commit the output with the field; the `docs-generate-check` job in `.github/workflows/ci.yml` fails on a stale tree.
 
 - `npx nx test api` runs `apps/api/src/modules/orders/dto/create-order.dto.spec.ts`, which validates `CreateOrderDto` through `plainToInstance` plus `validate`, the place to pin a new field rule.
 - `npm run test:e2e` runs `test/e2e/guest-checkout.e2e-spec.ts` against the dockerized test database; it asserts `res.body.error.code` is `ORDER_GUEST_ADDRESS_REQUIRED` for a guest order without an inline address.

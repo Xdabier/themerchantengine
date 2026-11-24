@@ -2,11 +2,11 @@
 title: SEO and GEO
 description: "The sitemap index and its three sitemaps, robots.txt, llms.txt and llms-full.txt that the API builds with your storefront's URLs and that your storefront serves at its own root, the redirect table it honours with a 301 before routing, the IndexNow ping the engine sends, and the JSON-LD, canonical, hreflang, lang and dir a storefront emits per page type, with one product's JSON-LD built from the pasted response."
 primaryQuery: sitemap robots.txt llms.txt json-ld hreflang canonical ecommerce api storefront proxy
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-The engine builds the site-wide text surfaces a crawler reads (the sitemap index, three sitemaps, `robots.txt`, `llms.txt`, `llms-full.txt`) and the redirect table, all with your storefront's public URLs in them, and it pings IndexNow when a product becomes visible. Your storefront serves those files at its own root with the same body, answers the redirects with a `301` before it routes, and writes the per-page head itself: JSON-LD, the canonical, the `hreflang` pair with `x-default`, and `lang` and `dir` on `<html>`. That is obligation eight and obligation nine of [the contract](./index.md#the-ten-obligations). This page runs every surface against the `demo` fixture, says what the storefront does with each, and shows the JSON-LD one product page emits, field by field from the product response. A developer editing the shipped storefront's output instead of building their own reads [Change SEO and GEO output](../customize/recipes/storefront/change-seo-and-geo-output.md); this page links it rather than repeating it.
+The engine builds the site-wide text surfaces a crawler reads (the sitemap index, three sitemaps, `robots.txt`, `llms.txt`, `llms-full.txt`) and the redirect table, all with your storefront's public URLs in them, and it pings IndexNow when a product becomes visible. Your storefront serves those files at its own root with the same body, answers the redirects with a `301` before it routes, and writes the per-page head itself: JSON-LD, the canonical, the `hreflang` pair with `x-default`, and `lang` and `dir` on `<html>`. That is obligation eight and obligation nine of [the contract](./index.md#the-ten-obligations). This page runs every surface against the `demo` fixture and says what the storefront does with each. It also shows the JSON-LD one product page emits, field by field from the product response. A developer editing the shipped storefront's output instead of building their own reads [Change SEO and GEO output](../customize/recipes/storefront/change-seo-and-geo-output.md); this page links it rather than repeating it.
 
 ## The request
 
@@ -312,7 +312,7 @@ and, on the same page, the breadcrumb (its `name` values are the page's own brea
 <meta property="product:availability" content="in stock">
 ```
 
-`en-FR` and `x-default` match the sitemap entries for the same product above, which is the whole point: the crawler reads one set of alternates in the sitemap and the same set in the page.
+`en-FR` and `x-default` match the sitemap entries for the same product above. The crawler reads one set of alternates in the sitemap and the same set in the page.
 
 ## Error codes
 

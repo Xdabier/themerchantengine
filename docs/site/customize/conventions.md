@@ -2,7 +2,7 @@
 title: Conventions
 description: "The rules every change to the engine follows, each with the file that enforces it: envelopes, translatable text, permissions and ownership, idempotency keys, soft delete, atomic decrements, sort allowlists, validation, raw SQL, browser caching, session bootstrap and request correlation."
 primaryQuery: nestjs ecommerce api conventions response envelope idempotency rbac
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
@@ -44,10 +44,10 @@ Writes are checked against the same snapshot:
 
 `apps/api/src/common/session-auth.guard.ts` runs on every route that is not `@Public()`. It resolves the Better Auth session cookie, loads the user with its role and permissions fresh from the database on every request, and sets `req.user = { id, role, permissions }`. A permission change takes effect on the next call. A soft-deleted or deactivated user is refused even with a valid cookie. `@OptionalAuth()` lets an anonymous request through with no `req.user`.
 
-Every admin endpoint carries `@Permissions('<module>:<action>')` from `libs/shared/common/src/decorators/permissions.decorator.ts`:
+Admin endpoints carry `@Permissions('<module>:<action>')` from `libs/shared/common/src/decorators/permissions.decorator.ts`:
 
 - `apps/api/src/modules/auth/guards/permissions.guard.ts` answers 403 `AUTH_PERMISSION_INSUFFICIENT` unless the user holds one of the listed strings. `SUPER_ADMIN` passes everything.
-- A route with no decorator is open to any signed-in user, so a forgotten decorator is a real hole, not a default.
+- A route with no decorator passes for any signed-in user. The guard returns early when the list is empty, so a route that needs a permission must carry the decorator.
 - The strings come from one catalogue, `libs/shared/permissions/src/index.ts`: twenty-six modules times five actions (`view`, `create`, `update`, `delete`, `manage`).
 - `apps/api/src/permission-key-drift.spec.ts` fails in both directions: a controller naming a key outside the catalogue, or a catalogue module that no route enforces. Adding a module means adding it there, mirroring it in `prisma/permission-catalogue.ts` (`apps/api/src/permission-catalogue.parity.spec.ts` checks the copy) and giving it at least one enforcing route.
 
@@ -66,7 +66,7 @@ A sensitive write takes `X-Idempotency-Key` through `@IdempotencyKey(Idempotency
 - The return refund, `apps/api/src/modules/returns/returns.controller.ts`.
 - The manual search-engine submission, `apps/api/src/modules/seo/seo.controller.ts`.
 - The webhook test delivery, `apps/api/src/modules/webhooks/webhooks.controller.ts`.
-- The payment retry and the payment confirm on an order, `POST /v1/orders/:id/payment` and `POST /v1/orders/:id/payment/confirm`, in `apps/api/src/modules/orders/orders.controller.ts`.
+- The order payment routes in `apps/api/src/modules/orders/orders.controller.ts`: `POST /v1/orders/track/payment`, `POST /v1/orders/:id/payment`, `POST /v1/orders/:id/payment/confirm`, and the admin payment capture, refund and cancel routes.
 
 Gift-card redemption is not its own endpoint: `redeem` in `apps/api/src/modules/gift-cards/gift-cards.service.ts` runs inside order creation and rides the order's key.
 
@@ -82,7 +82,7 @@ Gift-card redemption is not its own endpoint: `redeem` in `apps/api/src/modules/
 Every model in `SOFT_DELETE_MODELS` (`apps/api/src/prisma/prisma.service.ts`) has a `deletedAt` column and is never hard-deleted.
 
 - The Prisma client is extended so that `findMany`, `findFirst`, `findUnique` and `count` add `deletedAt: null` to the `where`, unless the caller already named `deletedAt`, which is how an admin recovery screen reads deleted rows.
-- `count` is on the list because a paginated list whose `meta.total` counted deleted rows rendered an empty last page.
+- `count` is on the list because a paginated list whose `meta.total` counted deleted rows let the admin reach a last page that rendered nothing. The comment at `apps/api/src/prisma/prisma.service.ts:106-119` records the case that showed it: 38 against 37 on the dev database.
 - Better Auth gets the same extended client, so a soft-deleted user cannot sign in.
 - A delete endpoint sets `deletedAt` or a status such as `ARCHIVED`. The append-only tables (order items, inventory movements, gift-card transactions, promotion usage, the audit log) are never deleted at all.
 
@@ -110,7 +110,7 @@ A `sortBy` outside the list falls back to the default field or fails validation.
 
 - A property without a class-validator decorator is stripped. A body carrying an unknown property is refused with 400 `VALIDATION_ERROR`. The body reaches the controller as an instance of its DTO class.
 - The failure `details` are flattened by `libs/shared/common/src/utils/validation-errors.ts`, so a nested Translatable error names its field.
-- Admin and customer DTOs are separate classes, even for the same entity. `apps/api/src/modules/users/dto/admin/` and `apps/api/src/modules/users/dto/customer/` are the pattern, so a customer can never post a field only staff may set.
+- Admin and customer DTOs are separate classes, even for the same entity. `apps/api/src/modules/users/dto/admin/` and `apps/api/src/modules/users/dto/customer/` are the pattern, so the customer DTO only lists the fields a customer may send.
 - On the admin side every response is parsed by a Zod schema from `libs/admin-types/` before a screen sees it.
 
 Rich text is sanitised on write with `sanitizeRichText` or `sanitizeTranslatableHtml` from `libs/shared/common/src/utils/sanitize-rich-text.ts`: `sanitize-html` with an allowlist of `p`, `br`, `strong`, `em`, `a`, lists and `h1` to `h4`, `https`, `http` and `mailto` links only, and a pass that unwraps a block the editor nested inside a heading. Products, categories, CMS pages, notification templates and campaigns all call it in their service, not in a DTO. A new rich-text field does the same.
@@ -127,7 +127,7 @@ Nothing builds SQL from request input. A new raw query needs a reviewer and the 
 
 ## Browser caching and 304
 
-`apps/api/src/bootstrap/cache-control-hardening.ts`, applied first in `main.ts`, disables Express's ETag and sets `Cache-Control: no-store` on every response before any handler runs.
+`apps/api/src/bootstrap/cache-control-hardening.ts`, applied in `main.ts` right after the app is created, disables Express's ETag and sets `Cache-Control: no-store` on every response before any handler runs.
 
 - The only sanctioned way to cache is `@PublicCacheable(maxAgeSeconds, varyOn?)` (`libs/shared/common/src/decorators/public-cacheable.decorator.ts`), which emits `Cache-Control: public, max-age=N` and a `Vary` header when the body depends on a request header.
 - It belongs on a public, read-only route whose body does not depend on the caller: the sitemaps, `robots.txt`, the `llms.txt` files, the geo lookups. Never on a route that carries `@Permissions` or returns customer data.
@@ -149,7 +149,6 @@ Both front ends restore a session with one `getSession()` call and commit it in 
 
 - The pino logger configured in `apps/api/src/app.module.ts` uses the same value as the request id on every line, and the exception filter logs it beside every error.
 - The admin's `correlation-id.interceptor.ts` sends a fresh id per call and surfaces it in error toasts. The storefront's server client (`apps/storefront/src/server/api-client.ts`) sets one on every SSR call.
-- On an installed store the edge forwards the client's id or mints one, so one id follows a request end to end.
 
 Secrets come from the environment only: `.env` on a checkout, the installer-written `.env.production` on a box, never a file in the tree. The API refuses to boot in production without `CORS_ORIGIN`, and without the Resend keys when mail is on.
 

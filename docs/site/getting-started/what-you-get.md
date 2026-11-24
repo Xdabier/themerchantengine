@@ -2,7 +2,7 @@
 title: What you get
 description: What an install of themerchantengine puts on a box, what a store owner has on day one, and what is not shipped yet.
 primaryQuery: self-hosted ecommerce platform what is included
-updated: 2026-09-08
+updated: 2026-11-24
 schema: TechArticle
 ---
 
@@ -10,7 +10,7 @@ themerchantengine is a self-hosted ecommerce platform you install on your own se
 
 ## The API
 
-A NestJS and Prisma backend on PostgreSQL and Redis, thirty-three modules behind one REST API: catalogue, search, cart, checkout, orders, payments, shipping zones, tax, promotions, gift cards, reviews, customers, staff and roles, content pages, home sections, notifications, SEO, analytics events, assets, audit log, and the store settings the other two applications read. Every user-facing text is stored per locale. Every admin endpoint carries a permission. Order creation and every stock mutation accept an idempotency key, so a retried request never charges or decrements twice.
+A NestJS and Prisma backend on PostgreSQL and Redis, thirty-three modules behind one REST API: catalogue, search, cart, checkout, orders, payments, shipping zones, tax, promotions, gift cards, reviews, customers, staff and roles, content pages, home sections, notifications, SEO, analytics events, assets, audit log, and the store settings the other two applications read. Every user-facing text is stored per locale. Every admin endpoint carries a permission. Order creation accepts an idempotency key, so a retried request does not create the same order twice.
 
 The API also publishes the store's `sitemap.xml`, `robots.txt`, `llms.txt` and `llms-full.txt`, submits changed URLs to IndexNow and Google Search Console when you configure them, and sends transactional mail through Resend.
 
@@ -26,7 +26,7 @@ You can brand this storefront through the admin, change it in the source, or bui
 
 ## The installer
 
-`./setup.sh` on Linux and macOS, `./setup.ps1` on Windows. It checks the prerequisites, asks for every value the store needs, verifies each third-party integration live (a probe object in your bucket, a test email through your Resend domain, your Turnstile secret against Cloudflare, your Search Console service account against the property), then builds the images from source, creates the database, issues the certificates, seeds the store and creates the owner account. It ends with `backend server installed successfully!` and the admin URL. Run it again after a failure and it resumes; run it again on a newer checkout and it updates the store.
+`./setup.sh` on Linux and macOS, `./setup.ps1` on Windows. It checks the prerequisites, asks for every value the store needs, verifies each third-party integration live (a probe object in your bucket, a test email through your Resend domain, your Turnstile secret against Cloudflare, your Search Console service account against the property), then builds the images from source and sets up the database, the certificates, the store and the owner account. It ends with `backend server installed successfully!` and the admin URL. Run it again after a failure and it resumes; run it again on a newer checkout and it updates the store.
 
 The same installer runs on a laptop with Docker Desktop under a local profile: no TLS, local ports, mail kept on the machine, and a demo catalogue so there is something to look at.
 

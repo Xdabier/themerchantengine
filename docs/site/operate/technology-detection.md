@@ -2,11 +2,11 @@
 title: Technology detection
 description: How the storefront, the admin and the API name the engine to technology detectors such as Wappalyzer and BuiltWith, how to add the major version or turn the markers off, and how to check a live site.
 primaryQuery: themerchantengine wappalyzer builtwith detection generator meta x-powered-by
-updated: 2026-10-29
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-Technology detectors such as Wappalyzer, BuiltWith and `httpx -td` name the software behind a site by reading its headers and its HTML. Every store that runs the engine names the engine to them out of the box, with no setup step. This page lists what the engine sends, how to change it, and how to check a live site.
+Technology detectors such as Wappalyzer, BuiltWith and `httpx -td` name the software behind a site by reading its headers and its HTML. Every store that runs the engine names the engine to them out of the box, with no setup step.
 
 ## What the engine sends
 
@@ -29,6 +29,8 @@ The meta tag and the header then read `themerchantengine 1`. Version statistics 
 
 The admin is a static build served by nginx, so it always sends the name only. The setting applies to the API and the storefront.
 
+A re-run of the installer rewrites the environment file and drops the `TME_FINGERPRINT*` lines, so add them back after every run. [Store settings](./store-settings.md#values-the-installer-does-not-write) lists the other lines it drops.
+
 ## Turn the markers off
 
 If your security policy says not to name the stack, set this in the environment file and restart:
@@ -42,6 +44,8 @@ The values `off`, `false`, `0` and `no` all work, in any case. With the markers 
 - The API sends no `X-Powered-By` header at all.
 - The storefront drops the meta tag, the `data-tme-app` attribute and the header, and the browser object is not set.
 - The admin container removes the meta tag, the attribute and the header when it starts.
+
+The same applies here: add `TME_FINGERPRINT=off` back after every installer run, or the markers come back.
 
 ## Check a live site
 

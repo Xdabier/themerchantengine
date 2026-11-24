@@ -2,7 +2,7 @@
 title: Add a permission
 description: "Add a module:action key to the RBAC catalogue: the shared permissions library, the seed's copy, the route that enforces it, the guard, the seeded role rows, the admin roles grid that reads the same constant, and the two drift specs."
 primaryQuery: add an rbac permission key nestjs admin dashboard
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -50,7 +50,7 @@ export const PERMISSION_STRINGS = Object.freeze(
 ) as readonly [Permission, ...Permission[]];
 ```
 
-`view` is the read tier, `create`, `update` and `delete` the mutation tiers, `manage` the full-access key with side effects. A key is a value in the cross product and nothing else; `manage` does not imply `view`.
+`view` is the read tier, `create`, `update` and `delete` the mutation tiers, and `manage` the top tier. A key is one cell of that product. `manage` does not imply `view`: the guard checks each key on its own.
 
 ### 2. Add the module to both lists
 
@@ -109,7 +109,7 @@ const SUPPORT_PERMISSIONS: Permission[] = [
 ];
 ```
 
-The `SUPPORT_PERMISSIONS` excerpt is abridged: the real list at `prisma/seed.ts:99-112` holds 12 keys.
+The `SUPPORT_PERMISSIONS` excerpt is abridged: the real list at `prisma/seed.ts:100-112` holds 12 keys.
 
 A role that already exists keeps its rows (`update: {}`). New keys reach Super Admin and Admin through `syncRolePermissions`, a `createMany` with `skipDuplicates` that runs on every seed path, including `SEED_SCOPE=notifications-rbac`. Manager and Support are explicit lists; add the key there if those roles should hold it. `prisma/reconcile-role-permissions.ts` then removes eleven named legacy key families and nothing else.
 
@@ -133,7 +133,7 @@ npm run db:seed
   permissions: string[];
 ```
 
-A well-formed but unknown key is a 400, not a stored grant nothing checks. `PATCH /v1/admin/roles/:id` replaces the whole set; both routes need `admin_users:manage`.
+A well-formed but unknown key gets a 400 and is not stored. `PATCH /v1/admin/roles/:id` replaces the whole set; both routes need `admin_users:manage`.
 
 ### 6. The roles grid
 

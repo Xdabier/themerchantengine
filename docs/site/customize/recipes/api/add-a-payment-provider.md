@@ -2,7 +2,7 @@
 title: Add a payment provider
 description: "How a payment provider plugs into the engine: the PaymentProvider interface, the one registry list, the gateway that holds the config, the payment action the storefront runs, secrets the operator enters in the admin and the engine encrypts, the conformance suite every provider passes, signed and deduped webhooks, and retry and confirm. Stripe is the worked example."
 primaryQuery: add a payment gateway nestjs ecommerce stripe
-updated: 2026-11-07
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -22,7 +22,7 @@ Every provider sits behind one interface and one gateway. Adding one is a class,
 
 - `apps/api/src/modules/payments/providers/payment-provider.interface.ts`: the `PaymentProvider<TConfig>` interface, the `PaymentAction` union and the input and result types.
 - `apps/api/src/modules/payments/providers/<id>-payment.provider.ts`: your provider. `stripe-payment.provider.ts` is the card example, `offline-payment.provider.ts` the base for providers where the money moves outside the engine.
-- `apps/api/src/modules/payments/payment-providers.ts`: `PAYMENT_PROVIDER_IMPLEMENTATIONS`, the one list of providers the engine runs.
+- `apps/api/src/modules/payments/payment-providers.ts`: `REAL_PAYMENT_PROVIDER_IMPLEMENTATIONS`, the list you add your provider to. `PAYMENT_PROVIDER_IMPLEMENTATIONS`, the one list the engine runs, is built from it.
 - `apps/api/src/modules/payments/providers/payment-provider.conformance.spec.ts`: the shared suite every provider passes.
 - `apps/api/src/modules/payments/payment-gateway.service.ts`: the only door from orders to a provider. You read it, you do not change it.
 - `apps/api/src/modules/payments/payment-config-crypto.ts`: encrypts and decrypts the secret fields. You read it, you do not change it.
@@ -60,12 +60,14 @@ A provider never writes to the database. It answers with a status and an action.
 Add the class to `apps/api/src/modules/payments/payment-providers.ts`:
 
 ```ts
-export const PAYMENT_PROVIDER_IMPLEMENTATIONS = [
+const REAL_PAYMENT_PROVIDER_IMPLEMENTATIONS = [
   CodPaymentProvider,
   ManualPaymentProvider,
   StripePaymentProvider,
 ] as const;
 ```
+
+`PAYMENT_PROVIDER_IMPLEMENTATIONS` is this list, plus the e2e fake providers when `PAYMENT_FAKE_PROVIDERS` is true. Boot fails if that flag is set in production.
 
 Each class carries two static fields:
 

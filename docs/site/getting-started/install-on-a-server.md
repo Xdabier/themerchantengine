@@ -2,15 +2,15 @@
 title: Install on a server
 description: Install the engine on a prepared Linux box with the setup CLI. The two-box and one-box runs, every prompt in order with its default and its live check, what the installer writes, what it does, and how a run resumes.
 primaryQuery: self hosted ecommerce docker install
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
-Two commands install a store on a prepared Linux box. This page is the operator's view of that run: what to have ready, every prompt in the order it comes with its default and what it verifies, what the installer writes and does, the lines it ends with, and how a failed run resumes.
+Two commands install a store on a prepared Linux box.
 
 ## Before you start
 
-Have everything on the [Requirements](./requirements.md) page ready: the box with Docker, Compose v2, git and Node 22; the three hostnames pointing at the box; the bucket, the Resend domain and webhook secret, the Turnstile keys; and, if you want them, the IndexNow key, the Bing key and the Search Console service account. The installer verifies each one live and stops at the first that is not ready, so a missing item costs a prompt, not an install.
+Have everything on the [Requirements](./requirements.md) page ready: the box with Docker, Compose v2, git and Node 22; the three hostnames pointing at the box; the bucket, the Resend domain and webhook secret, the Turnstile keys; and, if you want them, the IndexNow key, the Bing key and the Search Console service account. The installer checks each one live and stops at the first that is not ready, before it writes anything.
 
 The installer never touches SSH, the firewall or the OS. Those stay the checklist of whoever prepared the box.
 
@@ -64,7 +64,7 @@ One compose project, one edge, one certificate per host. Both closing blocks pri
 
 ## What the stepper asks, in order
 
-Every prompt shows its default in brackets. Enter keeps it. A re-run defaults every prompt to the previous answer, so changing one value is a series of Enter presses up to it.
+Every prompt shows its default in brackets. Enter keeps it. A re-run defaults each prompt to the previous answer, except for secrets. The state file never holds a secret, so a re-run asks again for the storage keys, the Resend API key and webhook secret, the Turnstile secret, the Bing key, the Stripe keys, the owner password and, on a storefront box, the revalidate secret.
 
 1. **Profile and box role.** `engine`, `storefront`, `both` or `local`. Answered by `--profile`.
 2. **Store identity.** Store name, brand name (one word, rendered verbatim), one-line description, legal entity name, contact email, contact phone (E.164 or empty), street address, city, region, postal code, country as a two-letter code, business type.
@@ -76,14 +76,14 @@ Every prompt shows its default in brackets. Enter keeps it. A re-run defaults ev
 8. **Transactional mail.** Sender address and display name, reply-to, the address the contact form is delivered to, the Resend API key, the webhook signing secret, and the address a test message is sent to. The sending domain is looked up in the account and must be `verified`; the test message must send.
 9. **Turnstile.** The site key and the secret key. The secret is proven against Cloudflare's verification endpoint. A storefront box is asked for the site key only.
 10. **Search-engine submission.** All optional: the IndexNow key, the Bing Webmaster API key (proven by a sites call), the Search Console service-account JSON file and the property it has access to (proven by a sitemaps list). Empty answers skip; sitemaps and `robots.txt` work without them.
-11. **Payment methods.** Cash on delivery (default yes), manual bank transfer (default no), Stripe (default no). If you answer yes, the stepper asks for the Stripe secret key and the webhook signing secret and writes them to the environment as `STRIPE_API_KEY` and `STRIPE_WEBHOOK_SECRET`. The API uses them as a fallback. Keys entered later on the payment methods page of the admin are encrypted in the database and win over the environment. You can also leave Stripe off here and set it up in the admin after the install. With every method off, the store cannot take an order until one is switched on in the admin, and the stepper says so.
+11. **Payment methods.** Cash on delivery (default yes), manual bank transfer (default no), Stripe (default no). If you answer yes, the stepper asks for the Stripe secret key and the webhook signing secret and writes them to the environment as `STRIPE_API_KEY` and `STRIPE_WEBHOOK_SECRET`. The API uses them as a fallback. Keys entered later on the payment methods page of the admin are encrypted in the database and win over the environment. Saving them needs `PAYMENT_CONFIG_ENCRYPTION_KEY` in `.env.production`, and the installer does not write it: without it the admin refuses the save with `PAYMENT_CONFIG_ENCRYPTION_UNAVAILABLE`. Create one with `openssl rand -base64 32`, add the line, and restart the API (`docker compose -f deploy/engine/docker-compose.yml --env-file .env.production up -d api`). Keep a copy and add the same line back after every installer run, because the installer rewrites the file and a lost key makes the saved keys unreadable. [Environment variables](../reference/environment-variables.md) covers rotation. You can also leave Stripe off here and set it up in the admin after the install. With every method off, the store cannot take an order until one is switched on in the admin, and the stepper says so.
 12. **Admin owner account.** Email, first and last name, and a password of twelve or more characters with a lower-case letter, an upper-case letter and a digit. This is the first Super Admin.
 13. **Demo catalogue.** Whether to seed the demonstration catalogue (products, categories, a customer, sample orders). Default no on a server; a yes warns that the store serves fictional products until they are deleted.
 14. **Summary and confirm.** Every answer in one block, secrets masked, and one question: install with these answers? A no ends the run without writing anything; run setup again to change an answer.
 
 ## What it writes
 
-- `.env.production` on an engine or both box and `apps/storefront/.env.production` on a storefront or both box, mode `0600`, every value quoted, nothing left to fill in. Generated secrets (database and Redis passwords, the session secret, the signed-URL secret, the unsubscribe secret, the revalidate secret) live here and nowhere else.
+- `.env.production` on an engine or both box and `apps/storefront/.env.production` on a storefront or both box, mode `0600`, every value quoted, nothing left to fill in. Generated secrets (database and Redis passwords, the session secret, the signed-URL secret, the unsubscribe secret, the revalidate secret) live here and nowhere else. `PAYMENT_CONFIG_ENCRYPTION_KEY` is not one of them; see the payment methods step above.
 - `client.config.json`, the store's runtime configuration, parsed by the same schema the public config endpoint serves. The seed writes it into the settings rows before anything reads them.
 - `deploy/engine/` or `deploy/storefront/`: the rendered compose file, the nginx vhosts, a `config/` directory with the logo and the optional service-account file, the IndexNow key file, and the systemd units for the backup timer. Rendered from `deploy/templates/`; a run rewrites them, so a hand edit does not survive a re-run.
 - `.setup-state.json`: the answers and the completed steps, so a run resumes. It never holds a secret; the environment files do.
@@ -101,7 +101,7 @@ The install runs after the summary, in this order, printing each step as it star
 5. Pushes the schema, then re-applies the full-text search index and the extra indexes the schema push cannot express.
 6. Seeds the store configuration, roles and permissions, notification templates, tax and shipping zones and the payment methods from your answers, and the demo catalogue if asked for.
 7. Creates the owner account.
-8. Starts the edge on port 80, issues each certificate through certbot's webroot challenge, enables the TLS vhosts, and starts the whole stack. Nothing answers on a public port before the store's accounts are the ones you chose.
+8. Starts the edge on port 80, issues each certificate through certbot's webroot challenge, enables the TLS vhosts, and starts the whole stack. The admin and the API only go public after the owner account exists.
 9. Installs the certificate renewal timer and the nightly database dump timer.
 10. Probes the API health endpoint, the public store configuration, the admin login page with its security headers, and the storefront, retrying for a minute, and fails the install if any probe does not answer as expected.
 
@@ -115,7 +115,7 @@ Every step is idempotent. When a question's live check fails, the stepper prints
 fix the cause and run setup again; completed steps are kept
 ```
 
-In both cases, run `./setup.sh` again with the same profile: the prompts default to your previous answers, secrets are kept, issued certificates are skipped, the owner account is left as it is, and the demo catalogue, a first-install step, never runs again on a store that has a user, whatever the answer says. [Troubleshooting](./troubleshooting.md) lists every line the wrapper and the stepper print when they stop, with the fix.
+In both cases, run `./setup.sh` again with the same profile: the prompts default to your previous answers, the generated secrets are kept, third-party secrets and the owner password are asked again, issued certificates are skipped, the owner account is left as it is, and the demo catalogue, a first-install step, never runs again on a store that has a user, whatever the answer says. [Troubleshooting](./troubleshooting.md) lists every line the wrapper and the stepper print when they stop, with the fix.
 
 ## Without a terminal
 
@@ -123,7 +123,7 @@ In both cases, run `./setup.sh` again with the same profile: the prompts default
 
 ## Changing a value later
 
-Identity, brand, locales, money and domains are editable in the admin's settings screens; the runtime configuration belongs to the store after the install. Environment values (keys, secrets, origins) change by running setup again: answer Enter up to the value you change. [Store settings](../operate/store-settings.md) says which value lives where.
+Identity, brand, locales, money and domains are editable in the admin's settings screens; the runtime configuration belongs to the store after the install. Environment values (keys, secrets, origins) change by running setup again. Press Enter to keep each earlier answer, and type the secrets again, since a re-run asks for them. [Store settings](../operate/store-settings.md) says which value lives where.
 
 ## After the closing line
 

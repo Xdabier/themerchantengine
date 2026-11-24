@@ -2,13 +2,13 @@
 title: Add a page
 description: "A new storefront route under the locale prefix: the page file, its loader when it needs data at first byte, the title, description, canonical and hreflang block, the link helper, and the Playwright journey that runs it under every configured locale."
 primaryQuery: add a page analog angular storefront locale route
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-You want a new public URL on the storefront, for example `/fr/team` and `/en/team`. Every customer-facing route lives under the `[locale]` segment, is server-rendered by Nitro, and carries the head tags a crawler and a link preview read. This page walks the About page at `/{locale}/about`, which reads one CMS page at SSR time. You end with a page component, an optional `.server.ts` loader, the meta block, a link from the chrome through the route helper, and a journey spec that runs under every locale of the fixture and fails on any console error.
+You want a new public URL on the storefront, for example `/fr/team` and `/en/team`. Every customer-facing route lives under the `[locale]` segment, is server-rendered by Nitro, and carries the head tags a crawler and a link preview read. The About page at `/{locale}/about` is the worked example. It reads one CMS page at SSR time. You end with a page component, an optional `.server.ts` loader, the meta block, a link from the chrome through the route helper, and a journey spec that runs under every locale of the fixture and fails on any console error.
 
 ## Files you touch
 
@@ -78,7 +78,7 @@ ngOnInit(): void {
 }
 ```
 
-`import type { load } from './about.server'` keeps the loader out of the browser bundle. `requireSync: true` throws if the payload is not there when the component is built, which is the contract Analog's resolver gives.
+`import type { load } from './about.server'` keeps the loader out of the browser bundle. `requireSync: true` throws if the payload is missing when the component is built. Analog's resolver always loads the payload before that point.
 
 ### 4. Build the head from one call
 

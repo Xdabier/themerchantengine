@@ -2,7 +2,7 @@
 title: Catalog and search
 description: "The category tree, the product list with its filters, sort allowlist and pagination, the product detail, brand and specification facets, full-text search, suggestions and search filters, with the product shape a storefront renders, the asset variants it picks for srcset, and the same responses under both locales."
 primaryQuery: ecommerce api product list category tree search suggest pagination srcset accept-language
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
@@ -998,7 +998,7 @@ Every code is in the [error code reference](../reference/error-codes.md). The `m
 
 - `CATEGORY_NOT_FOUND`, 404: `GET /v1/categories/{slug}` and `/{slug}/products` for a slug that does not exist or is hidden. Render the not-found page with a real 404 status.
 - `PRODUCT_NOT_FOUND`, 404: `GET /v1/products/{slug}` for a slug that does not exist or is not `ACTIVE`. Same treatment; a product that was archived after being indexed must 404, not soft-fail.
-- `VALIDATION_ERROR`, 400: a query parameter outside its rule on `/v1/products` (`pageSize` above 100, a bad `tags` or `specs` token, a negative price), on `/v1/search` or on `/v1/search/suggest` (missing `q`). `details[]` names the field. A storefront builds these from its own controls, so treat one as a bug and fall back to the unfiltered list; never show `messages` to the customer.
+- `VALIDATION_ERROR`, 400: a query parameter outside its rule on `/v1/products` (`pageSize` above 100, a bad `tags` or `specs` token, a negative price), on `/v1/search` or on `/v1/search/suggest` (missing `q`). Outside production, `details[]` names the field. A storefront builds these from its own controls, so treat one as a bug and fall back to the unfiltered list; never show `messages` to the customer.
 - `RATE_LIMITED`, 429: the read routes allow 100 requests a minute per client. Back off on `Retry-After`.
 
 Proof, `GET /v1/products/no-such-product`:
@@ -1061,7 +1061,7 @@ Proof, `GET /v1/products/no-such-product`:
 }
 ```
 
-A bad `sortBy` is not on this list on purpose: it falls back to the default order (proven above).
+A bad `sortBy` is not on this list. It falls back to the default order, as shown above.
 
 ## Every locale
 

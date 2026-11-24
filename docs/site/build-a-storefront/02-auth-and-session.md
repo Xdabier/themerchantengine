@@ -2,11 +2,11 @@
 title: Auth and session
 description: "Better Auth under /api/v1/auth/*: sign-up and the verification mail, sign-in, get-session, sign-out, the two cookies a storefront carries with credentials: 'include', the atomic session bootstrap, and the bot protection a production store enables."
 primaryQuery: ecommerce api customer sign up sign in session cookie better auth storefront
-updated: 2026-09-09
+updated: 2026-11-24
 schema: TechArticle
 ---
 
-Customer accounts are Better Auth, mounted by the engine under `/api/v1/auth/*`. The session is one signed `HttpOnly` cookie; there is no token for your storefront to store, refresh or attach. This page serves two obligations of [the contract](./index.md#the-ten-obligations): three, carry the session cookie on every request, and five, bootstrap the session atomically, from one `get-session` call, committing the user and the signed-in state together or not at all, and never clearing a session on a transient failure. Every response below was captured from a local engine; the options in force are read from `apps/api/src/auth/auth.ts`.
+Customer accounts are Better Auth, mounted by the engine under `/api/v1/auth/*`. The session is one signed `HttpOnly` cookie; there is no token for your storefront to store, refresh or attach. This page covers two obligations of [the contract](./index.md#the-ten-obligations). Obligation three is carrying the session cookie on every request. Obligation five is bootstrapping the session: one `get-session` call commits the user and the signed-in state together or not at all, and a transient failure never clears a session. Every response below was captured from a local engine; the options in force are read from `apps/api/src/auth/auth.ts`.
 
 ## The routes and the options in force
 

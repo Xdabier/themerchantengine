@@ -2,11 +2,11 @@
 title: Non-interactive runs and CI
 description: Run the installer without a terminal from a JSON answers document, preview a run with --dry-run, start over with --reset, understand what the state file holds and never holds, and see the CI install smoke the engine runs on itself as a worked example.
 primaryQuery: ecommerce setup script non-interactive ci
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
-Every prompt the installer asks has a path in a JSON document, so the same install runs from a file with no terminal: in CI, from a provisioning tool, or to reproduce a store on a second box with the same answers. This page is the document's shape, the flags, and the pipeline the engine runs on itself.
+The installer reads every answer from a JSON document, so the same install can run with no terminal: in CI, from a provisioning tool, or to rebuild a store on a second box. This page covers the document's shape, the flags, and the CI pipeline the engine runs on itself.
 
 ## The answers document
 
@@ -104,11 +104,11 @@ A run without a terminal takes every answer from its `--answers` document and no
 
 `--reset` ignores the state file and asks everything again. `--state <file>` puts the state file elsewhere, which matters when one checkout installs more than one profile.
 
-An install that already ran is safe to run again with the same document: every step is idempotent, secrets and certificates are kept, and the run ends with the same closing lines. That is how a store is updated, and it is what the engine's own CI asserts.
+An install that already ran is safe to run again with the same document: every step is idempotent, secrets and certificates are kept, and the run ends with the same closing lines. That is how a store is updated. The engine's CI checks that the second run ends with the same two success lines.
 
 ## Worked example: the CI install smoke
 
-The engine's pipeline installs itself on every push, under the local profile on a plain Ubuntu runner with Docker, from the committed document `ci/answers.local.json` (in the repository; it is left out of the release tarball). Its owner password is public, which is why the stepper refuses that exact password on every profile but `local`. The job, trimmed to its steps:
+The engine's pipeline installs itself on every push and pull request, under the local profile on a plain Ubuntu runner with Docker, from the committed document `ci/answers.local.json` (in the repository; it is left out of the release tarball). Its owner password is public, which is why the stepper refuses that exact password on every profile but `local`. The job, trimmed to its steps:
 
 ```yaml
 install-smoke:

@@ -2,7 +2,7 @@
 title: Add a language
 description: "The one registry entry that teaches the engine a new language, the storefront string file, the API copy tables and the font check that go with it, how search follows by regeneration, and how a store switches the language on at runtime."
 primaryQuery: add a language locale to the store registry german spanish storefront translation
-updated: 2026-10-20
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -18,8 +18,8 @@ A store needs to serve a language the engine does not list yet, for example Germ
 - `apps/storefront/src/i18n/index.ts`: the `buildCatalogues` call that lists the catalogues.
 - `apps/storefront/src/i18n/types.ts`: `ChromeStrings`, the contract the string file follows.
 - `apps/storefront/src/i18n/catalogue.ts`: `buildCatalogues` and `mergeWithFallback`, which fill missing keys from the default language.
-- `apps/api/src/modules/orders/invoice-pdf.service.ts`: the invoice labels and month names (`LABELS`, `MONTHS`). The API does not typecheck without them.
-- `prisma/notification-template-defaults.ts`: the mail copy, one entry per language. Its `Translatable` type is closed (`fr`, `en`, `ar`), and so are the `TTC` and `HT` records.
+- `apps/api/src/modules/orders/invoice-pdf.service.ts`: the invoice labels and month names (`LABELS`, `MONTHS`).
+- `prisma/notification-template-defaults.ts`: the mail copy, one entry per language. The `Translatable` type is closed to `fr`, `en` and `ar`, and the `TTC` and `HT` tax mentions are keyed by language too.
 - The other API copy tables (mail chrome, dates, digests, campaigns, promotions, notifications, geo FAQ): listed in step 4.
 - `prisma/fts-setup-sql.ts`: builds the search SQL from the registry; you run it, you do not edit it.
 - `tools/setup/src/steps/localization.ts`: the installer step that lists the registry.
@@ -49,7 +49,7 @@ de: {
 
 ### 2. Check the font kit
 
-A store picks a font kit, and a kit only covers the scripts in `FONT_KIT_SCRIPTS`. `latin-rounded` covers Latin; `arabic-latin` covers Latin and Arabic. A new Latin language needs nothing. A language in a new script (Cyrillic, Hebrew) needs a kit that ships a face for that script first: add the script to `SCRIPTS`, the face to a kit, and the kit to `FONT_KIT_SCRIPTS`. The installer, the storefront brand tokens and the invoice renderer all ask `fontKitCoversLocale`, so a language the kit cannot draw is refused instead of rendering as boxes.
+A store picks a font kit, and a kit only covers the scripts in `FONT_KIT_SCRIPTS`. `latin-rounded` covers Latin; `arabic-latin` covers Latin and Arabic. A new Latin language needs nothing. A language in a new script (Cyrillic, Hebrew) needs a kit that ships a face for that script first: add the script to `SCRIPTS`, the face to a kit, and the kit to `FONT_KIT_SCRIPTS`. The installer, the storefront brand tokens and the invoice renderer all ask `fontKitCoversLocale`, so the check can say whether a kit can draw a language before it renders.
 
 ### 3. Add the storefront string file
 
@@ -59,16 +59,16 @@ Create a file named after the new code beside `fr.ts` (`de.ts` for German) that 
 const STRINGS = buildCatalogues<ChromeStrings>({ fr, en, ar, de }, DEFAULT_LOCALE);
 ```
 
-`buildCatalogues` fills every missing or empty key from the default language, so you can ship the file half translated and a visitor sees French for the keys you have not done yet. Translate the rest before you call the language finished.
+`buildCatalogues` fills every missing or empty key from the default language, so you can ship the file half translated. A visitor sees the default language's text for the keys you have not done yet. Translate the rest before you call the language finished.
 
 ### 4. Add the API copy
 
 Per-language text lives in several API tables. The compiler enforces only some of them, so use this list as the checklist.
 
-Enforced by the compiler. The API does not typecheck until these have the new code:
+Typed in the code, so a missing entry shows up in the editor and the build:
 
-- `apps/api/src/modules/orders/invoice-pdf.service.ts`: `LABELS` and `MONTHS`, typed by the registry. Fill them in the same commit as the registry entry.
-- `prisma/notification-template-defaults.ts`: the closed `Translatable` type (`fr`, `en`, `ar`) and the `TTC` and `HT` tax mentions. Widen them, then the compiler lists each template that needs the new code.
+- `apps/api/src/modules/orders/invoice-pdf.service.ts`: `LABELS` and `MONTHS`. Fill them in the same commit as the registry entry.
+- `prisma/notification-template-defaults.ts`: the closed `Translatable` type (`fr`, `en`, `ar`). Widen it, then add the new code to each mail entry. The `TTC` and `HT` tax mentions take it too.
 
 Open records. The compiler cannot see them, and at runtime a missing entry falls back to the store default language:
 
@@ -98,7 +98,7 @@ npm run db:push
 
 ### 6. Turn it on for a store
 
-A language in the registry is available, not active. A store enables it through its runtime config: one `PATCH /v1/admin/settings/locales` call sets `supportedLocales`, the default and `rtlLocales`. Or answer the installer's Locales step, which lists the registry. After that the admin shows a tab for the language on every Translatable field, the storefront serves `/<code>/...` and the hreflang tags.
+A language in the registry is available, not active. A store enables it through its runtime config: one `PATCH /v1/admin/settings/locales` call sets `supportedLocales`, the default and `rtlLocales`. Or answer the installer's Locales step, which lists the registry. After that the admin shows a tab for the language on each Translatable field, and the storefront serves `/<code>/...` with its hreflang tags.
 
 ## Tests to run
 
@@ -115,8 +115,8 @@ npm run test:e2e
 
 ## Gotchas
 
-- The registry is a constant read at start. Restart the API after you change it.
-- Do not add the code to a list of languages. A second list is the bug the registry replaced, and the locale guard will name it. The per-language copy tables in step 4 are not lists of languages, they hold text, so they do need an entry.
+- The registry is code, so a new language ships with a deploy. Turning it on for a store is a config change.
+- Keep the code out of any hand-written list of languages. The registry replaced that list, and the locale guard fails when code names a locale pair. The copy tables in step 4 hold text, so each one needs an entry.
 - A right to left language also needs the code in the store's `rtlLocales`, or the page renders left to right.
-- Product names, CMS bodies and other Translatable fields are data, not code. Adding the language does not translate them; editors fill the new tab, and an empty value falls back to the `default` key.
+- Product names, CMS bodies and other Translatable fields are data. Adding the language does not translate them; editors fill the new tab.
 - Run the search regeneration before you test search. Without it the new language has no weighted segment and its words do not match.

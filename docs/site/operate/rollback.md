@@ -2,7 +2,7 @@
 title: Rollback
 description: Roll the application containers back to a previous release from a git ref, what the script leaves untouched, and what to do first when the release you are leaving changed the schema.
 primaryQuery: rollback ecommerce deployment docker git ref
-updated: 2026-09-08
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -12,10 +12,16 @@ A rollback is a rebuild of the application images from an older git ref and a re
 
 ```bash
 cd /srv/themerchantengine
-bash deploy/scripts/rollback.sh v1.0.0
+bash deploy/scripts/rollback.sh <git-ref>
 ```
 
-The script resolves the ref before it moves anything, checks it out, rebuilds the API, admin and storefront images the running stack declares, and restarts only those containers. Postgres and Redis keep running; customers see the storefront answer again within the image build time.
+The ref is a commit SHA or a tag, for example `v1.0.0`. The script refuses a checkout with uncommitted changes to tracked files, resolves the ref before it moves anything, fetches tags, checks out the ref detached, rebuilds the API, admin and storefront images, and restarts only those application containers. Postgres, Redis and the edge keep running.
+
+To see every command first, without running any of them, set `ROLLBACK_DRY_RUN=1`:
+
+```bash
+ROLLBACK_DRY_RUN=1 bash deploy/scripts/rollback.sh <git-ref>
+```
 
 ## When the release you are leaving changed the schema
 

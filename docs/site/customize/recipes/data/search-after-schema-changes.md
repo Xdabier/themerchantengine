@@ -2,7 +2,7 @@
 title: Search after schema changes
 description: "Why a bare prisma db push drops the product search column and leaves its trigger behind, what breaks, how the API refuses to boot on a broken dev database, the one repair command, and what the search index actually covers."
 primaryQuery: prisma db push drops postgres tsvector column trigger repair
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
@@ -12,7 +12,8 @@ You pushed a schema change and product search returns nothing, or every product 
 
 ## Files you touch
 
-- `prisma/search_fts_setup.sql`: the column, the trigger function, the trigger, the indexes and the backfill. The only file you edit when search should cover something new.
+- `prisma/search_fts_setup.sql`: the column, the trigger function, the trigger, the indexes and the backfill. It is generated, so do not edit it by hand.
+- `prisma/fts-setup-sql.ts`: the generator behind that file. Change it, or the locale registry for a new language, then run `npm run db:fts:generate` and `npm run db:fts`.
 - `prisma/apply-fts-setup.ts`: the applier behind `npm run db:fts`, used on dev, test and the e2e harnesses.
 - `apps/api/src/bootstrap/fts-integrity.ts`: the boot check, called from `apps/api/src/main.ts`.
 - `package.json`: `db:push`, `db:push:raw`, `db:fts` and `db:setup`.
@@ -41,7 +42,7 @@ CREATE TRIGGER product_search_vector_trig
   EXECUTE FUNCTION product_search_vector_update();
 ```
 
-Prisma knows nothing about either. `prisma db push` diffs the database against `prisma/schema.prisma`, sees a column the schema does not declare, and drops it. When the table holds rows the push stops to ask, which is why every scripted push in this repository carries `--accept-data-loss`; when the table is empty it drops the column with no prompt and no message and reports the database in sync, so a fresh box loses search without a word. The trigger survives, because it fires on `name`, `description`, `shortDescription` and `tags`, none of which were dropped, and a PL/pgSQL body is late-bound so Postgres tracks no dependency on the column it assigns. The comment above `syncSchema()` in `test/e2e-global-setup.ts` records the mechanism.
+Prisma knows nothing about either. `prisma db push` diffs the database against `prisma/schema.prisma`, sees a column the schema does not declare, and drops it. When the table holds rows, the push stops to ask, which is why `db:setup` passes `--accept-data-loss`. When the table is empty, it drops the column with no prompt and no message. It reports the database in sync, so a fresh box loses search without a word. The trigger survives. It fires on `name`, `description`, `shortDescription` and `tags`, none of which were dropped. A PL/pgSQL body is late-bound, so Postgres tracks no dependency on the column it assigns. The comment above `syncSchema()` in `test/e2e-global-setup.ts` records the mechanism.
 
 ### 2. Recognise the symptom
 
@@ -129,7 +130,7 @@ On an installed box the API connects as `merchants_app`, which can neither `CREA
 
 The by-hand equivalent is on [Update](../../../operate/update.md). A restored dump carries the column, the trigger and the indexes, so a restore needs no re-apply, see [Backups and restore](../../../operate/backups-and-restore.md).
 
-### 5. The trigger is NULL-safe, and that is not optional
+### 5. Keep the trigger NULL-safe
 
 `tsvector` concatenation yields `NULL` when any operand is `NULL`, and a `NULL` vector never matches, so a product with no tags used to vanish from search. Every operand in `product_search_vector_update()` is guarded:
 
@@ -164,4 +165,4 @@ npx nx e2e storefront-e2e --grep=search
 - The file is generated from the language registry by `prisma/fts-setup-sql.ts`; do not edit it by hand. Each registry language gets a `to_tsvector` segment with its `textSearchConfig` and its own trigram indexes, and the `DROP INDEX` statements are unconditional. A new language is a registry entry, then `npm run db:fts:generate` and `npm run db:push`.
 - `prisma/apply-fts-setup.ts` runs the file as one transaction, so every index drop, index build and the backfill hold their locks on `Product`, `Category` and `Brand` together until it commits. Seconds at catalogue size, but pick the window with that in mind.
 - The trigger is bound to four columns. A bulk import that writes rows through a path that bypasses them, or a restore into a database with the column but no trigger, leaves stale vectors and only a warning at boot; `npm run db:fts` rebuilds every live row.
-- Two other pieces of SQL share this problem: `prisma/apply-notification-indexes.ts` and `prisma/apply-shipping-indexes.ts` re-install indexes the schema cannot express. `db:setup`, the installer and `test/e2e-global-setup.ts` run all three; a hand-run push runs none.
+- Two other pieces of SQL share this problem: `prisma/apply-notification-indexes.ts` and `prisma/apply-shipping-indexes.ts` re-install indexes the schema cannot express. The installer runs both after its push, and so does `test/e2e-global-setup.ts`. `npm run db:setup` runs the notification indexes but not the shipping indexes. `npm run db:push` runs neither. A raw `npx prisma db push` runs none of them. To run the shipping indexes by hand, use `npx ts-node prisma/apply-shipping-indexes.ts`.

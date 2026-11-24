@@ -2,13 +2,13 @@
 title: Add a string
 description: "Where the storefront's own copy lives, the typed contract that makes every catalogue carry every key, the placeholders for the store name and country, how a template reads a string, and the tests that run each journey under every configured locale."
 primaryQuery: add a translation string analog angular storefront i18n catalogue
-updated: 2026-09-09
+updated: 2026-11-24
 schema: HowTo
 ---
 
 ## When you need this
 
-You need a new piece of chrome copy: a label, an error, a heading, a button. Chrome copy is the text the storefront ships in its own bundle, as opposed to product names and CMS bodies, which the API resolves per `Accept-Language` and sends as plain strings. Chrome copy lives in three TypeScript catalogues, one per language the build ships (`fr`, `en`, `ar`), typed against one interface so a key cannot exist in one and not the others. This page walks the `checkout.errors` group. You end with a key that compiles in every catalogue, reads correctly in a template, and is asserted under each locale the store serves.
+You need a new piece of chrome copy: a label, an error, a heading, a button. Chrome copy is the text the storefront ships in its own bundle, as opposed to product names and CMS bodies, which the API resolves per `Accept-Language` and sends as plain strings. Chrome copy lives in three TypeScript catalogues, one per language the build ships (`fr`, `en`, `ar`), typed against one interface so a key cannot exist in one and not the others. The examples use the `checkout.errors` group. You end with a key that compiles in every catalogue, reads correctly in a template, and is asserted under each locale the store serves.
 
 ## Files you touch
 
@@ -43,11 +43,11 @@ export interface ChromeStrings {
 }
 ```
 
-The rule the file states in its own header: adding or removing a key is a compile-time edit across all languages. `fr.ts` is declared `const fr: ChromeStrings = { ... }`, so a missing leaf is a TypeScript error in that file, not a runtime blank.
+The rule the file states in its own header: adding or removing a key is a compile-time edit across all languages. `fr.ts` is declared `const fr: ChromeStrings = { ... }`, so a missing leaf is a TypeScript error in that file.
 
 ### 2. Fill it in every catalogue
 
-`apps/storefront/src/i18n/fr.ts`, the `checkout.errors` block (line 703):
+`apps/storefront/src/i18n/fr.ts`, the `checkout.errors` block (line 706):
 
 ```ts
 const fr: ChromeStrings = {
@@ -61,7 +61,7 @@ const fr: ChromeStrings = {
 };
 ```
 
-The catalogue has more than one `errors` block with these names: `account.addresses.errors` (line 969 of `fr.ts`) repeats `requiredField`, `invalidPhone`, `invalidCountry`, `invalidPostalCode` and `generic` for the saved-address form. An edit anchored on `invalidPhone:` alone lands in whichever block comes first; anchor on the parent key, or find the line from `types.ts` and edit by path. `en.ts` carries `invalidPhone: 'Enter a valid phone number.'` and `ar.ts` carries the Arabic. Fill all three in the same commit; the Arabic catalogue is not allowed to hold a Latin fallback (see the guards below).
+The catalogue has more than one `errors` block with these names: `account.addresses.errors` (line 1001 of `fr.ts`) repeats `requiredField`, `invalidPhone`, `invalidCountry`, `invalidPostalCode` and `generic` for the saved-address form. An edit anchored on `invalidPhone:` alone lands in whichever block comes first; anchor on the parent key, or find the line from `types.ts` and edit by path. `en.ts` carries `invalidPhone: 'Enter a valid phone number.'` and `ar.ts` carries the Arabic. Fill all three in the same commit; the Arabic catalogue is not allowed to hold a Latin fallback (see the guards below).
 
 ### 3. Use the placeholders, never the store's name
 
@@ -118,7 +118,7 @@ describeEveryLocale('storefront NE9 newsletter', (locale) => {
 });
 ```
 
-That test sits behind `STOREFRONT_E2E_BUILT === '1'` in the spec because a Reactive Form submit needs hydration, which the dev-server tier does not wait for. `describeEveryLocale` (`apps/storefront-e2e/src/support/locale-matrix.ts`) reads the locale set from the active scenario fixture, so the same spec runs `fr` and `en` under `maghreb-ltr` and `ar` and `en` under `gulf-rtl`. A spec that only knows two locales fails loudly under the third instead of asserting against `undefined`.
+That test sits behind `STOREFRONT_E2E_BUILT === '1'` in the spec because a Reactive Form submit needs hydration, which the dev-server tier does not wait for. `describeEveryLocale` (`apps/storefront-e2e/src/support/locale-matrix.ts`) reads the locale set from the active scenario fixture, so the same spec runs `fr` and `en` under `maghreb-ltr` and `ar` and `en` under `gulf-rtl`. A map that lacks a locale makes `copyFor` throw, so the test fails instead of comparing against `undefined`.
 
 ## Tests to run
 
@@ -129,13 +129,13 @@ npx nx e2e storefront-e2e --grep=newsletter
 STORE_CONFIG_FIXTURE=gulf-rtl npx nx e2e storefront-e2e --grep=newsletter
 ```
 
-- `npx nx test storefront` runs the three guards. `i18n.spec.ts` walks every catalogue's key paths and compares them to `fr.ts`, checks that every `auth`, `checkout`, `orderConfirmation` and `account` leaf is non-empty, keeps Arabic script out of the Latin catalogues, and fails the Arabic catalogue on any four-letter Latin run outside a short allowlist. `brand-neutrality.spec.ts` reads the client-reference guard's token table, when the checkout has it, and fails on any leaf that matches, and separately asserts the identity leaves still carry their placeholder. `no-em-dash.spec.ts` reads the bytes of every catalogue and every component `template:` block.
+- `npx nx test storefront` runs the three guards. `i18n.spec.ts` walks every catalogue's key paths and compares them to `fr.ts`, checks that every `auth`, `checkout`, `orderConfirmation` and `account` leaf is non-empty, keeps Arabic script out of the Latin catalogues, and fails the Arabic catalogue on any four-letter Latin run outside a short allowlist. `brand-neutrality.spec.ts` reads the client-reference token table from `scripts/verify-no-client-refs.tokens.json` in the repository and fails on any leaf that matches. A release archive has no table, so that test skips there. The same file also asserts that the identity leaves still carry their placeholder. `no-em-dash.spec.ts` reads the bytes of every catalogue and every component `template:` block.
 - The lint run covers the template you edited.
 - The two e2e lines run one journey under the default fixture and under the RTL one. On PowerShell set `$env:STORE_CONFIG_FIXTURE='gulf-rtl'` first.
 
 ## Gotchas
 
-- The compile-time contract catches a missing key. The runtime guard in `i18n.spec.ts` catches the other direction: a key quietly dropped from one catalogue while the interface still lists it as optional somewhere. Keep leaves required in `ChromeStrings`.
+- The compile-time contract catches a missing key. The runtime guard in `i18n.spec.ts` compares every catalogue's key paths to `fr.ts`, so a key missing from one catalogue fails the test run. Keep leaves required in `ChromeStrings`.
 - The em-dash is banned from catalogues and templates by bytes, so a label assembled in a binding is caught too. Use a comma or a period.
 - The Arabic guard strips `{placeholder}` tokens before scanning, so `{count}` is fine; a copied English sentence is not. The allowlist is four literals (`English`, `Français`, two example emails). Do not widen it to make a test pass.
 - A leaf that names the store or its market without a placeholder fails `brand-neutrality.spec.ts` and `npm run verify:no-client-refs`. The list of identity leaves is in the spec; add yours there when you add a leaf that takes `{store}` or `{country}`.
