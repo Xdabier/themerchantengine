@@ -108,6 +108,22 @@ function buildTree(categories: (RawCategory & { productCount?: number })[]): Cat
   return roots;
 }
 
+/** A storefront category node: the tree without the internal materialized path. */
+export type PublicCategoryNode = Omit<CategoryTreeNode, 'path' | 'depth' | 'children'> & {
+  children: PublicCategoryNode[];
+};
+
+/**
+ * Drops `path` and `depth` from every node. A path like `/cat-fashion/cat-men/`
+ * reads as a root-relative URL once it lands in the SSR payload, and crawlers
+ * follow it to a 404.
+ */
+function toPublicNode(node: CategoryTreeNode): PublicCategoryNode {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { path, depth, children, ...rest } = node;
+  return { ...rest, children: (children ?? []).map(toPublicNode) };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -148,9 +164,10 @@ export class CategoriesService {
    * Returns the full category tree (only visible, non-deleted categories).
    * Cached in Redis for 1 hour; invalidated on any mutation.
    */
-  async getTree(): Promise<CategoryTreeNode[]> {
+  async getTree(): Promise<PublicCategoryNode[]> {
     const cached = await this.tryGetCache(CATEGORY_TREE_CACHE_KEY);
-    if (cached) return cached as CategoryTreeNode[];
+    // Mapped on read too, so a tree cached before the strip cannot leak.
+    if (cached) return (cached as CategoryTreeNode[]).map(toPublicNode);
 
     const categories = await this.prisma.category.findMany({
       where: { isVisible: true },
@@ -162,7 +179,7 @@ export class CategoriesService {
       include: { image: CATEGORY_IMAGE_SELECT },
     });
 
-    const tree = buildTree(categories.map(withImageUrl) as RawCategory[]);
+    const tree = buildTree(categories.map(withImageUrl) as RawCategory[]).map(toPublicNode);
     await this.trySetCache(CATEGORY_TREE_CACHE_KEY, tree);
     return tree;
   }
@@ -170,7 +187,7 @@ export class CategoriesService {
   /**
    * Returns a single visible category by slug with its total product count.
    */
-  async getBySlug(slug: string): Promise<CategoryTreeNode & { productCount: number }> {
+  async getBySlug(slug: string): Promise<PublicCategoryNode & { productCount: number }> {
     const category = await this.prisma.category.findFirst({
       where: { slug, isVisible: true },
       include: { image: CATEGORY_IMAGE_SELECT },
@@ -182,7 +199,8 @@ export class CategoriesService {
       where: { categoryId: category.id },
     });
 
-    return { ...(withImageUrl(category) as RawCategory), children: [], productCount };
+    const node = toPublicNode({ ...(withImageUrl(category) as RawCategory), children: [] });
+    return { ...node, productCount };
   }
 
   /**

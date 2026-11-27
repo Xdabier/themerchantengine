@@ -902,11 +902,15 @@ export class SeoService {
       // Faceted-search query strings carry no SEO equity and waste crawl
       // budget; the canonical results live behind /catalog/ category pages.
       'Disallow: /search?',
+      // The storefront content API (/api/_analog/pages/...) returns JSON
+      // copies of pages, not pages. Every group repeats it because a named
+      // crawler ignores the * group.
+      'Disallow: /api/',
       '',
     ];
 
     for (const bot of AI_CRAWLERS) {
-      lines.push(`User-agent: ${bot}`, 'Allow: /', '');
+      lines.push(`User-agent: ${bot}`, 'Allow: /', 'Disallow: /api/', '');
     }
 
     lines.push(`Sitemap: ${siteUrl}/sitemap_index.xml`);

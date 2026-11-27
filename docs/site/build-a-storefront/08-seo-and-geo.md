@@ -136,39 +136,51 @@ Disallow: /checkout
 Disallow: /account
 Disallow: /cart
 Disallow: /search?
+Disallow: /api/
 
 User-agent: GPTBot
 Allow: /
+Disallow: /api/
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /api/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /api/
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /api/
 
 User-agent: Claude-SearchBot
 Allow: /
+Disallow: /api/
 
 User-agent: Claude-User
 Allow: /
+Disallow: /api/
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /api/
 
 User-agent: Perplexity-User
 Allow: /
+Disallow: /api/
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /api/
 
 User-agent: CCBot
 Allow: /
+Disallow: /api/
 
 Sitemap: http://localhost:53300/sitemap_index.xml
 ```

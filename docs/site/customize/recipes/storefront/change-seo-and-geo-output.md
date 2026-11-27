@@ -116,10 +116,11 @@ const lines: string[] = [
   'Disallow: /account',
   'Disallow: /cart',
   'Disallow: /search?',
+  'Disallow: /api/',
   '',
 ];
 for (const bot of AI_CRAWLERS) {
-  lines.push(`User-agent: ${bot}`, 'Allow: /', '');
+  lines.push(`User-agent: ${bot}`, 'Allow: /', 'Disallow: /api/', '');
 }
 lines.push(`Sitemap: ${siteUrl}/sitemap_index.xml`);
 ```

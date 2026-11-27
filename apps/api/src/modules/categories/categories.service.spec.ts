@@ -167,6 +167,40 @@ describe('CategoriesService', () => {
       expect(result[0].children).toHaveLength(1);
     });
 
+    // A materialized path such as /cat-fashion/cat-men/ looks like a
+    // root-relative URL. Shipped in the public payload it ends up in the SSR
+    // HTML and Googlebot crawls it as a page that 404s.
+    it('omits the internal path and depth at every level of the public tree', async () => {
+      mockRedis.get.mockResolvedValueOnce(null);
+      mockPrisma.category.findMany.mockResolvedValueOnce([makeCategory(), makeChildCategory()]);
+      mockRedis.set.mockResolvedValueOnce('OK');
+
+      const [root] = await service.getTree();
+
+      expect(root).not.toHaveProperty('path');
+      expect(root).not.toHaveProperty('depth');
+      expect(root.children[0]).not.toHaveProperty('path');
+      expect(root.children[0]).not.toHaveProperty('depth');
+    });
+
+    it('omits path and depth from a tree cached before they were stripped', async () => {
+      const stale = [
+        {
+          id: 'cat-1',
+          path: '/cat-1/',
+          depth: 0,
+          children: [{ id: 'cat-2', path: '/cat-1/cat-2/', depth: 1, children: [] }],
+        },
+      ];
+      mockRedis.get.mockResolvedValueOnce(JSON.stringify(stale));
+
+      const [root] = await service.getTree();
+
+      expect(root).not.toHaveProperty('path');
+      expect(root.children[0]).not.toHaveProperty('path');
+      expect(root.children[0]).not.toHaveProperty('depth');
+    });
+
     it('hydrates imageId to imageUrl + imageVariants and strips the raw relation', async () => {
       // S5 / H4: `imageId` left the API as a bare string and nothing on the
       // storefront could turn it into a URL.
@@ -305,6 +339,16 @@ describe('CategoriesService', () => {
 
       expect(result.slug).toBe('electronics');
       expect(result.productCount).toBe(5);
+    });
+
+    it('omits the internal path and depth', async () => {
+      mockPrisma.category.findFirst.mockResolvedValueOnce(makeChildCategory());
+      mockPrisma.productCategory.count.mockResolvedValueOnce(1);
+
+      const result = await service.getBySlug('phones');
+
+      expect(result).not.toHaveProperty('path');
+      expect(result).not.toHaveProperty('depth');
     });
 
     it('throws NotFoundException for unknown slug', async () => {
