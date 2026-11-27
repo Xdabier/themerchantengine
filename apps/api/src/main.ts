@@ -15,6 +15,7 @@ import { corsOriginCheck } from './bootstrap/cors-origin';
 import { applyEngineFingerprint } from './bootstrap/engine-fingerprint';
 import { assertFtsIntegrity } from './bootstrap/fts-integrity';
 import { serveLocalUploads } from './bootstrap/local-uploads';
+import { applyTrustProxy } from './bootstrap/trust-proxy';
 import { buildOpenApiDocument } from './openapi/openapi';
 import { PrismaService } from './prisma/prisma.service';
 import { auth, AUTH_BASE_PATH } from './auth/auth';
@@ -51,6 +52,10 @@ async function bootstrap() {
 
   // `X-Powered-By: themerchantengine` instead of Express (DR-36).
   applyEngineFingerprint(app);
+
+  // Read the client IP from X-Forwarded-For only behind a known proxy, so the
+  // throttle counts each visitor. See `apps/api/src/bootstrap/trust-proxy.ts`.
+  applyTrustProxy(app);
 
   // The local storage driver writes public files under ./uploads and hands
   // out URLs on this API; this is what answers them. The S3 driver mounts
