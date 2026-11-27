@@ -1181,6 +1181,19 @@ describe('SeoService', () => {
       expect(result).toContain('Disallow: /search?');
     });
 
+    it('disallows the storefront content api /api/ in every user-agent group', async () => {
+      mockRedis.get.mockResolvedValue(null);
+      mockRedis.setex.mockResolvedValue('OK');
+
+      const result = await service.getRobotsTxt('https://example.com');
+      const groups = result.split('\n\n').filter((g) => g.includes('User-agent:'));
+
+      expect(groups.length).toBeGreaterThan(1);
+      for (const group of groups) {
+        expect(group).toContain('Disallow: /api/');
+      }
+    });
+
     it('emits the # AI content guide comment pointing at the live llms.txt URL', async () => {
       mockRedis.get.mockResolvedValue(null);
       mockRedis.setex.mockResolvedValue('OK');
