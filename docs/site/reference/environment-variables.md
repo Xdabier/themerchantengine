@@ -2,7 +2,7 @@
 title: "Environment variables"
 description: "Every environment variable the API and the storefront read, with the comment that explains it, from the example files in the repository."
 primaryQuery: "self hosted ecommerce environment variables reference"
-updated: 2026-11-05
+updated: 2026-11-27
 schema: TechArticle
 ---
 
@@ -54,6 +54,7 @@ Every variable the engine reads, from the four example files in the repository. 
 - `STOREFRONT_MAX_FACET_SPREAD`. Optional. Example: `0.35`.
 - `ENABLE_THROTTLE`. Optional. Rate limiting. Off under NODE_ENV=test unless ENABLE_THROTTLE is set. Setting DISABLE_THROTTLE to 1 turns it off outside production only. Example: `1`.
 - `DISABLE_THROTTLE`. Optional. Example: `1`.
+- `TRUST_PROXY`. Optional. Behind a reverse proxy, the limits above see the proxy's IP for every visitor. TRUST_PROXY makes the API read the client IP from X-Forwarded-For. Takes true, a hop count, or names and subnets such as loopback or 10.0.0.0/8. Leave it unset when the API faces the internet directly. Example: `loopback`.
 - `TME_FINGERPRINT`. Optional. Technology detectors. The engine names itself in a generator meta tag and an X-Powered-By header. off, false, 0 or no removes every marker; major adds the major version. The full version is never sent. Example: `off`.
 - `TME_FINGERPRINT_VERSION`. Optional. Example: `major`.
 - `UNSUBSCRIBE_TOKEN_SECRET`. Unsubscribe links in outbound mail are signed with this. Example: `change-in-production-min-32-bytes-abcdef`.
