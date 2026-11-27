@@ -3,7 +3,12 @@
 set -uo pipefail
 cd /app
 
-: "${DATABASE_URL:?Set DATABASE_URL as a Render secret (Neon direct URL, pooling off)}"
+: "${DATABASE_URL:?Set DATABASE_URL as a Render secret (a Postgres URL in session mode, not a transaction pooler)}"
+
+# The port keeper reads this file to answer /status for the demo buttons.
+STATE_FILE=/tmp/demo-state
+set_state() { echo "$1 $(date -u +%s)" > "$STATE_FILE"; }
+set_state booting
 
 API_URL="${DEMO_API_URL:-${RENDER_EXTERNAL_URL:-https://themerchantengine-demo-api.onrender.com}}"
 STORE_CONFIG=/tmp/demo-store.config.json
@@ -13,6 +18,8 @@ node -e "const c=require('/app/test/fixtures/store-configs/demo.config.json');de
 rand() { node -e "process.stdout.write(require('crypto').randomBytes(48).toString('base64url'))"; }
 
 export NODE_ENV=production PORT="${PORT:-10000}" API_GLOBAL_PREFIX=api LOG_LEVEL=info
+# The port keeper puts the visitor address in X-Forwarded-For, so the per-IP throttle sees each visitor.
+export TRUST_PROXY="${TRUST_PROXY:-loopback}"
 export REDIS_HOST=127.0.0.1 REDIS_PORT=6379
 export BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET:-$(rand)}"
 export UNSUBSCRIBE_TOKEN_SECRET="${UNSUBSCRIBE_TOKEN_SECRET:-$(rand)}"
@@ -85,15 +92,23 @@ export API_INTERNAL_PORT=$((PORT + 1))
 ) &
 
 while true; do
+  # A database that is down or over its quota fails every retry, so wait longer each time.
+  wait=60
+  set_state reseeding
   until reseed; do
-    echo "[demo] reseed failed, retry in 60s"
-    sleep 60
+    set_state db-error
+    echo "[demo] reseed failed, retry in ${wait}s"
+    sleep "$wait"
+    wait=$((wait * 2 > 1800 ? 1800 : wait * 2))
+    set_state reseeding
   done
   # Restart a crashed API without wiping, until the nightly reset is due.
   while true; do
+    set_state up
     PORT="$API_INTERNAL_PORT" timeout "$(seconds_until_reset)" node dist/apps/api/main.js
     code=$?
     [ "$code" -eq 124 ] && break
+    set_state down
     echo "[demo] api exited $code, restart in 30s"
     sleep 30
   done
