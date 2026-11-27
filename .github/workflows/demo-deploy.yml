@@ -1,0 +1,129 @@
+# Keeps the public demo on the latest main. The demo API on Render builds
+# from the themerchantengine-demo repo, which clones this repository at main,
+# so a push here does not reach it on its own: a deploy hook asks Render to
+# rebuild. The admin and the storefront are static Netlify sites built from
+# this repository, so they are built and deployed here with the same steps
+# as the manual deploy in deploy/demo-netlify/.
+#
+# Each job skips with a notice when its secrets are missing, so forks and a
+# repository without the demo set up stay green.
+#
+# Secrets:
+# - RENDER_DEPLOY_HOOK_URL: the demo API deploy hook (Render > Settings > Deploy Hook)
+# - NETLIFY_AUTH_TOKEN: a Netlify personal access token
+# - NETLIFY_DEMO_ADMIN_SITE_ID: the demo admin site id
+# - NETLIFY_DEMO_STOREFRONT_SITE_ID: the demo storefront site id
+
+name: demo-deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time. A newer push waits, so the last push always wins.
+concurrency:
+  group: demo-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CI: 'true'
+  NX_DAEMON: 'false'
+
+jobs:
+  api:
+    name: api (render)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+    steps:
+      - name: Trigger the Render deploy
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::notice::RENDER_DEPLOY_HOOK_URL is not set, skipping the API deploy"
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          echo "Render deploy triggered"
+
+  admin:
+    name: admin (netlify)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_DEMO_ADMIN_SITE_ID }}
+    steps:
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::notice::Netlify secrets for the demo admin are not set, skipping"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.secrets.outputs.ready == 'true'
+        uses: actions/checkout@v4
+      - if: steps.secrets.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npm ci
+      # The demo configuration turns on the demo login box.
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npx nx run admin:build:demo --skip-nx-cache
+      - if: steps.secrets.outputs.ready == 'true'
+        run: cp deploy/demo-netlify/admin/_headers deploy/demo-netlify/admin/_redirects dist/apps/admin/browser/
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npx -y netlify-cli@17 deploy --prod --dir dist/apps/admin/browser --site "$NETLIFY_SITE_ID"
+
+  storefront:
+    name: storefront (netlify)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_DEMO_STOREFRONT_SITE_ID }}
+    steps:
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::notice::Netlify secrets for the demo storefront are not set, skipping"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.secrets.outputs.ready == 'true'
+        uses: actions/checkout@v4
+      - if: steps.secrets.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npx nx build storefront --configuration=production --skip-nx-cache
+        env:
+          NITRO_PRESET: netlify
+      # Same layout as the manual deploy: static files in public/, the Nitro
+      # server as one function whose entry is replaced by server.mjs.
+      - if: steps.secrets.outputs.ready == 'true'
+        run: |
+          STAGE="$RUNNER_TEMP/storefront-deploy"
+          mkdir -p "$STAGE/functions"
+          cp -r dist/apps/storefront/analog/public "$STAGE/public"
+          cp -r dist/apps/storefront/analog/server "$STAGE/functions/server"
+          cp deploy/demo-netlify/storefront/server.mjs "$STAGE/functions/server/server.mjs"
+          cp deploy/demo-netlify/storefront/_redirects deploy/demo-netlify/storefront/_headers "$STAGE/public/"
+      - if: steps.secrets.outputs.ready == 'true'
+        working-directory: ${{ runner.temp }}/storefront-deploy
+        run: npx -y netlify-cli@17 deploy --prod --site "$NETLIFY_SITE_ID" --dir public --functions functions

@@ -62,7 +62,7 @@ describe('the workflow', () => {
     expect(workflow.on).toEqual({ push: null, pull_request: null });
   });
 
-  it('names every gate the plan asks for and no other pipeline exists', () => {
+  it('names every gate the plan asks for and no other pipeline exists besides the demo deploy', () => {
     expect(Object.keys(workflow.jobs).sort()).toEqual(
       [
         'admin-e2e',
@@ -80,7 +80,7 @@ describe('the workflow', () => {
         'verify-no-client-refs',
       ].sort(),
     );
-    expect(fs.readdirSync(path.join(REPO, '.github', 'workflows'))).toEqual(['ci.yml']);
+    expect(fs.readdirSync(path.join(REPO, '.github', 'workflows'))).toEqual(['ci.yml', 'demo-deploy.yml']);
     expect(fs.existsSync(path.join(REPO, '.gitlab-ci.yml'))).toBe(false);
   });
 
